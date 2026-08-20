@@ -3,6 +3,7 @@ node_modules/
 .next/
 dist/
 coverage/
+*.tsbuildinfo
 
 # Local environment and secrets
 .env
@@ -22,4 +23,3 @@ coverage/
 # Test artifacts
 playwright-report/
 test-results/
-

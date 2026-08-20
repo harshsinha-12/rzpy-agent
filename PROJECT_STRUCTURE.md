@@ -241,4 +241,3 @@ A change is maintainable when:
 - changing one recovery strategy does not require editing unrelated dashboard, webhook, or queue files;
 - an agent's prompt, tools, schemas, and orchestration can be reviewed independently;
 - validation passes and the session log names the files and behavior changed.
-

@@ -1,0 +1,45 @@
+{
+  "name": "recoveryos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-assisted revenue recovery for Razorpay merchants",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.18.0 <23",
+    "pnpm": ">=10.33.0 <11"
+  },
+  "scripts": {
+    "build": "pnpm run build:packages && pnpm --filter './apps/**' build",
+    "build:packages": "pnpm --filter './packages/**' --if-present build",
+    "dev": "pnpm run build:packages && pnpm --parallel --filter './apps/**' dev",
+    "dev:web": "pnpm --filter @recoveryos/web dev",
+    "dev:api": "pnpm run build:packages && pnpm --filter @recoveryos/api dev",
+    "dev:worker": "pnpm run build:packages && pnpm --filter @recoveryos/worker dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:down": "docker compose down",
+    "infra:up": "docker compose up -d --wait",
+    "lint": "pnpm -r --if-present lint",
+    "lint-staged": "lint-staged",
+    "prepare": "husky",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm run build:packages && pnpm --filter './apps/**' typecheck"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "eslint --fix --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{json,md,mdx,yaml,yml,css}": "prettier --write"
+  },
+  "devDependencies": {
+    "eslint": "catalog:",
+    "eslint-config-next": "catalog:",
+    "husky": "catalog:",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
+}

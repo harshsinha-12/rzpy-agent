@@ -12,7 +12,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 0 — Planning and operating documents
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Establish the project contract before code is created.
 
@@ -37,7 +37,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 1 — Workspace foundation
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Create a runnable TypeScript monorepo without implementing product features.
 
@@ -52,6 +52,7 @@ This is the binding implementation order for the project. We will complete, veri
 - Feature-first modules following `PROJECT_STRUCTURE.md`, without empty placeholder architecture
 - pnpm workspace configuration
 - TypeScript, linting, formatting, and test configuration
+- Husky pre-commit hook with staged-file linting and formatting
 - Docker Compose services for PostgreSQL and Redis
 - Health endpoints for the API and worker dependencies
 
@@ -60,6 +61,7 @@ This is the binding implementation order for the project. We will complete, veri
 - Git tracks source and documentation without tracking local secrets or generated artifacts.
 - Clean dependency installation succeeds.
 - Type checking and linting succeed.
+- The pre-commit hook is installed and its staged-file checks succeed.
 - Web, API, PostgreSQL, Redis, and worker start locally.
 - API health check confirms database and Redis connectivity.
 - The created folders follow `PROJECT_STRUCTURE.md`, and every created source file has a current responsibility.
