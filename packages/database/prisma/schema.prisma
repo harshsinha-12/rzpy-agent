@@ -1,0 +1,267 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum DataSource {
+  SIMULATED
+  RAZORPAY_TEST_MODE
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NETBANKING
+  WALLET
+  UNKNOWN
+}
+
+enum PaymentStatus {
+  CREATED
+  FAILED
+  AUTHORIZED
+  CAPTURED
+}
+
+enum RecoveryCaseStatus {
+  OPEN
+  DIAGNOSING
+  WAITING
+  ACTION_REQUIRED
+  RECOVERY_RUNNING
+  RECOVERED
+  ESCALATED
+  STOPPED
+  EXHAUSTED
+}
+
+enum FailureCategory {
+  CUSTOMER_AUTH
+  INSUFFICIENT_FUNDS
+  GATEWAY_TRANSIENT
+  ISSUER_FAILURE
+  MERCHANT_ERROR
+  NETWORK_ERROR
+  UNKNOWN
+}
+
+enum RecoverabilityBand {
+  HIGH
+  MEDIUM
+  LOW
+  NONE
+}
+
+enum ActionType {
+  WAIT
+  CREATE_PAYMENT_LINK
+  SEND_REMINDER
+  ALTERNATIVE_METHOD
+  ESCALATE
+  STOP
+}
+
+enum PolicyDecision {
+  APPROVED
+  DENIED
+}
+
+enum ActionResult {
+  PENDING
+  SUCCEEDED
+  FAILED
+  SKIPPED
+  RETRYING
+}
+
+enum Actor {
+  WEBHOOK
+  DIAGNOSIS_ENGINE
+  RECOVERY_AGENT
+  POLICY_ENGINE
+  EXECUTION_LAYER
+  SYSTEM
+}
+
+model Merchant {
+  id        String   @id
+  slug      String   @unique
+  name      String
+  dataSource DataSource
+  createdAt DateTime
+  updatedAt DateTime
+
+  customers      Customer[]
+  paymentEvents  PaymentEvent[]
+  recoveryCases  RecoveryCase[]
+  recoveryPolicy RecoveryPolicy?
+  simulationRuns SimulationRun[]
+}
+
+model Customer {
+  id          String     @id
+  merchantId  String
+  externalRef String
+  email       String?
+  phone       String?
+  name        String
+  optedOut    Boolean    @default(false)
+  dataSource  DataSource
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  paymentEvents PaymentEvent[]
+  recoveryCases RecoveryCase[]
+
+  @@unique([merchantId, externalRef])
+}
+
+model RecoveryPolicy {
+  id                         String       @id
+  merchantId                 String       @unique
+  maxAttemptsPerCase         Int
+  maxMessagesPerDay          Int
+  minimumRetryDelayMinutes   Int
+  recoveryWindowHours        Int
+  allowedActions             ActionType[]
+  dataSource                 DataSource
+  createdAt                  DateTime
+  updatedAt                  DateTime
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model PaymentEvent {
+  id                String        @id
+  merchantId        String
+  customerId        String
+  razorpayPaymentId String        @unique
+  razorpayOrderId   String
+  eventType         String
+  amountPaise       Int
+  currency          String
+  paymentMethod     PaymentMethod
+  status            PaymentStatus
+  errorCode         String?
+  errorSource       String?
+  errorStep         String?
+  errorReason       String?
+  errorDescription  String?
+  occurredAt        DateTime
+  rawPayload        Json
+  dataSource        DataSource
+  createdAt         DateTime
+
+  merchant     Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  recoveryCase RecoveryCase?
+
+  @@index([merchantId, occurredAt])
+  @@index([razorpayOrderId])
+}
+
+model RecoveryCase {
+  id                    String              @id
+  publicId              String              @unique
+  merchantId            String
+  customerId            String
+  paymentEventId        String              @unique
+  amountAtRiskPaise     Int
+  recoveredAmountPaise  Int                 @default(0)
+  currency              String
+  status                RecoveryCaseStatus
+  failureCategory       FailureCategory
+  recoverabilityBand    RecoverabilityBand
+  recoverabilityScore   Int
+  diagnosis             String
+  openedAt              DateTime
+  closedAt              DateTime?
+  lastUpdatedAt         DateTime
+  dataSource            DataSource
+
+  merchant     Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  paymentEvent PaymentEvent     @relation(fields: [paymentEventId], references: [id], onDelete: Cascade)
+  actions      RecoveryAction[]
+  auditEvents  AuditEvent[]
+
+  @@index([merchantId, status])
+  @@index([merchantId, lastUpdatedAt])
+}
+
+model RecoveryAction {
+  id                String          @id
+  caseId            String
+  attemptNumber     Int
+  actionType        ActionType
+  proposedBy        Actor
+  reason            String
+  confidence        Int
+  policyDecision    PolicyDecision
+  policyReason      String
+  scheduledFor      DateTime?
+  executedAt        DateTime?
+  result            ActionResult
+  razorpayReference String?
+  idempotencyKey    String          @unique
+  input             Json?
+  output            Json?
+  dataSource        DataSource
+  createdAt         DateTime
+
+  recoveryCase RecoveryCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  auditEvents  AuditEvent[]
+
+  @@unique([caseId, actionType, attemptNumber])
+  @@index([caseId, createdAt])
+}
+
+model AuditEvent {
+  id         String     @id
+  caseId     String
+  actionId   String?
+  actor      Actor
+  eventType  String
+  input      Json?
+  decision   String?
+  reasoning  String?
+  output     Json?
+  occurredAt DateTime
+  dataSource DataSource
+
+  recoveryCase RecoveryCase    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  action       RecoveryAction? @relation(fields: [actionId], references: [id], onDelete: SetNull)
+
+  @@index([caseId, occurredAt])
+}
+
+model SimulationRun {
+  id                       String     @id
+  merchantId               String
+  seed                     Int
+  configuration            Json
+  paymentCount             Int
+  revenueAtRiskPaise       Int
+  recoveredRevenuePaise    Int
+  baselineRevenuePaise     Int
+  incrementalRevenuePaise  Int
+  recoveryRateBps          Int
+  attempts                 Int
+  falseInterventions       Int
+  policyStops              Int
+  customerContacts         Int
+  dataSource               DataSource
+  startedAt                DateTime
+  completedAt              DateTime
+  createdAt                DateTime
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, seed])
+}

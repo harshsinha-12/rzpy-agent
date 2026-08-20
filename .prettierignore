@@ -3,6 +3,7 @@ coverage
 dist
 idea.md
 node_modules
+packages/database/src/generated
 pnpm-lock.yaml
 playwright-report
 test-results

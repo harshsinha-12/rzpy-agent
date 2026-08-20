@@ -4,20 +4,20 @@ Last updated: 2026-08-20
 
 ## Current snapshot
 
-- **Current step:** Step 1 — Workspace foundation
+- **Current step:** Step 2 — Database schema and deterministic seed data
 - **State:** Awaiting approval
-- **Application code:** Foundation implemented; product behavior not started
-- **Runtime services:** Stopped at user request; Docker data volumes preserved
-- **Current blocker:** User approval is required before Step 2
-- **Exact next action:** After approval, implement only the Step 2 database schema and deterministic seed data
+- **Application code:** Schema and deterministic seed implemented; product APIs not started
+- **Runtime services:** Docker PostgreSQL and Redis are running with the seeded demo merchant
+- **Current blocker:** User approval is required before Step 3
+- **Exact next action:** After approval, implement only the Step 3 read-only product API
 
 ## Step overview
 
 | Step | Name                                             | State             |
 | ---: | ------------------------------------------------ | ----------------- |
 |    0 | Planning and operating documents                 | Complete          |
-|    1 | Workspace foundation                             | Awaiting approval |
-|    2 | Database schema and deterministic seed data      | Not started       |
+|    1 | Workspace foundation                             | Complete          |
+|    2 | Database schema and deterministic seed data      | Awaiting approval |
 |    3 | Read-only product API                            | Not started       |
 |    4 | Dashboard and Reported Issues frontend           | Not started       |
 |    5 | Razorpay Test Mode ingestion                     | Not started       |
@@ -260,6 +260,72 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review the categorized commits, then either request a push or approve Step 1 and start Step 2 separately.
+
+### 2026-08-20 — Step 2 schema and deterministic seed
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:** Implement Plan Step 2 after approving Step 1.
+
+**Completed:**
+
+- Marked Step 1 complete and implemented only the Step 2 database schema and seed.
+- Added Prisma 7 to `@recoveryos/database` with models for Merchant, Customer, PaymentEvent, RecoveryCase, RecoveryAction, AuditEvent, RecoveryPolicy, and SimulationRun.
+- Added shared domain enums for case state, action type, policy decision, failure category, and data source.
+- Added a deterministic seed for Aurora Retail covering recovered, waiting, stopped, escalated, exhausted, and Razorpay API retry-failure cases.
+- Stored amounts as integer paise and labelled every seeded case `SIMULATED`.
+
+**Files changed:**
+
+- `packages/database` Prisma schema, migration, seed, client factory, and tests
+- `packages/domain` recovery and payment enums
+- Root workspace scripts, pnpm catalog, ignore rules, README, PLAN, STATUS, and DECISIONS
+
+**Validation:**
+
+- `pnpm format:check` passed.
+- `pnpm lint` passed with zero warnings.
+- `pnpm typecheck` passed.
+- `pnpm test` passed, including 11 database tests for enum alignment, uniqueness, foreign keys, and seed idempotency.
+- `pnpm build` passed.
+- `pnpm db:seed` twice produced 1 merchant and the same 7 cases: RC-1001 recovered ₹4,999, plus waiting, stopped, exhausted, escalated, and retry-failure rows.
+
+**Blockers:**
+
+- No implementation blocker remains. Step 3 requires explicit user approval.
+
+**Next action:**
+
+- On approval, mark Step 2 complete, mark Step 3 in progress, and implement the read-only product API only.
+
+### 2026-08-20 — Step 2 work organized into focused commits
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:** Commit the Step 2 work in categories based on each file's responsibility.
+
+**Completed:**
+
+- Created the `codex/step-2-database` branch from `main`.
+- Split the work into focused commits for domain contracts, workspace Prisma tooling, schema/client, deterministic seed, and project documentation.
+- Kept all commits local; nothing was pushed.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- Husky and lint-staged passed for every categorized commit.
+- Inspected the final commit history and working-tree state.
+
+**Blockers:**
+
+- None. Step 2 still requires explicit user approval before Step 3 begins.
+
+**Next action:**
+
+- Review the categorized commits, then either request a push or approve Step 2 and start Step 3 separately.
 
 ## Session entry template
 

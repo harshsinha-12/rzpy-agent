@@ -20,6 +20,9 @@ This file records durable product and architecture decisions. Add a new row when
 | D-014 | 2026-08-20 | Use Husky and lint-staged for pre-commit linting and formatting.                                                   | Fast staged-file checks prevent avoidable style and lint errors without making every commit run the entire build suite. | Accepted |
 | D-015 | 2026-08-20 | Expose the project Docker Redis service on host port 6380.                                                         | Port 6379 is already used by a machine-level Redis service; isolation avoids disrupting unrelated local state.          | Accepted |
 | D-016 | 2026-08-20 | Use Next.js Webpack mode for production builds while retaining the default development server.                     | Turbopack's CSS helper could not bind its temporary port in the sandbox, while the supported Webpack build succeeded.   | Accepted |
+| D-017 | 2026-08-20 | Use Prisma ORM 7 with `prisma-client`, `prisma.config.ts`, and `@prisma/adapter-pg`.                               | Prisma 7 requires a driver adapter and generated client output; this keeps the database package ESM-compatible.         | Accepted |
+| D-018 | 2026-08-20 | Replace the Aurora Retail demo merchant on every seed run using a fixed `DEMO_SEED`.                               | Re-running seed must stay deterministic without duplicating cases, actions, or audit events.                            | Accepted |
+| D-019 | 2026-08-20 | Allow Prisma engine install scripts in the pnpm `onlyBuiltDependencies` list.                                      | Prisma CLI needs its engine postinstall to generate the client and run migrations.                                      | Accepted |
 
 ## Open decisions
 

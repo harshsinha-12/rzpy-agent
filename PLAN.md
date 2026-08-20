@@ -37,7 +37,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 1 — Workspace foundation
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Create a runnable TypeScript monorepo without implementing product features.
 
@@ -71,7 +71,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 2 — Database schema and deterministic seed data
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Establish the durable domain model and populate realistic demo cases.
 

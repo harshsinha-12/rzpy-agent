@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 1 workspace foundation implemented and awaiting approval before Step 2 database work.
+> Current state: Step 2 database schema and seed implemented and awaiting approval before Step 3 API work.
 
 ## Core workflow
 
@@ -56,7 +56,7 @@ apps/
 
 packages/
   config/    Shared TypeScript configuration
-  database/  PostgreSQL connection boundary
+  database/  Prisma schema, migrations, seed, and connection boundary
   domain/    Shared domain contracts
   razorpay/  Test-mode configuration boundary; API behavior begins in Step 5
 ```
@@ -77,8 +77,11 @@ Install dependencies and prepare the local environment:
 cp .env.example .env
 pnpm install --frozen-lockfile
 pnpm infra:up
+pnpm db:setup
 pnpm dev
 ```
+
+`pnpm db:setup` generates the Prisma client, applies migrations, and loads the deterministic demo seed. Re-running `pnpm db:seed` replaces the Aurora Retail demo merchant with the same records for the configured `DEMO_SEED`.
 
 Local endpoints:
 
@@ -106,6 +109,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm db:setup
 ```
 
 `pnpm install` also prepares Husky. The pre-commit hook uses lint-staged to run ESLint and Prettier only against staged files. The production web build intentionally uses Next.js Webpack mode because Turbopack's CSS helper requires a temporary local port that is unavailable in some sandboxed build environments.
