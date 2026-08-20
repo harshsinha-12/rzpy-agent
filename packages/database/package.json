@@ -12,18 +12,27 @@
     }
   },
   "scripts": {
-    "build": "rimraf dist && tsc -p tsconfig.build.json",
+    "build": "prisma generate && rimraf dist && tsc -p tsconfig.build.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset --force",
+    "db:seed": "prisma db seed",
     "lint": "eslint src --max-warnings=0",
-    "test": "vitest run src --passWithNoTests",
-    "typecheck": "tsc --noEmit"
+    "test": "prisma generate && vitest run src --passWithNoTests",
+    "typecheck": "prisma generate && tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "catalog:",
+    "@prisma/client": "catalog:",
+    "@recoveryos/domain": "workspace:*",
     "pg": "catalog:"
   },
   "devDependencies": {
     "@recoveryos/config": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "prisma": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

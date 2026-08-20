@@ -28,6 +28,7 @@ export default defineConfig([
     "**/coverage/**",
     "**/dist/**",
     "**/node_modules/**",
+    "**/src/generated/**",
     "playwright-report/**",
     "test-results/**",
   ]),
