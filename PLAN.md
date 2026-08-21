@@ -188,7 +188,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 7 — AI proposal and deterministic policy engine
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Let AI propose a bounded strategy while deterministic code retains authority.
 
@@ -212,7 +212,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 8 — BullMQ recovery orchestration
 
-**Status:** Not started
+**Status:** Complete
 
 **Goal:** Execute recovery workflows asynchronously and reliably.
 
@@ -236,7 +236,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 9 — Recovery execution tools
 
-**Status:** Not started
+**Status:** Awaiting approval; live paid-link acceptance pending
 
 **Goal:** Implement one real, bounded recovery action and safe simulated alternatives.
 

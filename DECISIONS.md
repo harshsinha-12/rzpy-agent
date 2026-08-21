@@ -31,6 +31,9 @@ This file records durable product and architecture decisions. Add a new row when
 | D-025 | 2026-08-21 | Keep deterministic diagnosis in a pure `@recoveryos/recovery-engine` package and store explainability in diagnosis audit events.                                                         | Classification must remain testable without infrastructure, while evidence and fallback recommendations remain auditable and visible to the product.                                 | Accepted |
 | D-026 | 2026-08-21 | Use `gpt-5.6-terra` through the Responses API for bounded recovery proposals, with low reasoning, a 700-token output cap, a 12-second timeout, one retry, and response storage disabled. | Terra balances intelligence and cost; explicit request limits keep one proposal per new case predictable and the model remains configurable through `OPENAI_MODEL`.                  | Accepted |
 | D-027 | 2026-08-21 | Give the recovery model no function tools and keep policy validation as pure deterministic code in `@recoveryos/recovery-engine`.                                                        | The agent only needs supplied read-only facts; payment state, consent, limits, cooldown, duplicates, and merchant-failure safety must remain enforceable regardless of model output. | Accepted |
+| D-028 | 2026-08-21 | Orchestrate recovery with BullMQ delayed jobs, stable job IDs, and Postgres `RecoveryJob` records; inject execution tools.                                                               | Queues, retries, and idempotency can ship before Payment Link/reminder adapters, which Step 9 attaches through `RecoveryActionExecutor`.                                             | Accepted |
+| D-029 | 2026-08-21 | Create only silent Test Mode Payment Links with an action-derived unique reference; keep reminders and alternative-method outreach simulated.                                            | A queryable reference prevents retry duplicates, while disabled provider notifications ensure link creation never contacts a customer.                                               | Accepted |
+| D-030 | 2026-08-21 | Use `RAZORPAY_TEST_MODE_API_KEY` and `RAZORPAY_TEST_MODE_SECRET_KEY` as the only Test Mode API credential names.                                                                         | The explicit names match the supplied environment and avoid ambiguous legacy configuration across API and worker runtimes.                                                           | Accepted |
 
 ## Open decisions
 
@@ -39,5 +42,4 @@ These decisions are intentionally deferred until their plan step approaches:
 | Needed by | Decision                                                      |
 | --------: | ------------------------------------------------------------- |
 |    Step 5 | Razorpay Test Mode account and webhook exposure method        |
-|    Step 9 | Whether reminders remain simulated for the entire demo        |
 |   Step 12 | Vercel plus Railway/Render, or another deployment combination |
