@@ -1,15 +1,15 @@
 # Project Status
 
-Last updated: 2026-08-20
+Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 2 — Database schema and deterministic seed data
+- **Current step:** Step 3 — Read-only product API
 - **State:** Awaiting approval
-- **Application code:** Schema and deterministic seed implemented; product APIs not started
-- **Runtime services:** Docker PostgreSQL and Redis are running with the seeded demo merchant
-- **Current blocker:** User approval is required before Step 3
-- **Exact next action:** After approval, implement only the Step 3 read-only product API
+- **Application code:** Read-only recovery case and analytics APIs implemented; frontend product work not started
+- **Runtime services:** Docker PostgreSQL and Redis are running with the seeded demo merchant; the temporary API validation process is stopped
+- **Current blocker:** User approval is required before Step 4
+- **Exact next action:** Review Step 3, then approve Step 4 separately
 
 ## Step overview
 
@@ -17,8 +17,8 @@ Last updated: 2026-08-20
 | ---: | ------------------------------------------------ | ----------------- |
 |    0 | Planning and operating documents                 | Complete          |
 |    1 | Workspace foundation                             | Complete          |
-|    2 | Database schema and deterministic seed data      | Awaiting approval |
-|    3 | Read-only product API                            | Not started       |
+|    2 | Database schema and deterministic seed data      | Complete          |
+|    3 | Read-only product API                            | Awaiting approval |
 |    4 | Dashboard and Reported Issues frontend           | Not started       |
 |    5 | Razorpay Test Mode ingestion                     | Not started       |
 |    6 | Deterministic diagnosis engine                   | Not started       |
@@ -326,6 +326,83 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review the categorized commits, then either request a push or approve Step 2 and start Step 3 separately.
+
+### 2026-08-21 — Step 3 read-only product API
+
+**Agent:** Codex
+
+**Requested outcome:** Approve Step 2 and implement Plan Step 3.
+
+**Completed:**
+
+- Marked Step 2 complete and implemented only the Step 3 read-only API scope.
+- Added `GET /recovery/cases` with search, filters, amount/latest sorting, and stable pagination.
+- Added `GET /recovery/cases/:id` with normalized payment facts, recovery actions, customer context, and an ordered audit timeline.
+- Added `GET /analytics/overview` with reconciled KPIs, recovery funnel, failure/status/payment-method breakdowns, action performance, and the latest seeded simulation comparison.
+- Added Zod request validation and a consistent error envelope for invalid input, missing cases, unknown routes, and internal failures.
+- Kept raw Razorpay payloads in PostgreSQL and out of merchant-facing API responses.
+- Kept every amount in integer paise and every case, action, audit item, breakdown, and aggregate tied to explicit data-source labels.
+- Stopped the temporary API process after live endpoint verification; Step 4 frontend work was not started.
+
+**Files changed:**
+
+- `apps/api/src/app.ts`
+- `apps/api/src/lib/errors.ts`
+- `apps/api/src/lib/error-handler.ts`
+- `apps/api/src/modules/recoveries/*`
+- `apps/api/src/modules/analytics/*`
+- `packages/database/src/index.ts`
+- `README.md`, `PLAN.md`, `STATUS.md`, and `DECISIONS.md`
+
+**Validation:**
+
+- `pnpm format:check` passed.
+- `pnpm lint` passed with zero warnings.
+- `pnpm typecheck` passed across all packages and applications.
+- `pnpm test` passed: 10 test files and 25 tests, including 8 API tests.
+- API tests covered valid combined queries, invalid queries, stable pagination, amount sorting, case detail, missing cases, and exact analytics reconciliation against PostgreSQL.
+- `pnpm build` passed for all packages and applications.
+- The built API returned HTTP 200 for the case list, `RC-1001` detail, and analytics overview against the seeded database.
+- Port 4000 had no listener after the validation process was stopped.
+
+**Blockers:**
+
+- No implementation blocker remains. Step 4 requires explicit user approval.
+
+**Next action:**
+
+- Review Step 3, then mark it complete and begin the dashboard and Reported Issues frontend only after approval.
+
+### 2026-08-21 — Step 3 work organized into focused commits
+
+**Agent:** Codex
+
+**Requested outcome:** Commit the Step 3 work in categories based on each file's responsibility.
+
+**Completed:**
+
+- Kept the existing `codex/step-3-read-only-api` branch.
+- Split the work into focused commits for shared API errors, recovery queries, overview analytics, application wiring, database-backed tests, and project documentation.
+- Corrected `PLAN.md` so Step 3 consistently reads `Awaiting approval` across the project documents.
+- Kept all commits local; nothing was pushed.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- Husky and lint-staged passed for every categorized source and test commit.
+- Inspected each staged file set before committing it.
+- Final commit history and working-tree state were inspected after the documentation commit.
+
+**Blockers:**
+
+- None. Step 3 remains awaiting approval before Step 4 begins.
+
+**Next action:**
+
+- Review the categorized commits, then either request a push or approve Step 3 and start Step 4 separately.
 
 ## Session entry template
 
