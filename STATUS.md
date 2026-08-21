@@ -6,7 +6,7 @@ Last updated: 2026-08-21
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
 - **State:** Steps 10 and 11 are complete after user approval; Step 12 is in progress with the public project explanation and architecture package
-- **Application code:** The frontend now includes a plain-language About page and an accessible runtime architecture diagram covering Razorpay Test Mode, GPT-5.6 Terra, deterministic policy, Fastify, PostgreSQL, Redis/BullMQ, the five worker queues, 60-second reconciliation, and the simulator. Matching Mermaid diagrams live in `ARCHITECTURE.md`.
+- **Application code:** The frontend now includes a plain-language About page and an accessible runtime architecture diagram covering Razorpay Test Mode, GPT-5.6 Terra, deterministic policy, Fastify, PostgreSQL, Redis/BullMQ, the five worker queues, 60-second reconciliation, and the simulator. Matching Mermaid diagrams live in `ARCHITECTURE.md`. The web `tsconfig.json` no longer uses deprecated TypeScript `baseUrl`.
 - **Runtime services:** The web, API, worker, Docker PostgreSQL, and Docker Redis services were observed running locally during this session
 - **Current blocker:** A signed live webhook still needs a separate webhook secret and public HTTPS URL; API-only verification is configured and authenticated
 - **Exact next action:** Review the About and architecture surfaces, then continue the remaining Step 12 deployment and demo-package work
@@ -923,6 +923,35 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review the rendered Mermaid diagrams on GitHub, then continue the remaining Step 12 work after approval.
+
+### 2026-08-21 — Remove deprecated web tsconfig baseUrl
+
+**Agent:** Cursor
+
+**Requested outcome:** Fix the TypeScript 6 `baseUrl` deprecation error in `apps/web/tsconfig.json`.
+
+**Completed:**
+
+- Removed deprecated `compilerOptions.baseUrl` from the web TypeScript config.
+- Kept the `@/*` path mapping, which already included the `./src/*` prefix relative to the config file.
+
+**Files changed:**
+
+- `apps/web/tsconfig.json`
+- `STATUS.md`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/web typecheck` passed (`tsc --noEmit` exit 0).
+- IDE diagnostics for `apps/web/tsconfig.json` reported no issues.
+
+**Blockers:**
+
+- Unchanged: live signed webhooks remain outstanding for Step 5.
+
+**Next action:**
+
+- Continue remaining Step 12 deployment and demo-package work.
 
 ## Session entry template
 
