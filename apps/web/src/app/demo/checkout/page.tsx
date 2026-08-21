@@ -63,8 +63,8 @@ export default async function DemoCheckoutPage() {
               .
             </li>
             <li>
-              Put <code>RAZORPAY_KEY_ID</code> and{" "}
-              <code>RAZORPAY_KEY_SECRET</code> in the untracked{" "}
+              Put <code>RAZORPAY_TEST_MODE_API_KEY</code> and{" "}
+              <code>RAZORPAY_TEST_MODE_SECRET_KEY</code> in the untracked{" "}
               <code>.env</code> file.
             </li>
             <li>

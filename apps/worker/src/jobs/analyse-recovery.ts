@@ -3,12 +3,22 @@ import { randomUUID } from "node:crypto";
 import type { RecoveryAgent } from "@recoveryos/agents";
 import type { Prisma, PrismaClient } from "@recoveryos/database";
 import type { ActionType, RecoveryCaseStatus } from "@recoveryos/domain";
-import { validateRecoveryAction } from "@recoveryos/recovery-engine";
+import {
+  recoveryIdempotencyKey,
+  validateRecoveryAction,
+} from "@recoveryos/recovery-engine";
 
 import { readDiagnosisOutput } from "../agents/recovery-context.js";
 
 function jsonValue(value: Record<string, unknown>): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
+}
+
+export interface AnalyseRecoveryResult {
+  actionId: string | null;
+  alreadyProcessed: boolean;
+  decision: "APPROVED" | "DENIED" | null;
+  scheduledFor: Date | null;
 }
 
 function statusForAction(action: ActionType): RecoveryCaseStatus {
@@ -22,7 +32,7 @@ export async function analyseRecoveryCase(
   prisma: PrismaClient,
   caseId: string,
   agent: RecoveryAgent,
-): Promise<void> {
+): Promise<AnalyseRecoveryResult> {
   const agentRun = await agent.propose(caseId);
   const now = new Date();
   const recoveryCase = await prisma.recoveryCase.findUnique({
@@ -51,13 +61,25 @@ export async function analyseRecoveryCase(
     throw new Error("The recovery case merchant has no recovery policy.");
   }
 
-  const idempotencyKey = `recovery:${recoveryCase.paymentEvent.razorpayPaymentId}:proposal:1`;
+  const idempotencyKey = recoveryIdempotencyKey({
+    action: "proposal",
+    attempt: 1,
+    paymentId: recoveryCase.paymentEvent.razorpayPaymentId,
+  });
   if (
     recoveryCase.actions.some(
       (action) => action.idempotencyKey === idempotencyKey,
     )
   ) {
-    return;
+    const existing = recoveryCase.actions.find(
+      (action) => action.idempotencyKey === idempotencyKey,
+    );
+    return {
+      actionId: existing?.id ?? null,
+      alreadyProcessed: true,
+      decision: existing?.policyDecision ?? null,
+      scheduledFor: existing?.scheduledFor ?? null,
+    };
   }
 
   const diagnosisOutput = readDiagnosisOutput(recoveryCase.auditEvents);
@@ -202,4 +224,11 @@ export async function analyseRecoveryCase(
       where: { id: caseId },
     });
   });
+
+  return {
+    actionId,
+    alreadyProcessed: false,
+    decision: policyResult.decision,
+    scheduledFor: policyResult.scheduledFor,
+  };
 }

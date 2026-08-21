@@ -24,6 +24,8 @@ const envSchema = z.object({
     .default("")
     .transform((value) => value || undefined),
   OPENAI_MODEL: z.string().trim().min(1).default("gpt-5.6-terra"),
+  RAZORPAY_TEST_MODE_API_KEY: z.string().trim().default(""),
+  RAZORPAY_TEST_MODE_SECRET_KEY: z.string().trim().default(""),
   REDIS_URL: z.string().url().default("redis://localhost:6380"),
   WORKER_HEALTH_HOST: z.string().default("0.0.0.0"),
   WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4001),

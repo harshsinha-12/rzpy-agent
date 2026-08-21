@@ -2,28 +2,33 @@ import {
   razorpayClientConfigSchema,
   type RazorpayClientConfig,
 } from "./config.js";
-
-export interface CreateRazorpayOrderInput {
-  amountPaise: number;
-  currency: "INR";
-  receipt: string;
-  notes?: Record<string, string>;
-}
-
-export interface RazorpayOrder {
-  amount: number;
-  currency: string;
-  id: string;
-  receipt: string | null;
-  status: string;
-}
+import { createRazorpayRequest, type RazorpayHttp } from "./http.js";
+import {
+  ensurePaymentLink,
+  fetchPaymentLink,
+  findPaymentLinkByReference,
+  type CreatePaymentLinkInput,
+  type EnsurePaymentLinkResult,
+  type RazorpayPaymentLink,
+} from "./payment-links.js";
+import { fetchPayment } from "./payments.js";
+import {
+  createOrder,
+  type CreateRazorpayOrderInput,
+  type RazorpayOrder,
+} from "./orders.js";
+import type { RazorpayPaymentEntity } from "./schemas.js";
 
 export interface RazorpayClient {
   createOrder(input: CreateRazorpayOrderInput): Promise<RazorpayOrder>;
-}
-
-interface RazorpayHttp {
-  fetch: typeof fetch;
+  ensurePaymentLink(
+    input: CreatePaymentLinkInput,
+  ): Promise<EnsurePaymentLinkResult>;
+  fetchPayment(paymentId: string): Promise<RazorpayPaymentEntity>;
+  fetchPaymentLink(paymentLinkId: string): Promise<RazorpayPaymentLink>;
+  findPaymentLinkByReference(
+    referenceId: string,
+  ): Promise<RazorpayPaymentLink | null>;
 }
 
 export function createRazorpayClient(
@@ -32,51 +37,23 @@ export function createRazorpayClient(
 ): RazorpayClient {
   const parsed = razorpayClientConfigSchema.parse(config);
   const authorization = `Basic ${Buffer.from(`${parsed.keyId}:${parsed.keySecret}`).toString("base64")}`;
+  const request = createRazorpayRequest(authorization, http);
 
   return {
-    async createOrder(input) {
-      const response = await http.fetch("https://api.razorpay.com/v1/orders", {
-        body: JSON.stringify({
-          amount: input.amountPaise,
-          currency: input.currency,
-          notes: input.notes ?? {},
-          receipt: input.receipt,
-        }),
-        headers: {
-          Authorization: authorization,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const body: unknown = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Razorpay order creation failed.");
-      }
-
-      const record = body as {
-        amount?: number;
-        currency?: string;
-        id?: string;
-        receipt?: string | null;
-        status?: string;
-      };
-
-      if (
-        typeof record.id !== "string" ||
-        typeof record.amount !== "number" ||
-        typeof record.currency !== "string"
-      ) {
-        throw new Error("Razorpay order response was incomplete.");
-      }
-
-      return {
-        amount: record.amount,
-        currency: record.currency,
-        id: record.id,
-        receipt: record.receipt ?? null,
-        status: record.status ?? "created",
-      };
-    },
+    createOrder: (input) => createOrder(request, input),
+    ensurePaymentLink: (input) => ensurePaymentLink(request, input),
+    fetchPayment: (paymentId) => fetchPayment(request, paymentId),
+    fetchPaymentLink: (paymentLinkId) =>
+      fetchPaymentLink(request, paymentLinkId),
+    findPaymentLinkByReference: (referenceId) =>
+      findPaymentLinkByReference(request, referenceId),
   };
 }
+
+export type {
+  CreatePaymentLinkInput,
+  CreateRazorpayOrderInput,
+  EnsurePaymentLinkResult,
+  RazorpayOrder,
+  RazorpayPaymentLink,
+};

@@ -292,3 +292,33 @@ model WebhookEvent {
 
   @@index([merchantId, receivedAt])
 }
+
+enum RecoveryJobStatus {
+  QUEUED
+  ACTIVE
+  COMPLETED
+  FAILED
+  EXHAUSTED
+}
+
+model RecoveryJob {
+  id            String             @id
+  queueName     String
+  bullJobId     String
+  jobName       String
+  payload       Json
+  status        RecoveryJobStatus
+  attemptCount  Int                @default(0)
+  maxAttempts   Int
+  lastError     String?
+  caseId        String?
+  actionId      String?
+  dataSource    DataSource
+  scheduledFor  DateTime?
+  createdAt     DateTime
+  updatedAt     DateTime
+  completedAt   DateTime?
+
+  @@unique([queueName, bullJobId])
+  @@index([status, updatedAt])
+}

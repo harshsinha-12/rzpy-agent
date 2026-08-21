@@ -5,6 +5,13 @@ export type {
   DiagnosisInput,
   DiagnosisResult,
 } from "./diagnosis/types.js";
+export type {
+  RecoveryActionExecutionInput,
+  RecoveryActionExecutionResult,
+  RecoveryActionExecutor,
+} from "./execution/types.js";
+export { TransientRecoveryError } from "./execution/types.js";
+export { recoveryIdempotencyKey } from "./idempotency/keys.js";
 export { validateRecoveryAction } from "./policy/validate.js";
 export type {
   PolicyViolation,

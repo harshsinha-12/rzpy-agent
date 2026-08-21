@@ -4,12 +4,12 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 7 — AI proposal and deterministic policy engine
-- **State:** Awaiting approval; Step 5 live acceptance remains externally blocked
-- **Application code:** Structured Terra proposals, safe fallback, deterministic policy enforcement, audit persistence, and UI explanation are implemented
+- **Current step:** Step 9 — Recovery execution tools
+- **State:** Step 8 and Step 9 are integrated; approval and one live paid-link acceptance check remain
+- **Application code:** BullMQ orchestration now invokes payment rechecks, idempotent silent Test Mode Payment Links, simulated alternatives, durable stop/escalation, and API/webhook outcome verification.
 - **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
-- **Current blocker:** User approval is required before Step 8; Step 5 separately still needs Test Mode credentials and a public HTTPS webhook URL
-- **Exact next action:** Review and approve Step 7; do not start Step 8 before explicit approval
+- **Current blocker:** A signed live webhook still needs a separate webhook secret and public HTTPS URL; API-only verification is configured and authenticated
+- **Exact next action:** Pay one silent Test Mode recovery link, verify the case/dashboard update, then review and approve Step 9
 
 ## Step overview
 
@@ -20,11 +20,11 @@ Last updated: 2026-08-21
 |    2 | Database schema and deterministic seed data      | Complete          |
 |    3 | Read-only product API                            | Complete          |
 |    4 | Dashboard and Reported Issues frontend           | Complete          |
-|    5 | Razorpay Test Mode ingestion                     | Blocked           |
+|    5 | Razorpay Test Mode ingestion                     | Partially blocked |
 |    6 | Deterministic diagnosis engine                   | Complete          |
-|    7 | AI proposal and deterministic policy engine      | Awaiting approval |
-|    8 | BullMQ recovery orchestration                    | Not started       |
-|    9 | Recovery execution tools                         | Not started       |
+|    7 | AI proposal and deterministic policy engine      | Complete          |
+|    8 | BullMQ recovery orchestration                    | Complete          |
+|    9 | Recovery execution tools                         | Awaiting approval |
 |   10 | Simulator and evaluation harness                 | Not started       |
 |   11 | Reliability, security, and end-to-end validation | Not started       |
 |   12 | Deployment and hackathon demo package            | Not started       |
@@ -46,7 +46,7 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 | ------------------------------- | -------------: | ------------------------------ |
 | Local PostgreSQL URL            |              1 | Configured with Docker default |
 | Local Redis URL                 |              1 | Configured on host port 6380   |
-| Razorpay Test Key ID and Secret |              5 | Not provided                   |
+| Razorpay Test Key ID and Secret |              5 | Configured and authenticated   |
 | Razorpay webhook secret         |              5 | Not created                    |
 | OpenAI API key                  |              7 | Configured locally             |
 | Deployment credentials          |             12 | Not needed yet                 |
@@ -518,7 +518,7 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 
 **Blockers:**
 
-- `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` are not set.
+- `RAZORPAY_TEST_MODE_API_KEY` and `RAZORPAY_TEST_MODE_SECRET_KEY` are configured; the optional `RAZORPAY_WEBHOOK_SECRET` is not configured.
 - Razorpay cannot deliver webhooks to `localhost`; a public HTTPS URL is required for the live acceptance check.
 
 **Next action:**
@@ -634,6 +634,88 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review and approve Step 7 before beginning Step 8 BullMQ recovery orchestration.
+
+### 2026-08-21 — Step 8 BullMQ recovery orchestration
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:** Implement Step 8 while a parallel agent works on Step 9 execution tools.
+
+**Completed:**
+
+- Added queues for payment events, analysis, recovery actions, verification, and reconciliation.
+- Delayed approved actions until `scheduledFor`, with bounded exponential retry and stable job IDs.
+- Persisted `RecoveryJob` records for failed/exhausted visibility and structured worker logs.
+- Executed WAIT/STOP/ESCALATE in orchestration and left Payment Link/reminder/alternative-method tools behind an injected `RecoveryActionExecutor` for Step 9.
+- Added a repeatable reconciliation job so overdue work is recovered without an external cron.
+
+**Files changed:**
+
+- `packages/domain/src/queues.ts`
+- `packages/recovery-engine/src/idempotency/*`, `packages/recovery-engine/src/execution/types.ts`
+- `packages/database/prisma/schema.prisma`, `packages/database/prisma/migrations/20260821120000_add_recovery_jobs/`
+- `apps/worker/src/queues/*`, `apps/worker/src/jobs/execute-recovery.ts`, `verify-recovery.ts`, `reconcile-recovery.ts`, `track-job.ts`, `process-analysis-job.ts`, `worker.ts`
+- `apps/api/src/app.ts`
+- `PLAN.md`, `STATUS.md`, `README.md`, `DECISIONS.md`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/worker typecheck` passed.
+- `pnpm --filter @recoveryos/worker lint` and related package lints passed.
+- `pnpm --filter @recoveryos/recovery-engine test` passed (25 tests).
+- `pnpm --filter @recoveryos/worker test` passed (9 tests), including transient-tool retry without duplicate actions, exhausted-job audit, and Redis job survival after the producer closed.
+
+**Blockers:**
+
+- Step 9 must attach `RecoveryActionExecutor` for CREATE_PAYMENT_LINK, SEND_REMINDER, and ALTERNATIVE_METHOD or those jobs retry until exhausted.
+- Step 5 live Test Mode acceptance remains blocked on credentials and a public webhook URL.
+
+**Next action:**
+
+- Review and approve Step 8. Let the parallel Step 9 agent implement execution tools against `RecoveryActionExecutor`.
+
+### 2026-08-21 — Step 9 execution integration and credential normalization
+
+**Agent:** Codex
+
+**Requested outcome:** Integrate Step 9 after the parallel Step 8 agent finished, use the supplied Test Mode credential names throughout, and create categorized commits.
+
+**Completed:**
+
+- Preserved and integrated the completed Step 8 BullMQ orchestration work.
+- Replaced all legacy Razorpay API credential references with `RAZORPAY_TEST_MODE_API_KEY` and `RAZORPAY_TEST_MODE_SECRET_KEY` across API, worker, checkout UI, environment example, and documentation.
+- Removed obsolete empty legacy entries from the untracked local `.env` while leaving its configured Test Mode values untouched.
+- Added modular Razorpay HTTP, order, payment, and Payment Link adapters.
+- Attached Step 9 through Step 8's `RecoveryActionExecutor` and verification-worker interfaces.
+- Re-checked payment state before every runtime action and skipped every side effect when the provider reported `CAPTURED`.
+- Added silent, action-bound Payment Link creation with lookup-before-create idempotency.
+- Kept reminders and alternative-method outreach simulated and routed wait, stop, and escalation through durable workflow execution.
+- Added Payment Link recovery reconciliation through both API state and `payment_link.paid` webhooks.
+- Preserved AI proposal/policy metadata when execution output is added to an action.
+
+**Files changed:**
+
+- Step 8 database, domain, recovery-engine, queue, job, and worker runtime files
+- `packages/razorpay/src/*`
+- `apps/worker/src/tools/*`, execution and outcome jobs, worker registration, and integration tests
+- API/worker environment configuration, API startup, checkout copy, `.env.example`, and project records
+
+**Validation:**
+
+- Read-only Razorpay API authentication passed using only the two configured `RAZORPAY_TEST_MODE_*` variables; no provider object was created.
+- `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` passed.
+- `pnpm test` passed: 33 test files and 93 tests.
+- Worker integration tests passed: 7 files and 15 tests, including Redis restart survival, queue retry/exhaustion, captured-payment suppression, API recovery, and paid-link webhook recovery.
+- `pnpm build` passed for all packages and applications.
+
+**Blockers:**
+
+- One Payment Link still needs to be created and paid in Test Mode to complete the live Step 9 acceptance gate.
+- Signed webhook delivery remains optional and requires a separate webhook secret plus a public HTTPS endpoint.
+
+**Next action:**
+
+- Review the categorized commits, then run one live paid-link recovery and approve Step 9 before Step 10.
 
 ## Session entry template
 

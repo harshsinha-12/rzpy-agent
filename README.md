@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 7 AI proposal and deterministic policy implementation is complete and awaiting approval. Step 5's live Test Mode acceptance check still needs dashboard keys and a public webhook URL.
+> Current state: Step 8 BullMQ recovery orchestration is implemented and awaiting approval. Step 7 also awaits approval. Step 5's live Test Mode acceptance check still needs dashboard keys and a public webhook URL.
 
 ## Core workflow
 
@@ -120,11 +120,13 @@ The recovery agent uses the OpenAI Responses API with `gpt-5.6-terra` by default
 
 The API call is bounded to one proposal per newly ingested case, low reasoning effort, 700 maximum output tokens, a 12-second timeout, one SDK retry, and `store: false`. Set `OPENAI_MODEL` to override the default without changing code.
 
+Recovery execution re-checks payment state immediately before every approved action. For `RAZORPAY_TEST_MODE`, the only real recovery side effect is a silent Payment Link with notifications and reminders disabled. Its unique reference is derived from one recovery action, and retries query that reference before creating anything. Reminder and alternative-method actions remain simulated; `WAIT`, `STOP`, and `ESCALATE` only change durable workflow state. Paid links reconcile recovered revenue from either `payment_link.paid` or a direct Payment Link API check.
+
 To send a real Test Mode failure into Reported Issues:
 
 1. Create Test Mode API keys at [Razorpay API Keys](https://dashboard.razorpay.com/app/websiteapp-settings/api-keys).
-2. Put `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in the untracked `.env` file. Never commit them.
-3. Create a webhook at [Razorpay Webhooks](https://dashboard.razorpay.com/app/webhooks) for `payment.failed`, `payment.authorized`, and `payment.captured`. Point it at a public HTTPS URL for `POST /webhooks/razorpay` and store the webhook secret as `RAZORPAY_WEBHOOK_SECRET`.
+2. Put `RAZORPAY_TEST_MODE_API_KEY` and `RAZORPAY_TEST_MODE_SECRET_KEY` in the untracked `.env` file. Never commit them.
+3. Optional for local API-only verification: create a webhook at [Razorpay Webhooks](https://dashboard.razorpay.com/app/webhooks) for `payment.failed`, `payment.authorized`, `payment.captured`, and `payment_link.paid`. Point it at a public HTTPS URL for `POST /webhooks/razorpay` and store its separate signing secret as `RAZORPAY_WEBHOOK_SECRET`.
 4. Restart the API and worker, open `/demo/checkout`, and pay with UPI ID `failure@razorpay`.
 5. Filter Reported Issues by `RAZORPAY_TEST_MODE`.
 
