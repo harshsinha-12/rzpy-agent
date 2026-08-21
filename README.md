@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 8 BullMQ recovery orchestration is implemented and awaiting approval. Step 7 also awaits approval. Step 5's live Test Mode acceptance check still needs dashboard keys and a public webhook URL.
+> Current state: Steps 0–11 are implemented. Steps 10 and 11 await approval, while Step 9 still needs one live paid-link acceptance check. Step 5's live webhook still needs a public HTTPS URL. See `LIMITATIONS.md` for known demo constraints.
 
 ## Core workflow
 
@@ -61,6 +61,7 @@ packages/
   domain/    Shared domain contracts
   razorpay/  Test-mode client, webhook verification, and payload mapping
   recovery-engine/  Pure deterministic diagnosis, policy validation, and fallback rules
+  simulator/  Deterministic synthetic payments, hidden outcomes, and strategy evaluation
 ```
 
 The detailed structure contract is in `PROJECT_STRUCTURE.md`.
@@ -103,6 +104,7 @@ Read-only product endpoints:
 | `GET /recovery/cases`     | Paginated Reported Issues data with search, filters, and sorting        |
 | `GET /recovery/cases/:id` | Normalized payment, recovery actions, customer context, and audit trail |
 | `GET /analytics/overview` | Reconciled KPIs, funnel, breakdowns, strategy results, and simulation   |
+| `POST /simulator/run`     | Run and persist a deterministic 250–500 payment strategy evaluation     |
 
 Razorpay Test Mode endpoints:
 
@@ -119,6 +121,16 @@ The deterministic diagnosis engine classifies normalized Razorpay signals before
 The recovery agent uses the OpenAI Responses API with `gpt-5.6-terra` by default and validates every proposal against a strict Zod schema. It receives a read-only case context and has no Razorpay, database-write, messaging, or execution tools. Each new proposal is independently checked by deterministic policy code for payment state, action and message limits, cooldown, recovery window, consent, merchant failures, and duplicate work. Model failures or invalid output fall back to the Step 6 deterministic recommendation before policy validation.
 
 The API call is bounded to one proposal per newly ingested case, low reasoning effort, 700 maximum output tokens, a 12-second timeout, one SDK retry, and `store: false`. Set `OPENAI_MODEL` to override the default without changing code.
+
+The simulator compares no intervention, naive immediate retry, and RecoveryOS over the same deterministic synthetic payment batch. Its hidden recovery probabilities are evaluator-only; strategy code sees only payment facts. A run stores one auditable outcome per payment and strategy, while the API returns reconciled aggregates marked `SIMULATED`. Repeating the same seed and payment count reproduces the same inputs and results:
+
+```bash
+curl -X POST http://localhost:4000/simulator/run \
+  -H 'content-type: application/json' \
+  -d '{"seed":20260821,"paymentCount":500}'
+```
+
+The latest run appears in the dashboard with no-intervention, naive-retry, RecoveryOS, and incremental-recovery values. All simulator money is integer paise in the API and is explicitly presented as simulated in the UI.
 
 Recovery execution re-checks payment state immediately before every approved action. For `RAZORPAY_TEST_MODE`, the only real recovery side effect is a silent Payment Link with notifications and reminders disabled. Its unique reference is derived from one recovery action, and retries query that reference before creating anything. Reminder and alternative-method actions remain simulated; `WAIT`, `STOP`, and `ESCALATE` only change durable workflow state. Paid links reconcile recovered revenue from either `payment_link.paid` or a direct Payment Link API check.
 
@@ -161,6 +173,7 @@ The root test command runs workspace suites serially, and API test files disable
 - `DECISIONS.md` — decision ledger
 - `PROJECT_STRUCTURE.md` — required folder, file, and dependency conventions
 - `AGENTS.md` — instructions for every implementation agent
+- `LIMITATIONS.md` — known demo and reliability constraints
 - `.env.example` — configuration contract without secrets
 
 ## Credentials eventually required

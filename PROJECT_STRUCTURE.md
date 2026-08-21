@@ -70,6 +70,13 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   │   │   │   ├── schemas.ts
 │   │   │   │   │   ├── mappers.ts
 │   │   │   │   │   └── types.ts
+│   │   │   │   ├── simulator/
+│   │   │   │   │   ├── routes.ts
+│   │   │   │   │   ├── controller.ts
+│   │   │   │   │   ├── service.ts
+│   │   │   │   │   ├── repository.ts
+│   │   │   │   │   ├── schemas.ts
+│   │   │   │   │   └── types.ts
 │   │   │   │   └── webhooks/
 │   │   │   │       └── razorpay/
 │   │   │   └── lib/
@@ -117,6 +124,12 @@ The tree below is the intended direction. Individual entries are created only in
 │   │       ├── policy/
 │   │       ├── execution/
 │   │       └── idempotency/
+│   ├── simulator/
+│   │   └── src/
+│   │       ├── generator.ts
+│   │       ├── outcome-model.ts
+│   │       ├── strategies.ts
+│   │       └── evaluate.ts
 │   ├── razorpay/
 │   │   └── src/
 │   │       ├── client.ts

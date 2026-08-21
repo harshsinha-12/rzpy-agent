@@ -260,7 +260,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 10 — Simulator and evaluation harness
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Demonstrate measurable recovery uplift across a reproducible synthetic batch.
 
@@ -284,7 +284,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 11 — Reliability, security, and end-to-end validation
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Prove the demo handles important unhappy paths safely.
 

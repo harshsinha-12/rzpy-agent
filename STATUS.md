@@ -4,12 +4,12 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 9 — Recovery execution tools
-- **State:** Step 8 and Step 9 are integrated; approval and one live paid-link acceptance check remain
-- **Application code:** BullMQ orchestration now invokes payment rechecks, idempotent silent Test Mode Payment Links, simulated alternatives, durable stop/escalation, and API/webhook outcome verification.
+- **Current step:** Step 11 — Reliability, security, and end-to-end validation
+- **State:** Step 11 is implemented and awaiting approval; Steps 9 and 10 also await approval
+- **Application code:** The API now sends Helmet headers and in-process rate limits, logs redact secrets, Razorpay 5xx retries with a visible `recovery.execution.failed` audit event, and the primary recovery flow has an end-to-end unhappy-path test. The Step 10 simulator remains in the tree and also awaits approval.
 - **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
 - **Current blocker:** A signed live webhook still needs a separate webhook secret and public HTTPS URL; API-only verification is configured and authenticated
-- **Exact next action:** Pay one silent Test Mode recovery link, verify the case/dashboard update, then review and approve Step 9
+- **Exact next action:** Review Step 11 evidence and approve it. Step 10 also awaits approval. Do not start Step 12 until those approvals land.
 
 ## Step overview
 
@@ -25,8 +25,8 @@ Last updated: 2026-08-21
 |    7 | AI proposal and deterministic policy engine      | Complete          |
 |    8 | BullMQ recovery orchestration                    | Complete          |
 |    9 | Recovery execution tools                         | Awaiting approval |
-|   10 | Simulator and evaluation harness                 | Not started       |
-|   11 | Reliability, security, and end-to-end validation | Not started       |
+|   10 | Simulator and evaluation harness                 | Awaiting approval |
+|   11 | Reliability, security, and end-to-end validation | Awaiting approval |
 |   12 | Deployment and hackathon demo package            | Not started       |
 
 ## Available local tooling observed
@@ -716,6 +716,86 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review the categorized commits, then run one live paid-link recovery and approve Step 9 before Step 10.
+
+### 2026-08-21 — Step 10 deterministic simulator and evaluation harness
+
+**Agent:** Codex
+
+**Requested outcome:** Implement Step 10 after the Step 8 and Step 9 integration work was available.
+
+**Completed:**
+
+- Added a pure `@recoveryos/simulator` package with a seeded 250–500 failed-payment generator, evaluator-only hidden recovery probabilities, and no-intervention, naive-retry, and RecoveryOS strategies.
+- Used one deterministic outcome roll per payment across all three strategies so comparisons are reproducible and fair without exposing hidden probabilities to strategy inputs.
+- Calculated revenue at risk, recovered and incremental revenue, recovery rate, attempts, average attempts, false interventions, policy stops, and simulated customer contacts from individual outcomes.
+- Added `POST /simulator/run` with validated inputs and persisted idempotent runs keyed by merchant, seed, and configuration hash.
+- Added durable `SimulationOutcome` records for every payment and strategy, including visible inputs and explicit `SIMULATED` labels.
+- Extended dashboard analytics and the simulation panel with the no-intervention baseline, customer-contact count, and explicit simulated-money copy.
+- Documented the package boundary, endpoint, repeatability contract, architectural decision, and intentional limitation that the harness does not make hundreds of live OpenAI calls.
+- Corrected the already-present Step 11 rate-limit error adapter and isolated webhook/e2e test state when the full workspace validation exposed those test defects.
+
+**Files changed:**
+
+- `packages/simulator/*`
+- `packages/database/prisma/schema.prisma`, the Step 10 migration, and deterministic seed files
+- `apps/api/src/modules/simulator/*`, API composition, and analytics repository/types
+- Dashboard response schema and simulation comparison component
+- `README.md`, `PLAN.md`, `STATUS.md`, `DECISIONS.md`, `PROJECT_STRUCTURE.md`, and `LIMITATIONS.md`
+
+**Validation:**
+
+- Default seed `20260821` produced 500 payments and ₹28.76 lakh at risk; no intervention recovered 11.8%, naive retry 18.0%, and RecoveryOS 45.2%, for ₹7.84 lakh incremental recovery over naive retry.
+- `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` passed.
+- `pnpm test` passed: 39 test files and 108 tests, including deterministic reproduction, aggregate reconciliation, hidden-input isolation, API persistence, and all prior suites.
+- `pnpm build` passed for every package and application.
+- `pnpm db:setup` generated the Prisma client, confirmed all migrations applied, and reseeded 7 deterministic recovery cases.
+- No API, web, or worker development server was left running; only the Docker PostgreSQL and Redis services remain active.
+
+**Blockers:**
+
+- Step 10 has no implementation blocker. Step 9 still needs one real Test Mode Payment Link to be created and paid for its live acceptance gate.
+- Signed webhook delivery still needs a separate webhook secret and public HTTPS endpoint.
+
+**Next action:**
+
+- Review and approve Step 10. After approval, decide whether to approve the already implemented Step 11 or complete the pending live Razorpay checks first.
+
+### 2026-08-21 — Step 11 reliability, security, and e2e
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:** Implement Step 11 — reliability, security, and end-to-end validation.
+
+**Completed:**
+
+- Added Helmet secure headers and in-process API rate limits, with health checks unrestricted and a `RATE_LIMIT_EXCEEDED` envelope.
+- Redacted secrets, signatures, and payment identifiers from API logs and worker job-error logs.
+- Mapped Razorpay 5xx responses to retried executions, wrote `recovery.execution.failed` into the audit timeline, and reused the action-bound Payment Link reference so retries cannot create duplicates.
+- Added coverage for malformed signed webhooks, captured-payment suppression, AI/policy failures (existing suites), Redis job survival after a producer restart, and an end-to-end primary recovery flow.
+- Documented known limitations in `LIMITATIONS.md` instead of hiding them.
+- Serialized shared-database constraint tests and isolated the e2e case from demo reseeding so the full workspace suite stays stable.
+
+**Files changed:**
+
+- `apps/api/src/plugins/security.ts`, `apps/api/src/lib/logger.ts`, `apps/api/src/app.ts`
+- `packages/domain/src/redact.ts`, `packages/razorpay/src/http.ts`
+- `apps/worker/src/tools/map-razorpay-error.ts`, recovery tools, `execute-recovery.ts`, `track-job.ts`, `process-payment-event.ts`
+- Webhook, Razorpay client, worker e2e, and security tests
+- `LIMITATIONS.md`, `README.md`, `PLAN.md`, `STATUS.md`, `DECISIONS.md`
+
+**Validation:**
+
+- `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` passed.
+- `pnpm test` passed: 39 test files and 108 tests.
+- `pnpm test:e2e` passed: the primary recovery flow retries a Razorpay 503, records the failure in the audit timeline, and succeeds without a duplicate Payment Link.
+
+**Blockers:**
+
+- Step 11 has no implementation blocker. Live signed webhooks and one paid Test Mode link remain outstanding for Steps 5 and 9.
+
+**Next action:**
+
+- Review and approve Step 11. Step 10 also awaits approval. Do not start Step 12 until those gates pass.
 
 ## Session entry template
 
