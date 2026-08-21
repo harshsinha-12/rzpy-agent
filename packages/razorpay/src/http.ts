@@ -12,6 +12,10 @@ export class RazorpayApiError extends Error {
   }
 }
 
+export function isTransientRazorpayStatus(status: number): boolean {
+  return status >= 500 && status < 600;
+}
+
 export interface RazorpayRequest {
   request(path: string, init?: RequestInit): Promise<unknown>;
 }

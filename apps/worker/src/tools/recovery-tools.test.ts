@@ -1,4 +1,5 @@
-import type { RazorpayClient } from "@recoveryos/razorpay";
+import { RazorpayApiError, type RazorpayClient } from "@recoveryos/razorpay";
+import { TransientRecoveryError } from "@recoveryos/recovery-engine";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -64,5 +65,28 @@ describe("recovery execution tools", () => {
       externalSideEffect: false,
     });
     expect(ensurePaymentLink).not.toHaveBeenCalled();
+  });
+
+  it("maps Razorpay 5xx failures to a retryable execution error", async () => {
+    const tools = createRecoveryExecutionTools(
+      client({
+        ensurePaymentLink: vi
+          .fn()
+          .mockRejectedValue(
+            new RazorpayApiError("Razorpay API request failed.", 503),
+          ),
+      }),
+    );
+
+    await expect(
+      tools.execute({
+        actionId: "action_test_5xx",
+        actionType: "CREATE_PAYMENT_LINK",
+        amountPaise: 125000,
+        casePublicId: "RC-TEST",
+        currency: "INR",
+        dataSource: "RAZORPAY_TEST_MODE",
+      }),
+    ).rejects.toBeInstanceOf(TransientRecoveryError);
   });
 });

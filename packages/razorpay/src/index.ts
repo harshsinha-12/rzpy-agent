@@ -1,3 +1,4 @@
+export { isTransientRazorpayStatus, RazorpayApiError } from "./http.js";
 export {
   createRazorpayClient,
   type CreatePaymentLinkInput,

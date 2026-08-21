@@ -96,6 +96,26 @@ describe.sequential("executeRecoveryAction", () => {
         where: { caseId: action.caseId },
       }),
     ).toBe(1);
+    expect(
+      await prisma.auditEvent.findMany({
+        orderBy: { occurredAt: "asc" },
+        where: { actionId },
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actor: "EXECUTION_LAYER",
+          decision: "RETRYING",
+          eventType: "recovery.execution.failed",
+          reasoning: "Razorpay 5xx",
+        }),
+        expect.objectContaining({
+          actor: "EXECUTION_LAYER",
+          decision: "SUCCEEDED",
+          eventType: "recovery.executed",
+        }),
+      ]),
+    );
   });
 
   it("marks the case exhausted after the retry budget is spent", async () => {
