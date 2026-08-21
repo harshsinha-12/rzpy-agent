@@ -2,25 +2,39 @@ import {
   checkDatabaseConnection,
   closeDatabasePool,
   createDatabasePool,
+  createPrismaClient,
 } from "@recoveryos/database";
-import type { DependencyHealth, HealthSnapshot } from "@recoveryos/domain";
+import {
+  paymentEventsQueueName,
+  type DependencyHealth,
+  type HealthSnapshot,
+  type PaymentEventJobData,
+} from "@recoveryos/domain";
 import { Worker } from "bullmq";
 import { Redis } from "ioredis";
 
 import { env } from "./config/env.js";
 import { startHealthServer } from "./health-server.js";
+import { processPaymentEvent } from "./jobs/process-payment-event.js";
 import { processSystemHealthJob } from "./jobs/system-health.js";
 import { createBullMqConnectionOptions } from "./queues/connection.js";
 import { SYSTEM_HEALTH_QUEUE } from "./queues/names.js";
 
 const database = createDatabasePool(env.DATABASE_URL);
+const prisma = createPrismaClient(env.DATABASE_URL);
 const redis = new Redis(env.REDIS_URL, {
   lazyConnect: true,
   maxRetriesPerRequest: 1,
 });
-const worker = new Worker(SYSTEM_HEALTH_QUEUE, processSystemHealthJob, {
-  connection: createBullMqConnectionOptions(env.REDIS_URL),
+const connection = createBullMqConnectionOptions(env.REDIS_URL);
+const healthWorker = new Worker(SYSTEM_HEALTH_QUEUE, processSystemHealthJob, {
+  connection,
 });
+const paymentWorker = new Worker<PaymentEventJobData>(
+  paymentEventsQueueName,
+  async (job) => processPaymentEvent(prisma, job.data.webhookEventId),
+  { connection },
+);
 
 async function checkDependency(
   check: () => Promise<void>,
@@ -59,7 +73,10 @@ async function getHealthSnapshot(): Promise<HealthSnapshot> {
   };
 }
 
-await worker.waitUntilReady();
+await Promise.all([
+  healthWorker.waitUntilReady(),
+  paymentWorker.waitUntilReady(),
+]);
 
 const healthServer = await startHealthServer({
   getSnapshot: getHealthSnapshot,
@@ -75,7 +92,9 @@ const shutdown = async (signal: string) => {
   console.info(`Stopping worker after ${signal}`);
   healthServer.close();
   await Promise.all([
-    worker.close(),
+    healthWorker.close(),
+    paymentWorker.close(),
+    prisma.$disconnect(),
     closeDatabasePool(database),
     redis.status === "wait" || redis.status === "end"
       ? Promise.resolve()

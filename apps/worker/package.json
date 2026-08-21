@@ -15,6 +15,7 @@
   "dependencies": {
     "@recoveryos/database": "workspace:*",
     "@recoveryos/domain": "workspace:*",
+    "@recoveryos/razorpay": "workspace:*",
     "bullmq": "catalog:",
     "ioredis": "catalog:",
     "zod": "catalog:"
