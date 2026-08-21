@@ -18,6 +18,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link className={styles.navLink} href="/recoveries">
               Reported issues
             </Link>
+            <Link className={styles.navLink} href="/demo/checkout">
+              Test payment
+            </Link>
           </nav>
           <div className={styles.workspace}>
             <span>Aurora Retail</span>
