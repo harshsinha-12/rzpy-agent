@@ -6,7 +6,10 @@ import {
   type PrismaClient,
 } from "@recoveryos/database";
 import { DEMO_MERCHANT_SLUG } from "@recoveryos/domain";
-import { createFailedPaymentWebhookPayload } from "@recoveryos/razorpay";
+import {
+  createFailedPaymentWebhookPayload,
+  createPaymentLinkPaidWebhookPayload,
+} from "@recoveryos/razorpay";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { processPaymentEvent } from "./process-payment-event.js";
 
@@ -207,5 +210,66 @@ describe.sequential("processPaymentEvent", () => {
         }),
       ]),
     );
+  });
+
+  it("updates recovered revenue from a payment_link.paid webhook", async () => {
+    const merchant = await prisma.merchant.findUniqueOrThrow({
+      where: { slug: DEMO_MERCHANT_SLUG },
+    });
+    const paymentId = "pay_test_webhook_origin";
+    const failedWebhook = await prisma.webhookEvent.create({
+      data: {
+        dataSource: "RAZORPAY_TEST_MODE",
+        eventType: "payment.failed",
+        id: "webhook_test_link_origin",
+        merchantId: merchant.id,
+        paymentId,
+        processingStatus: "QUEUED",
+        providerEventId: "evt_test_link_origin",
+        rawPayload: createFailedPaymentWebhookPayload({
+          createdAt: Math.floor(Date.now() / 1000),
+          paymentId,
+        }) as Prisma.InputJsonValue,
+        receivedAt: new Date(),
+      },
+    });
+    await processPaymentEvent(prisma, failedWebhook.id, { recoveryAgent });
+    const action = await prisma.recoveryAction.findFirstOrThrow({
+      where: {
+        recoveryCase: { paymentEvent: { razorpayPaymentId: paymentId } },
+      },
+    });
+    await prisma.recoveryAction.update({
+      data: {
+        razorpayReference: "plink_test_webhook_paid",
+        result: "SUCCEEDED",
+      },
+      where: { id: action.id },
+    });
+    const paidWebhook = await prisma.webhookEvent.create({
+      data: {
+        dataSource: "RAZORPAY_TEST_MODE",
+        eventType: "payment_link.paid",
+        id: "webhook_test_link_paid",
+        merchantId: merchant.id,
+        paymentId: "pay_test_webhook_recovered",
+        processingStatus: "QUEUED",
+        providerEventId: "evt_test_link_paid",
+        rawPayload: createPaymentLinkPaidWebhookPayload({
+          paymentId: "pay_test_webhook_recovered",
+          paymentLinkId: "plink_test_webhook_paid",
+          referenceId: "recovery_test_webhook_paid",
+        }) as Prisma.InputJsonValue,
+        receivedAt: new Date(),
+      },
+    });
+
+    await processPaymentEvent(prisma, paidWebhook.id);
+    await expect(
+      prisma.recoveryCase.findUniqueOrThrow({ where: { id: action.caseId } }),
+    ).resolves.toMatchObject({
+      recoveredAmountPaise: 499900,
+      status: "RECOVERED",
+    });
   });
 });
