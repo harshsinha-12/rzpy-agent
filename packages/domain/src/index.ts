@@ -65,6 +65,7 @@ export {
   type RecoveryReconciliationJobData,
   type RecoveryVerificationJobData,
 } from "./queues.js";
+export { redactSecrets } from "./redact.js";
 export {
   webhookProcessingStatuses,
   type WebhookProcessingStatus,

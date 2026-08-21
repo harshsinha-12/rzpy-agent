@@ -845,6 +845,7 @@ export function buildSeedDataset(seed = DEFAULT_DEMO_SEED): SeedDataset {
       attempts: 181,
       baselineRevenuePaise: 214_000 * PAISA_PER_RUPEE,
       completedAt: atMinutes(-5),
+      configurationHash: "seeded-demo-v1",
       configuration: {
         baselines: ["no_intervention", "naive_retry"],
         hiddenModel: "not_exposed_to_agent",
@@ -856,6 +857,7 @@ export function buildSeedDataset(seed = DEFAULT_DEMO_SEED): SeedDataset {
       incrementalRevenuePaise: 87_400 * PAISA_PER_RUPEE,
       paymentCount: 250,
       policyStops: 11,
+      noInterventionRevenuePaise: 150_000 * PAISA_PER_RUPEE,
       recoveredRevenuePaise: 301_400 * PAISA_PER_RUPEE,
       recoveryRateBps: 6250,
       revenueAtRiskPaise: 482_000 * PAISA_PER_RUPEE,

@@ -1,6 +1,8 @@
 import type { ActionType, DataSource, PaymentStatus } from "@recoveryos/domain";
 import type { RazorpayClient, RazorpayPaymentLink } from "@recoveryos/razorpay";
 
+import { rethrowRecoveryToolError } from "./map-razorpay-error.js";
+
 export interface PaymentRecheck {
   amountPaise: number;
   status: PaymentStatus;
@@ -95,28 +97,32 @@ export function createRecoveryExecutionTools(
       }
 
       const referenceId = paymentLinkReference(input.actionId);
-      const result = await configuredClient().ensurePaymentLink({
-        amountPaise: input.amountPaise,
-        currency: "INR",
-        description: `Recovery for ${input.casePublicId}`,
-        notes: {
-          recovery_action_id: input.actionId,
-          recovery_case_id: input.casePublicId,
-        },
-        referenceId,
-      });
-      return {
-        razorpayReference: result.paymentLink.id,
-        value: {
-          created: result.created,
-          externalSideEffect: true,
-          notificationsEnabled: false,
-          paymentLinkId: result.paymentLink.id,
+      try {
+        const result = await configuredClient().ensurePaymentLink({
+          amountPaise: input.amountPaise,
+          currency: "INR",
+          description: `Recovery for ${input.casePublicId}`,
+          notes: {
+            recovery_action_id: input.actionId,
+            recovery_case_id: input.casePublicId,
+          },
           referenceId,
-          shortUrl: result.paymentLink.short_url,
-          status: result.paymentLink.status,
-        },
-      };
+        });
+        return {
+          razorpayReference: result.paymentLink.id,
+          value: {
+            created: result.created,
+            externalSideEffect: true,
+            notificationsEnabled: false,
+            paymentLinkId: result.paymentLink.id,
+            referenceId,
+            shortUrl: result.paymentLink.short_url,
+            status: result.paymentLink.status,
+          },
+        };
+      } catch (error) {
+        rethrowRecoveryToolError(error);
+      }
     },
 
     async recheckPayment(input) {
@@ -126,14 +132,23 @@ export function createRecoveryExecutionTools(
           status: input.currentStatus,
         };
       }
-      const payment = await configuredClient().fetchPayment(input.paymentId);
-      return {
-        amountPaise: payment.amount,
-        status: mappedPaymentStatus(payment.status),
-      };
+      try {
+        const payment = await configuredClient().fetchPayment(input.paymentId);
+        return {
+          amountPaise: payment.amount,
+          status: mappedPaymentStatus(payment.status),
+        };
+      } catch (error) {
+        rethrowRecoveryToolError(error);
+      }
     },
 
-    verifyPaymentLink: (paymentLinkId) =>
-      configuredClient().fetchPaymentLink(paymentLinkId),
+    async verifyPaymentLink(paymentLinkId) {
+      try {
+        return await configuredClient().fetchPaymentLink(paymentLinkId);
+      } catch (error) {
+        rethrowRecoveryToolError(error);
+      }
+    },
   };
 }

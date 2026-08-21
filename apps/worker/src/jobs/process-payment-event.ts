@@ -157,7 +157,7 @@ export async function processPaymentEvent(
     });
     return { casePublicId: null, status: "IGNORED" };
   } catch (error) {
-    await prisma.webhookEvent.update({
+    await prisma.webhookEvent.updateMany({
       data: {
         errorMessage:
           error instanceof Error ? error.message : "Webhook processing failed.",

@@ -1,7 +1,10 @@
-import type { Job } from "bullmq";
 import type { PrismaClient } from "@recoveryos/database";
-import type { DataSource } from "@recoveryos/domain";
-import { recoveryJobAttempts } from "@recoveryos/domain";
+import {
+  redactSecrets,
+  recoveryJobAttempts,
+  type DataSource,
+} from "@recoveryos/domain";
+import type { Job } from "bullmq";
 
 import { exhaustRecoveryAction } from "./execute-recovery.js";
 import { recordRecoveryJob } from "./job-records.js";
@@ -76,14 +79,16 @@ export async function runTrackedRecoveryJob<T>(
       await exhaustRecoveryAction(prisma, actionId, lastError);
     }
     console.error(
-      JSON.stringify({
-        actionId,
-        attemptCount,
-        caseId,
-        error: lastError,
-        jobId: job.id,
-        queue: job.queueName,
-      }),
+      JSON.stringify(
+        redactSecrets({
+          actionId,
+          attemptCount,
+          caseId,
+          error: lastError,
+          jobId: job.id,
+          queue: job.queueName,
+        }),
+      ),
     );
     throw error;
   }

@@ -158,9 +158,27 @@ export async function executeRecoveryAction(
     return { result: outcome.result, skipped: false };
   } catch (error) {
     if (error instanceof TransientRecoveryError) {
-      await prisma.recoveryAction.update({
-        data: { result: "RETRYING" },
-        where: { id: action.id },
+      await prisma.$transaction(async (tx) => {
+        await tx.recoveryAction.update({
+          data: { result: "RETRYING" },
+          where: { id: action.id },
+        });
+        await tx.auditEvent.create({
+          data: {
+            actionId: action.id,
+            actor: "EXECUTION_LAYER",
+            caseId: action.caseId,
+            dataSource: action.dataSource,
+            decision: "RETRYING",
+            eventType: "recovery.execution.failed",
+            id: randomUUID(),
+            occurredAt: new Date(),
+            output: jsonValue({
+              retry: true,
+            }),
+            reasoning: error.message,
+          },
+        });
       });
     }
     throw error;

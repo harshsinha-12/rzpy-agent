@@ -14,6 +14,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 
 import { env } from "./config/env.js";
 import { registerErrorHandlers } from "./lib/error-handler.js";
+import { createApiLogger } from "./lib/logger.js";
 import { createBullMqConnectionOptions } from "./lib/queue-connection.js";
 import { createAnalyticsRepository } from "./modules/analytics/repository.js";
 import { registerAnalyticsRoutes } from "./modules/analytics/routes.js";
@@ -31,6 +32,10 @@ import { createRecoveryCaseRepository } from "./modules/recoveries/repository.js
 import { registerRecoveryCaseRoutes } from "./modules/recoveries/routes.js";
 import { createRecoveryCaseService } from "./modules/recoveries/service.js";
 import type { RecoveryCaseService } from "./modules/recoveries/types.js";
+import { createSimulatorRepository } from "./modules/simulator/repository.js";
+import { registerSimulatorRoutes } from "./modules/simulator/routes.js";
+import { createSimulatorService } from "./modules/simulator/service.js";
+import type { SimulatorService } from "./modules/simulator/types.js";
 import { createRazorpayWebhookRepository } from "./modules/webhooks/razorpay/repository.js";
 import { registerRazorpayWebhookRoutes } from "./modules/webhooks/razorpay/routes.js";
 import { createRazorpayWebhookService } from "./modules/webhooks/razorpay/service.js";
@@ -38,6 +43,7 @@ import type {
   PaymentEventJobQueue,
   RazorpayWebhookService,
 } from "./modules/webhooks/razorpay/types.js";
+import { registerSecurityPlugins } from "./plugins/security.js";
 
 interface BuildAppOptions {
   analyticsService?: AnalyticsService;
@@ -46,15 +52,20 @@ interface BuildAppOptions {
   healthService?: HealthService;
   logger?: boolean;
   paymentEventQueue?: PaymentEventJobQueue;
+  rateLimitMax?: number;
   recoveryCaseService?: RecoveryCaseService;
   razorpayWebhookSecret?: string;
   razorpayWebhookService?: RazorpayWebhookService;
+  simulatorService?: SimulatorService;
 }
 
 export async function buildApp(
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
-  const app = Fastify({ logger: options.logger ?? true });
+  const app =
+    options.logger === false
+      ? Fastify({ logger: false })
+      : Fastify({ logger: createApiLogger() });
   const healthService =
     options.healthService ??
     createRuntimeHealthService({
@@ -64,7 +75,8 @@ export async function buildApp(
   const needsDatabase =
     !options.analyticsService ||
     !options.recoveryCaseService ||
-    !options.razorpayWebhookService;
+    !options.razorpayWebhookService ||
+    !options.simulatorService;
   const database = needsDatabase
     ? (options.database ?? createPrismaClient(env.DATABASE_URL))
     : null;
@@ -75,6 +87,9 @@ export async function buildApp(
   const recoveryCaseService =
     options.recoveryCaseService ??
     createRecoveryCaseService(createRecoveryCaseRepository(database!));
+  const simulatorService =
+    options.simulatorService ??
+    createSimulatorService(createSimulatorRepository(database!));
   const ownsQueue =
     !options.paymentEventQueue &&
     !options.razorpayWebhookService &&
@@ -117,10 +132,15 @@ export async function buildApp(
     methods: ["GET", "POST"],
     origin: env.APP_BASE_URL,
   });
+  await registerSecurityPlugins(app, {
+    rateLimitMax:
+      options.rateLimitMax ?? (env.NODE_ENV === "test" ? 1_000 : 120),
+  });
   registerErrorHandlers(app);
   await registerHealthRoutes(app, healthService);
   await registerRecoveryCaseRoutes(app, recoveryCaseService);
   await registerAnalyticsRoutes(app, analyticsService);
+  await registerSimulatorRoutes(app, simulatorService);
   await registerRazorpayWebhookRoutes(app, razorpayWebhookService);
   await registerDemoCheckoutRoutes(app, demoCheckoutService);
 

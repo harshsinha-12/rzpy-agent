@@ -115,4 +115,56 @@ describe("createRazorpayClient", () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("recovers an existing Payment Link after a 5xx create without issuing a duplicate", async () => {
+    const existing = {
+      amount: 499900,
+      amount_paid: 0,
+      currency: "INR",
+      id: "plink_recovered",
+      reference_id: "recovery_action1",
+      short_url: "https://rzp.io/i/recovered",
+      status: "created",
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        json: async () => ({ payment_links: [] }),
+        ok: true,
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({ error: { description: "unavailable" } }),
+        ok: false,
+        status: 500,
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({ payment_links: [existing] }),
+        ok: true,
+      });
+    const client = createRazorpayClient(
+      { keyId: "rzp_test_example", keySecret: "test-secret", mode: "test" },
+      { fetch: fetchMock as unknown as typeof fetch },
+    );
+
+    const result = await client.ensurePaymentLink({
+      amountPaise: 499900,
+      currency: "INR",
+      description: "Recovery test",
+      referenceId: "recovery_action1",
+    });
+
+    expect(result).toMatchObject({
+      created: false,
+      paymentLink: { id: "plink_recovered" },
+    });
+    expect(
+      fetchMock.mock.calls.filter(
+        (call) =>
+          typeof call[1] === "object" &&
+          call[1] !== null &&
+          "method" in call[1] &&
+          call[1].method === "POST",
+      ),
+    ).toHaveLength(1);
+  });
 });

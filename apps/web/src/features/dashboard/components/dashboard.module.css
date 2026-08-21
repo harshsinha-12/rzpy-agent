@@ -202,7 +202,7 @@
 
 .comparison {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   border: 1px solid rgb(255 255 255 / 25%);
 }
 
@@ -256,6 +256,18 @@
 
   .dashboardGrid {
     grid-template-columns: 1fr;
+  }
+
+  .comparison {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .comparisonItem:nth-child(2) {
+    border-right: 0;
+  }
+
+  .comparisonItem:nth-child(-n + 2) {
+    border-bottom: 1px solid rgb(255 255 255 / 25%);
   }
 }
 

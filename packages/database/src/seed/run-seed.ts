@@ -185,6 +185,7 @@ export async function runDemoSeed(
         attempts: dataset.simulationRun.attempts,
         baselineRevenuePaise: dataset.simulationRun.baselineRevenuePaise,
         completedAt: dataset.simulationRun.completedAt,
+        configurationHash: dataset.simulationRun.configurationHash,
         configuration: jsonField(dataset.simulationRun.configuration),
         createdAt: dataset.simulationRun.createdAt,
         customerContacts: dataset.simulationRun.customerContacts,
@@ -193,6 +194,8 @@ export async function runDemoSeed(
         id: dataset.simulationRun.id,
         incrementalRevenuePaise: dataset.simulationRun.incrementalRevenuePaise,
         merchantId: dataset.merchant.id,
+        noInterventionRevenuePaise:
+          dataset.simulationRun.noInterventionRevenuePaise,
         paymentCount: dataset.simulationRun.paymentCount,
         policyStops: dataset.simulationRun.policyStops,
         recoveredRevenuePaise: dataset.simulationRun.recoveredRevenuePaise,

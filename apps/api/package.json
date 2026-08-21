@@ -14,9 +14,12 @@
   },
   "dependencies": {
     "@fastify/cors": "catalog:",
+    "@fastify/helmet": "catalog:",
+    "@fastify/rate-limit": "catalog:",
     "@recoveryos/database": "workspace:*",
     "@recoveryos/domain": "workspace:*",
     "@recoveryos/razorpay": "workspace:*",
+    "@recoveryos/simulator": "workspace:*",
     "bullmq": "catalog:",
     "fastify": "catalog:",
     "ioredis": "catalog:",
