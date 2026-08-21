@@ -260,7 +260,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 10 — Simulator and evaluation harness
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Demonstrate measurable recovery uplift across a reproducible synthetic batch.
 
@@ -284,7 +284,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 11 — Reliability, security, and end-to-end validation
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Prove the demo handles important unhappy paths safely.
 
@@ -306,7 +306,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 12 — Deployment and hackathon demo package
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Produce a reliable, judge-ready deployed demonstration.
 
@@ -318,6 +318,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Public HTTPS webhook endpoint configured in Razorpay Test Mode
 - Production-like seed command and demo reset procedure
 - Demo script, architecture explanation, backup recording, and failure fallback
+- Public About page explaining the product, integrations, safety boundaries, and worker scheduling model
+- Repository-level architecture document with system and queue Mermaid diagrams
 - Final human setup, run, test, configuration, and verification guide
 
 **Acceptance gate:**

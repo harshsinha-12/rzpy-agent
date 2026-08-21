@@ -4,12 +4,12 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 11 — Reliability, security, and end-to-end validation
-- **State:** Step 11 is implemented and awaiting approval; Steps 9 and 10 also await approval
-- **Application code:** The API now sends Helmet headers and in-process rate limits, logs redact secrets, Razorpay 5xx retries with a visible `recovery.execution.failed` audit event, and the primary recovery flow has an end-to-end unhappy-path test. The Step 10 simulator remains in the tree and also awaits approval. The header workspace label now reads RecoveryOS and links to API and worker health endpoints.
-- **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
+- **Current step:** Step 12 — Deployment and hackathon demo package
+- **State:** Steps 10 and 11 are complete after user approval; Step 12 is in progress with the public project explanation and architecture package
+- **Application code:** The frontend now includes a plain-language About page and an accessible runtime architecture diagram covering Razorpay Test Mode, GPT-5.6 Terra, deterministic policy, Fastify, PostgreSQL, Redis/BullMQ, the five worker queues, 60-second reconciliation, and the simulator. Matching Mermaid diagrams live in `ARCHITECTURE.md`.
+- **Runtime services:** The web, API, worker, Docker PostgreSQL, and Docker Redis services were observed running locally during this session
 - **Current blocker:** A signed live webhook still needs a separate webhook secret and public HTTPS URL; API-only verification is configured and authenticated
-- **Exact next action:** Review Step 11 evidence and approve it. Step 10 also awaits approval. Do not start Step 12 until those approvals land.
+- **Exact next action:** Review the About and architecture surfaces, then continue the remaining Step 12 deployment and demo-package work
 
 ## Step overview
 
@@ -25,9 +25,9 @@ Last updated: 2026-08-21
 |    7 | AI proposal and deterministic policy engine      | Complete          |
 |    8 | BullMQ recovery orchestration                    | Complete          |
 |    9 | Recovery execution tools                         | Awaiting approval |
-|   10 | Simulator and evaluation harness                 | Awaiting approval |
-|   11 | Reliability, security, and end-to-end validation | Awaiting approval |
-|   12 | Deployment and hackathon demo package            | Not started       |
+|   10 | Simulator and evaluation harness                 | Complete          |
+|   11 | Reliability, security, and end-to-end validation | Complete          |
+|   12 | Deployment and hackathon demo package            | In progress       |
 
 ## Available local tooling observed
 
@@ -828,6 +828,42 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review and approve Step 11. Step 10 also awaits approval. Do not start Step 12 until those gates pass.
+
+### 2026-08-21 — About page and architecture guide
+
+**Agent:** Codex
+
+**Requested outcome:** Explain RecoveryOS in plain language on the frontend and document the complete architecture, integrations, queues, worker, and cron-like scheduling.
+
+**Completed:**
+
+- Added a public `/about` page explaining the failed-payment recovery problem, six-stage recovery loop, integrated services, and AI safety boundary.
+- Added a responsive architecture diagram to the frontend covering Next.js, Fastify, Razorpay Test Mode, PostgreSQL/Prisma, Redis/BullMQ, the recovery worker, GPT-5.6 Terra, deterministic policy, execution tools, verification, and audit history.
+- Clarified that reconciliation uses a BullMQ repeatable scheduler every 60 seconds and requires a continuously running worker, but no external cron service or dedicated VM.
+- Added `ARCHITECTURE.md` with Mermaid system and queue diagrams, an integration responsibility table, and the main security and reliability boundaries.
+- Added the About link to the shared header and documented the new route and feature structure.
+
+**Files changed:**
+
+- `apps/web/src/app/about/*`
+- `apps/web/src/features/about/*`
+- `apps/web/src/components/app-shell.tsx` and `app-shell.module.css`
+- `ARCHITECTURE.md`, `README.md`, `PLAN.md`, `STATUS.md`, `DECISIONS.md`, and `PROJECT_STRUCTURE.md`
+
+**Validation:**
+
+- Frontend lint and TypeScript checks passed.
+- All 14 frontend tests passed, including the new About-page content contract.
+- The Next.js production build passed and statically generated `/about`.
+- The running frontend returned the expected About, Razorpay Test Mode, GPT-5.6 Terra, BullMQ scheduler, and no-external-cron copy from `/about`.
+
+**Blockers:**
+
+- This documentation work has no implementation blocker. The existing live signed-webhook and paid Test Mode Payment Link acceptance checks remain outstanding.
+
+**Next action:**
+
+- Review the new frontend page and architecture guide, then continue the remaining Step 12 deployment and demo-package work after approval.
 
 ## Session entry template
 

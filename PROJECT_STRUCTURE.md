@@ -27,6 +27,8 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   │   ├── app/
 │   │   │   │   ├── layout.tsx
 │   │   │   │   ├── page.tsx
+│   │   │   │   ├── about/
+│   │   │   │   │   └── page.tsx
 │   │   │   │   ├── recoveries/
 │   │   │   │   │   ├── page.tsx
 │   │   │   │   │   └── [id]/page.tsx
@@ -34,6 +36,9 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   │   ├── components/
 │   │   │   │   └── ui/
 │   │   │   ├── features/
+│   │   │   │   ├── about/
+│   │   │   │   │   ├── components/
+│   │   │   │   │   └── content.ts
 │   │   │   │   ├── dashboard/
 │   │   │   │   │   ├── components/
 │   │   │   │   │   ├── fetchers.ts
@@ -140,6 +145,7 @@ The tree below is the intended direction. Individual entries are created only in
 │   ├── test-utils/
 │   └── config/
 ├── AGENTS.md
+├── ARCHITECTURE.md
 ├── DECISIONS.md
 ├── PLAN.md
 ├── PROJECT_STRUCTURE.md

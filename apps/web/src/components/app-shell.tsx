@@ -26,6 +26,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link className={styles.navLink} href="/demo/checkout">
               Test payment
             </Link>
+            <Link className={styles.navLink} href="/about">
+              About
+            </Link>
           </nav>
           <div className={styles.workspace}>
             <span>RecoveryOS</span>

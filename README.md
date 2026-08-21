@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Steps 0–11 are implemented. Steps 10 and 11 await approval, while Step 9 still needs one live paid-link acceptance check. Step 5's live webhook still needs a public HTTPS URL. See `LIMITATIONS.md` for known demo constraints.
+> Current state: Steps 0–4, 6–8, and 10–11 are complete. Step 12's demo package is in progress. Step 9 still needs one live paid-link acceptance check, and Step 5's live webhook still needs a public HTTPS URL. See `LIMITATIONS.md` for known demo constraints.
 
 ## Core workflow
 
@@ -43,6 +43,7 @@ No external cron service or dedicated VM is required. BullMQ needs Redis and a c
 - `/` — executive recovery dashboard
 - `/recoveries` — filterable Reported Issues table
 - `/recoveries/[id]` — case reasoning and complete audit timeline
+- `/about` — plain-language project explanation, integrations, and runtime architecture
 
 The UI will use seeded PostgreSQL data from the beginning. Razorpay Test Mode events will later enter the same tables and APIs. Every record will visibly identify its source as `SIMULATED` or `RAZORPAY_TEST_MODE`.
 
@@ -173,6 +174,7 @@ The root test command runs workspace suites serially, and API test files disable
 - `DECISIONS.md` — decision ledger
 - `PROJECT_STRUCTURE.md` — required folder, file, and dependency conventions
 - `AGENTS.md` — instructions for every implementation agent
+- `ARCHITECTURE.md` — system and queue architecture with Mermaid diagrams
 - `LIMITATIONS.md` — known demo and reliability constraints
 - `.env.example` — configuration contract without secrets
 
