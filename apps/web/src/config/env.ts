@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   API_BASE_URL: z.string().url().default("http://localhost:4000"),
+  APP_BASE_URL: z.string().url().default("http://localhost:3000"),
   NEXT_PUBLIC_API_URL: z.string().url().default("http://localhost:4000"),
   NEXT_PUBLIC_WORKER_HEALTH_URL: z
     .string()
@@ -10,5 +11,6 @@ const envSchema = z.object({
 });
 
 export const env = Object.freeze(envSchema.parse(process.env));
+export const appBaseUrl = env.APP_BASE_URL;
 export const publicApiUrl = env.NEXT_PUBLIC_API_URL;
 export const publicWorkerHealthUrl = env.NEXT_PUBLIC_WORKER_HEALTH_URL;
