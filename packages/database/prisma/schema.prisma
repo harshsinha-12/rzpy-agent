@@ -88,6 +88,14 @@ enum Actor {
   SYSTEM
 }
 
+enum WebhookProcessingStatus {
+  RECEIVED
+  QUEUED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
 model Merchant {
   id        String   @id
   slug      String   @unique
@@ -101,6 +109,7 @@ model Merchant {
   recoveryCases  RecoveryCase[]
   recoveryPolicy RecoveryPolicy?
   simulationRuns SimulationRun[]
+  webhookEvents  WebhookEvent[]
 }
 
 model Customer {
@@ -264,4 +273,22 @@ model SimulationRun {
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   @@unique([merchantId, seed])
+}
+
+model WebhookEvent {
+  id                String                   @id
+  merchantId        String
+  providerEventId   String                   @unique
+  eventType         String
+  processingStatus  WebhookProcessingStatus
+  paymentId         String?
+  rawPayload        Json
+  dataSource        DataSource
+  receivedAt        DateTime
+  processedAt       DateTime?
+  errorMessage      String?
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, receivedAt])
 }
