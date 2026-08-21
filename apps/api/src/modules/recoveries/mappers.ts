@@ -30,6 +30,42 @@ function isActionType(value: unknown): value is ActionType {
   );
 }
 
+function isPolicyViolation(
+  value: unknown,
+): value is { code: string; message: string } {
+  return (
+    isRecord(value) &&
+    typeof value.code === "string" &&
+    typeof value.message === "string"
+  );
+}
+
+function actionMetadata(action: RecoveryActionRecord) {
+  const input = isRecord(action.input) ? action.input : undefined;
+  const output = isRecord(action.output) ? action.output : undefined;
+  const evidence = Array.isArray(input?.evidence)
+    ? input.evidence.filter(
+        (value): value is string => typeof value === "string",
+      )
+    : [];
+  const policyViolations = Array.isArray(output?.violations)
+    ? output.violations.filter(isPolicyViolation)
+    : [];
+
+  return {
+    policyViolations,
+    proposalEvidence: evidence,
+    proposalModel: typeof input?.model === "string" ? input.model : null,
+    proposalSource:
+      input?.source === "OPENAI" || input?.source === "DETERMINISTIC_FALLBACK"
+        ? input.source
+        : null,
+    safeFallbackAction: isActionType(output?.safeFallbackAction)
+      ? output.safeFallbackAction
+      : null,
+  };
+}
+
 function isDiagnosisEvidence(value: unknown): value is DiagnosisEvidenceItem {
   if (!isRecord(value)) return false;
   return (
@@ -106,6 +142,7 @@ function diagnosisMetadata(record: RecoveryCaseDetailRecord) {
 
 function mapAction(action: RecoveryActionRecord) {
   return {
+    ...actionMetadata(action),
     actionType: action.actionType,
     attemptNumber: action.attemptNumber,
     confidence: action.confidence,
