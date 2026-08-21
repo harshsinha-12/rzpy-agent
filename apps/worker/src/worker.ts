@@ -107,13 +107,13 @@ await Promise.all([
 const healthServer = await startHealthServer({
   getSnapshot: getHealthSnapshot,
   host: env.WORKER_HEALTH_HOST,
-  port: env.WORKER_HEALTH_PORT,
+  port: env.listenPort,
 });
 
 console.info(
   JSON.stringify({
     event: "worker.ready",
-    healthPort: env.WORKER_HEALTH_PORT,
+    healthPort: env.listenPort,
     queues: recoveryWorkers.map((worker) => worker.name),
   }),
 );

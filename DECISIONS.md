@@ -37,12 +37,12 @@ This file records durable product and architecture decisions. Add a new row when
 | D-031 | 2026-08-21 | Apply Helmet headers and in-process API rate limits, redact secrets from logs, and treat Razorpay 5xx as retried executions with an audit event.                                         | The demo must show a graceful provider failure without duplicate Payment Links, while keeping health checks unrestricted and secrets out of log output.                              | Accepted |
 | D-032 | 2026-08-21 | Evaluate all simulator strategies with the same deterministic outcome roll, while keeping the hidden probability model outside visible strategy inputs and persisting every outcome.     | Common random draws make comparisons fair and reproducible; separate visible inputs prevent outcome leakage, and durable rows make aggregate claims auditable.                       | Accepted |
 | D-033 | 2026-08-21 | Explain the product through a dedicated frontend About page and keep the source-of-truth architecture in a repository document with Mermaid diagrams.                                    | Judges and contributors need the same system boundaries explained at different levels: approachable in the product and precise in the repository.                                    | Accepted |
+| D-034 | 2026-08-21 | Deploy the Next.js web app on Vercel and the Fastify API, BullMQ worker, PostgreSQL, and Redis on Railway.                                                                               | Vercel fits the frontend but cannot run a persistent worker or Fastify process; Railway can host the long-running services and managed data stores the recovery loop requires.       | Accepted |
 
 ## Open decisions
 
 These decisions are intentionally deferred until their plan step approaches:
 
-| Needed by | Decision                                                      |
-| --------: | ------------------------------------------------------------- |
-|    Step 5 | Razorpay Test Mode account and webhook exposure method        |
-|   Step 12 | Vercel plus Railway/Render, or another deployment combination |
+| Needed by | Decision                                               |
+| --------: | ------------------------------------------------------ |
+|    Step 5 | Razorpay Test Mode account and webhook exposure method |

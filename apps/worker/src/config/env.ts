@@ -10,6 +10,14 @@ try {
   }
 }
 
+const optionalPortSchema = z.preprocess((value) => {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+
+  return value;
+}, z.coerce.number().int().positive().optional());
+
 const envSchema = z.object({
   DATABASE_URL: z
     .string()
@@ -24,11 +32,17 @@ const envSchema = z.object({
     .default("")
     .transform((value) => value || undefined),
   OPENAI_MODEL: z.string().trim().min(1).default("gpt-5.6-terra"),
+  PORT: optionalPortSchema,
   RAZORPAY_TEST_MODE_API_KEY: z.string().trim().default(""),
   RAZORPAY_TEST_MODE_SECRET_KEY: z.string().trim().default(""),
   REDIS_URL: z.string().url().default("redis://localhost:6380"),
   WORKER_HEALTH_HOST: z.string().default("0.0.0.0"),
-  WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4001),
+  WORKER_HEALTH_PORT: optionalPortSchema,
 });
 
-export const env = Object.freeze(envSchema.parse(process.env));
+const parsed = envSchema.parse(process.env);
+
+export const env = Object.freeze({
+  ...parsed,
+  listenPort: parsed.WORKER_HEALTH_PORT ?? parsed.PORT ?? 4001,
+});

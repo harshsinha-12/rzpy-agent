@@ -94,6 +94,18 @@ flowchart LR
 
 This is the project's cron-like behavior. There is no external cron service or dedicated VM. BullMQ stores the repeatable schedule in Redis and triggers reconciliation every 60 seconds while the continuously running worker is online.
 
+## Hosting split
+
+| Runtime         | Platform | Role                                               |
+| --------------- | -------- | -------------------------------------------------- |
+| Next.js web     | Vercel   | Dashboard, Reported Issues, checkout, and About    |
+| Fastify API     | Railway  | Product APIs and Razorpay webhook ingestion        |
+| Recovery worker | Railway  | Five BullMQ consumers and 60-second reconciliation |
+| PostgreSQL      | Railway  | Durable source of truth                            |
+| Redis           | Railway  | Queue, retry, and scheduler state                  |
+
+Vercel cannot run the API or worker. Those processes must stay online so delayed jobs and webhook acknowledgements survive.
+
 ## Integrated components
 
 | Component                     | Responsibility                                                                                                |

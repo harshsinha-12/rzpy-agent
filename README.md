@@ -229,6 +229,115 @@ Stop Docker infrastructure without deleting persistent volumes:
 pnpm infra:down
 ```
 
+## Deploy
+
+RecoveryOS is three runtimes plus two data stores. Only the Next.js app belongs on Vercel.
+
+| Piece         | Where it runs | Why                                                                               |
+| ------------- | ------------- | --------------------------------------------------------------------------------- |
+| `apps/web`    | **Vercel**    | Serverless Next.js hosting                                                        |
+| `apps/api`    | **Railway**   | Long-running Fastify process, including `POST /webhooks/razorpay`                 |
+| `apps/worker` | **Railway**   | BullMQ must stay connected to Redis for delayed jobs and 60-second reconciliation |
+| PostgreSQL    | **Railway**   | Durable source of truth                                                           |
+| Redis         | **Railway**   | Queue, retry, and scheduler state                                                 |
+
+Do not try to run the API or worker as Vercel serverless functions. They are persistent Node processes. Render can replace Railway if you prefer; the same split still applies.
+
+Tonight you can publish the web app. Dashboard and Reported Issues will show the existing API-unavailable error until Railway is live. `/about` is static and will work immediately. Tomorrow: PostgreSQL, Redis, API, worker, then the Razorpay webhook URL.
+
+### Tonight — Vercel web app
+
+1. Push the current `main` branch to GitHub (`https://github.com/harshsinha-12/rzpy-agent`).
+2. Open [Vercel](https://vercel.com), import that repository, and create a Next.js project.
+3. Set **Root Directory** to `apps/web`. Leave **Include source files outside of the Root Directory** enabled.
+4. Set **Node.js Version** to `22.x`.
+5. Confirm these commands (also stored in `apps/web/vercel.json`):
+   - Install: `cd ../.. && HUSKY=0 pnpm install --frozen-lockfile`
+   - Build: `cd ../.. && pnpm --filter @recoveryos/domain build && pnpm --filter @recoveryos/web build`
+6. Add these Vercel environment variables for Production. You can leave the API URLs pointing at localhost for tonight; change them after Railway is up.
+
+| Variable                        | Tonight                                                     | After Railway                                                           |
+| ------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `APP_BASE_URL`                  | Optional. Vercel preview/production URLs are used if unset. | Your production Vercel URL, for example `https://recoveryos.vercel.app` |
+| `API_BASE_URL`                  | `http://localhost:4000`                                     | Public Railway API URL, no trailing slash                               |
+| `NEXT_PUBLIC_API_URL`           | `http://localhost:4000`                                     | Same Railway API URL                                                    |
+| `NEXT_PUBLIC_WORKER_HEALTH_URL` | `http://localhost:4001`                                     | Public Railway worker URL                                               |
+
+Do **not** put Razorpay secrets, the webhook secret, `DATABASE_URL`, `REDIS_URL`, or `OPENAI_API_KEY` on Vercel. Those belong on Railway.
+
+7. Deploy. After it succeeds, open `/about`. `/` and `/recoveries` will say the API is unavailable until tomorrow. Copy the Vercel URL; the Railway API will need it as `APP_BASE_URL` for CORS.
+
+### Tomorrow — Railway database, API, worker, webhook
+
+Create one Railway project with four services: PostgreSQL, Redis, API, and worker.
+
+**Postgres and Redis**
+
+1. Add Railway **PostgreSQL** and **Redis** plugins. Copy `DATABASE_URL` and `REDIS_URL` from Railway. If the Postgres URL has no SSL query string, append `?sslmode=require`.
+2. From your laptop, against the remote database (never commit the URL):
+
+```bash
+export DATABASE_URL="postgresql://..."
+pnpm db:setup
+```
+
+That generates the Prisma client, applies migrations, and loads the deterministic demo seed.
+
+**API service**
+
+1. New Railway service from the same GitHub repo.
+2. Set the builder to **Dockerfile** with path `deploy/Dockerfile.api` and context `/`.
+3. Health check path: `/health`.
+4. Variables:
+
+| Variable                        | Value                                         |
+| ------------------------------- | --------------------------------------------- |
+| `NODE_ENV`                      | `production`                                  |
+| `APP_BASE_URL`                  | The Vercel URL from tonight                   |
+| `DATABASE_URL`                  | Railway Postgres URL                          |
+| `REDIS_URL`                     | Railway Redis URL                             |
+| `RAZORPAY_TEST_MODE_API_KEY`    | Test Mode Key ID                              |
+| `RAZORPAY_TEST_MODE_SECRET_KEY` | Test Mode Key Secret                          |
+| `RAZORPAY_WEBHOOK_SECRET`       | Leave empty until the Razorpay webhook exists |
+| `API_HOST`                      | `0.0.0.0`                                     |
+
+Do not set `API_PORT`. Railway injects `PORT`, and the API listens on it.
+
+**Worker service**
+
+1. Second Railway service, Dockerfile path `deploy/Dockerfile.worker`, context `/`.
+2. Health check path: `/health`.
+3. Variables:
+
+| Variable                        | Value                     |
+| ------------------------------- | ------------------------- |
+| `NODE_ENV`                      | `production`              |
+| `DATABASE_URL`                  | Same Postgres URL         |
+| `REDIS_URL`                     | Same Redis URL            |
+| `OPENAI_API_KEY`                | OpenAI key                |
+| `OPENAI_MODEL`                  | `gpt-5.6-terra`           |
+| `RAZORPAY_TEST_MODE_API_KEY`    | Same Test Mode Key ID     |
+| `RAZORPAY_TEST_MODE_SECRET_KEY` | Same Test Mode Key Secret |
+| `WORKER_HEALTH_HOST`            | `0.0.0.0`                 |
+
+Do not set `WORKER_HEALTH_PORT`. The worker health server also uses Railway's `PORT`.
+
+Generate public HTTPS domains for both Railway services. Confirm:
+
+```bash
+curl https://<api-host>/health
+curl https://<worker-host>/health
+```
+
+Then update the three Vercel API/worker URLs and redeploy the web app.
+
+**Razorpay webhook**
+
+1. In Razorpay Dashboard → Webhooks, create a Test Mode webhook for `https://<api-host>/webhooks/razorpay`.
+2. Subscribe to `payment.failed`, `payment.authorized`, `payment.captured`, and `payment_link.paid`.
+3. Store the webhook's signing secret as `RAZORPAY_WEBHOOK_SECRET` on the Railway API service only. Redeploy or restart the API.
+4. Pay with UPI ID `failure@razorpay` on the deployed `/demo/checkout`, then filter Reported Issues by `RAZORPAY_TEST_MODE`.
+
 ## Environment configuration
 
 Copy [`.env.example`](./.env.example) to an untracked `.env` file. Never place credential values in documentation, screenshots, chat, fixtures, or source control.
@@ -335,6 +444,10 @@ apps/
   web/       Next.js merchant experience
   api/       Fastify product API and webhook boundary
   worker/    Long-running BullMQ consumers and health server
+
+deploy/
+  Dockerfile.api     Railway image for the Fastify API
+  Dockerfile.worker  Railway image for the recovery worker
 
 packages/
   agents/           OpenAI proposal agent, prompt, schemas, and read-only tools

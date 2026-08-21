@@ -10,10 +10,19 @@ try {
   }
 }
 
+const optionalPortSchema = z.preprocess((value) => {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+
+  return value;
+}, z.coerce.number().int().positive().optional());
+
 const envSchema = z.object({
   API_HOST: z.string().default("0.0.0.0"),
-  API_PORT: z.coerce.number().int().positive().default(4000),
+  API_PORT: optionalPortSchema,
   APP_BASE_URL: z.string().url().default("http://localhost:3000"),
+  PORT: optionalPortSchema,
   DATABASE_URL: z
     .string()
     .url()
@@ -27,4 +36,9 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().default("redis://localhost:6380"),
 });
 
-export const env = Object.freeze(envSchema.parse(process.env));
+const parsed = envSchema.parse(process.env);
+
+export const env = Object.freeze({
+  ...parsed,
+  listenPort: parsed.API_PORT ?? parsed.PORT ?? 4000,
+});

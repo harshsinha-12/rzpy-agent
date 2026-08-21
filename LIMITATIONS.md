@@ -18,6 +18,7 @@ This document records demo and product limits that are intentional or not yet in
 - A Razorpay 5xx during Payment Link creation retries with the same action-bound reference. If Razorpay created a link and then timed out, the next attempt looks up that reference instead of creating a second link.
 - OpenAI failures fall back to the diagnosis engine's deterministic action. The model never executes a payment or message.
 - Worker jobs survive process restarts because BullMQ stores them in Redis. PostgreSQL remains the durable source of truth for cases, actions, and audit events.
+- The Next.js frontend deploys to Vercel. The Fastify API, BullMQ worker, PostgreSQL, and Redis run on Railway; Vercel cannot host those persistent processes.
 
 ## Credentials and operations
 

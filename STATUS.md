@@ -5,11 +5,11 @@ Last updated: 2026-08-21
 ## Current snapshot
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Steps 10 and 11 are complete after user approval; Step 12 is in progress with the public project explanation and architecture package
-- **Application code:** The frontend now includes a plain-language About page and an accessible runtime architecture diagram covering Razorpay Test Mode, GPT-5.6 Terra, deterministic policy, Fastify, PostgreSQL, Redis/BullMQ, the five worker queues, 60-second reconciliation, and the simulator. Matching Mermaid diagrams live in `ARCHITECTURE.md`. The web `tsconfig.json` no longer uses deprecated TypeScript `baseUrl`.
-- **Runtime services:** The web, API, worker, Docker PostgreSQL, and Docker Redis services were observed running locally during this session
-- **Current blocker:** A signed live webhook still needs a separate webhook secret and public HTTPS URL; API-only verification is configured and authenticated
-- **Exact next action:** Review the About and architecture surfaces, then continue the remaining Step 12 deployment and demo-package work
+- **State:** Step 12 is in progress. Hosting is decided: Vercel for the Next.js web app; Railway for the API, worker, PostgreSQL, and Redis. Vercel project files and Railway Dockerfiles are in the repo; hosted Postgres, Redis, webhook URL, and live Railway services are not deployed yet.
+- **Application code:** The frontend includes the About page and architecture diagram. The web `tsconfig.json` no longer uses deprecated TypeScript `baseUrl`. The API and worker now listen on platform `PORT` when `API_PORT` / `WORKER_HEALTH_PORT` are unset.
+- **Runtime services:** Local Docker PostgreSQL and Redis remain the running data stores until Railway is provisioned
+- **Current blocker:** Hosted PostgreSQL, Redis, API, worker, and a public HTTPS Razorpay webhook URL are still outstanding. The Vercel web app can be published tonight; dashboard data waits on Railway.
+- **Exact next action:** Push `main` and import the GitHub repo into Vercel with Root Directory `apps/web`. Tomorrow provision Railway Postgres/Redis/API/worker, then configure the Razorpay webhook.
 
 ## Step overview
 
@@ -49,7 +49,7 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 | Razorpay Test Key ID and Secret |              5 | Configured and authenticated   |
 | Razorpay webhook secret         |              5 | Not created                    |
 | OpenAI API key                  |              7 | Configured locally             |
-| Deployment credentials          |             12 | Not needed yet                 |
+| Deployment credentials          |             12 | Vercel/Railway not created yet         |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -952,6 +952,41 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Continue remaining Step 12 deployment and demo-package work.
+
+### 2026-08-21 — Vercel web and Railway runtime split
+
+**Agent:** Cursor
+
+**Requested outcome:** Guide and prepare Vercel deployment for the web app, while leaving PostgreSQL and Razorpay webhook work for tomorrow.
+
+**Completed:**
+
+- Recorded D-034: Vercel hosts Next.js; Railway hosts the Fastify API, BullMQ worker, PostgreSQL, and Redis.
+- Added `apps/web/vercel.json` and Vercel-aware `APP_BASE_URL` defaulting.
+- Added Railway Dockerfiles for the API and worker, plus `PORT` listen fallbacks so hosted services bind the platform port.
+- Documented tonight/tomorrow deploy steps in `README.md`.
+
+**Files changed:**
+
+- `apps/web/vercel.json`, `apps/web/package.json`, `apps/web/src/config/env.ts`
+- `apps/api/src/config/env.ts`, `apps/api/src/server.ts`
+- `apps/worker/src/config/env.ts`, `apps/worker/src/worker.ts`
+- `deploy/Dockerfile.api`, `deploy/Dockerfile.worker`, `.dockerignore`
+- `README.md`, `ARCHITECTURE.md`, `DECISIONS.md`, `PLAN.md`, `LIMITATIONS.md`, `.env.example`, `.gitignore`, `STATUS.md`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/web typecheck` passed.
+- `pnpm --filter @recoveryos/api typecheck` passed.
+- `pnpm --filter @recoveryos/worker typecheck` passed.
+
+**Blockers:**
+
+- Hosted Postgres, Redis, API, worker, and a public Razorpay webhook URL are not created yet.
+
+**Next action:**
+
+- Push `main` and import the repo into Vercel with Root Directory `apps/web`. Tomorrow: Railway Postgres/Redis/API/worker, then the webhook.
 
 ## Session entry template
 

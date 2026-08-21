@@ -312,9 +312,9 @@ This is the binding implementation order for the project. We will complete, veri
 
 **Deliverables:**
 
-- Frontend deployment
-- Long-running API and worker services
-- Managed PostgreSQL and Redis
+- Frontend deployment on Vercel
+- Long-running API and worker services on Railway
+- Managed PostgreSQL and Redis on Railway
 - Public HTTPS webhook endpoint configured in Razorpay Test Mode
 - Production-like seed command and demo reset procedure
 - Demo script, architecture explanation, backup recording, and failure fallback

@@ -17,6 +17,7 @@ coverage/
 
 # Editors and operating systems
 .DS_Store
+.vercel
 .idea/
 .vscode/
 
