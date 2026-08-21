@@ -4,12 +4,12 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 6 — Deterministic diagnosis engine
+- **Current step:** Step 7 — AI proposal and deterministic policy engine
 - **State:** Awaiting approval; Step 5 live acceptance remains externally blocked
-- **Application code:** Deterministic diagnosis, persisted evidence, safe fallback recommendations, and case-detail visibility are implemented
+- **Application code:** Structured Terra proposals, safe fallback, deterministic policy enforcement, audit persistence, and UI explanation are implemented
 - **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
-- **Current blocker:** User approval is required before Step 7; Step 5 separately still needs Test Mode credentials and a public HTTPS webhook URL
-- **Exact next action:** Review and approve Step 6; do not start Step 7 before explicit approval
+- **Current blocker:** User approval is required before Step 8; Step 5 separately still needs Test Mode credentials and a public HTTPS webhook URL
+- **Exact next action:** Review and approve Step 7; do not start Step 8 before explicit approval
 
 ## Step overview
 
@@ -21,8 +21,8 @@ Last updated: 2026-08-21
 |    3 | Read-only product API                            | Complete          |
 |    4 | Dashboard and Reported Issues frontend           | Complete          |
 |    5 | Razorpay Test Mode ingestion                     | Blocked           |
-|    6 | Deterministic diagnosis engine                   | Awaiting approval |
-|    7 | AI proposal and deterministic policy engine      | Not started       |
+|    6 | Deterministic diagnosis engine                   | Complete          |
+|    7 | AI proposal and deterministic policy engine      | Awaiting approval |
 |    8 | BullMQ recovery orchestration                    | Not started       |
 |    9 | Recovery execution tools                         | Not started       |
 |   10 | Simulator and evaluation harness                 | Not started       |
@@ -48,7 +48,7 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 | Local Redis URL                 |              1 | Configured on host port 6380   |
 | Razorpay Test Key ID and Secret |              5 | Not provided                   |
 | Razorpay webhook secret         |              5 | Not created                    |
-| OpenAI API key                  |              7 | Not provided                   |
+| OpenAI API key                  |              7 | Configured locally             |
 | Deployment credentials          |             12 | Not needed yet                 |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
@@ -581,6 +581,59 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review Step 6, then approve it before any Step 7 AI or policy implementation begins.
+
+### 2026-08-21 — Step 7 AI proposal and deterministic policy engine
+
+**Agent:** Codex
+
+**Requested outcome:** Implement Step 7 and use GPT-5.6 Terra for the API-backed recovery proposal when needed.
+
+**Completed:**
+
+- Treated the Step 7 instruction as approval of Step 6 and advanced only the requested step.
+- Added `@recoveryos/agents` with separate `agent.ts`, `tools.ts`, `prompt.ts`, `schemas.ts`, and `types.ts` responsibilities.
+- Added a strict Zod-validated Responses API proposal using configurable `gpt-5.6-terra`, with no model tools or side-effect access.
+- Bounded each new-case proposal to low reasoning effort, 700 output tokens, a 12-second timeout, one SDK retry, and disabled response storage.
+- Added safe deterministic fallback for missing, failed, or invalid model responses.
+- Added pure policy checks for captured payments, action limits, message limits, cooldowns, recovery windows, opt-out, diagnosis contact safety, duplicate work, allowed actions, and merchant failures.
+- Persisted the proposal, model/fallback source, evidence, approval or denial, violations, safe fallback, and reasoning in `RecoveryAction` and audit events.
+- Wired the agent and policy path into newly created Test Mode recovery cases without giving the LLM database-write, Razorpay, messaging, or execution tools.
+- Exposed proposal and policy metadata through the existing recovery API and rendered AI source, evidence, denial reasons, scheduling, and safe fallback in case details.
+
+**Files changed:**
+
+- `packages/agents/*`
+- `packages/recovery-engine/src/policy/*`
+- `apps/worker/src/agents/recovery-context.ts`
+- `apps/worker/src/jobs/analyse-recovery.ts`
+- Worker configuration, startup, ingestion integration, and tests
+- Recovery API mappers and tests
+- Recovery case-detail schemas, action component, styles, and tests
+- Workspace dependency, lockfile, environment example, and project tracking documents
+
+**Validation:**
+
+- A live synthetic Responses API smoke call returned a schema-valid `OPENAI` proposal from `gpt-5.6-terra` without fallback.
+- `pnpm lint` passed with zero warnings across all packages and applications.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 27 test files and 78 tests.
+- Policy tests cover all required prohibitions and prove merchant-side failures cannot trigger customer-facing recovery.
+- Worker integration tests prove approved proposals and policy-denied merchant proposals are stored once with complete audit events.
+- API and frontend tests prove proposal source, evidence, policy violations, and safe fallback are returned and rendered.
+- `pnpm build` passed, including the new agents package and all application routes.
+
+**Issues handled:**
+
+- Kept Payment Link creation distinct from customer messaging: a delayed link may be created after policy cooldown without contacting the customer, while reminders and alternate-method outreach remain consent-gated.
+
+**Blockers:**
+
+- Step 7 has no implementation blocker and awaits user approval.
+- Step 5's real Test Mode acceptance event remains blocked on Razorpay credentials and a public HTTPS webhook endpoint.
+
+**Next action:**
+
+- Review and approve Step 7 before beginning Step 8 BullMQ recovery orchestration.
 
 ## Session entry template
 

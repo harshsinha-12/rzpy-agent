@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 6 deterministic diagnosis is implemented and awaiting approval. Step 5's live Test Mode acceptance check still needs dashboard keys and a public webhook URL.
+> Current state: Step 7 AI proposal and deterministic policy implementation is complete and awaiting approval. Step 5's live Test Mode acceptance check still needs dashboard keys and a public webhook URL.
 
 ## Core workflow
 
@@ -55,11 +55,12 @@ apps/
   worker/    Long-running BullMQ worker and health server
 
 packages/
+  agents/    Structured recovery proposal agent and its read-only context boundary
   config/    Shared TypeScript configuration
   database/  Prisma schema, migrations, seed, and connection boundary
   domain/    Shared domain contracts
   razorpay/  Test-mode client, webhook verification, and payload mapping
-  recovery-engine/  Pure deterministic failure diagnosis and safe fallback rules
+  recovery-engine/  Pure deterministic diagnosis, policy validation, and fallback rules
 ```
 
 The detailed structure contract is in `PROJECT_STRUCTURE.md`.
@@ -114,6 +115,10 @@ Razorpay Test Mode endpoints:
 The case list accepts `page`, `pageSize`, `search`, `status`, `failureCategory`, `paymentMethod`, `dataSource`, `errorSource`, `sortBy`, and `sortOrder`. Sorting supports `amountAtRiskPaise` and `lastUpdatedAt`. Money remains in integer paise, each response carries data-source labels, and invalid requests use a consistent error envelope.
 
 The deterministic diagnosis engine classifies normalized Razorpay signals before any LLM is involved. It records the matched evidence, recoverability score and band, whether customer contact is safe, and a bounded pre-policy fallback action. Merchant integration failures always escalate without customer contact; unknown first attempts wait, while repeated unknown failures escalate.
+
+The recovery agent uses the OpenAI Responses API with `gpt-5.6-terra` by default and validates every proposal against a strict Zod schema. It receives a read-only case context and has no Razorpay, database-write, messaging, or execution tools. Each new proposal is independently checked by deterministic policy code for payment state, action and message limits, cooldown, recovery window, consent, merchant failures, and duplicate work. Model failures or invalid output fall back to the Step 6 deterministic recommendation before policy validation.
+
+The API call is bounded to one proposal per newly ingested case, low reasoning effort, 700 maximum output tokens, a 12-second timeout, one SDK retry, and `store: false`. Set `OPENAI_MODEL` to override the default without changing code.
 
 To send a real Test Mode failure into Reported Issues:
 
