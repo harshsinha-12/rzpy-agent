@@ -1,3 +1,4 @@
+import type { RecoveryAgent } from "@recoveryos/agents";
 import {
   createPrismaClient,
   runDemoSeed,
@@ -8,6 +9,33 @@ import { DEMO_MERCHANT_SLUG } from "@recoveryos/domain";
 import { createFailedPaymentWebhookPayload } from "@recoveryos/razorpay";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { processPaymentEvent } from "./process-payment-event.js";
+
+const recoveryAgent: RecoveryAgent = {
+  async propose(caseId) {
+    const merchantFailure = caseId.includes("merchant_error");
+    return {
+      fallbackReason: null,
+      model: "gpt-5.6-terra",
+      proposal: {
+        action: merchantFailure ? "SEND_REMINDER" : "CREATE_PAYMENT_LINK",
+        confidence: merchantFailure ? 25 : 82,
+        delayMinutes: merchantFailure ? 0 : 5,
+        diagnosis: merchantFailure
+          ? "A merchant integration setting blocked the payment."
+          : "The gateway failure is likely transient.",
+        evidence: [
+          merchantFailure
+            ? "Error source is business"
+            : "Error source is gateway",
+        ],
+        reason: merchantFailure
+          ? "Ask the customer to try again."
+          : "Wait through the cooldown, then offer a fresh payment path.",
+      },
+      source: "OPENAI",
+    };
+  },
+};
 
 describe.sequential("processPaymentEvent", () => {
   let prisma: PrismaClient;
@@ -44,6 +72,7 @@ describe.sequential("processPaymentEvent", () => {
       where: { slug: DEMO_MERCHANT_SLUG },
     });
     const payload = createFailedPaymentWebhookPayload({
+      createdAt: Math.floor(Date.now() / 1000),
       paymentId: "pay_test_ingest_1",
     });
     const webhook = await prisma.webhookEvent.create({
@@ -60,10 +89,14 @@ describe.sequential("processPaymentEvent", () => {
       },
     });
 
-    const first = await processPaymentEvent(prisma, webhook.id);
-    const second = await processPaymentEvent(prisma, webhook.id);
+    const first = await processPaymentEvent(prisma, webhook.id, {
+      recoveryAgent,
+    });
+    const second = await processPaymentEvent(prisma, webhook.id, {
+      recoveryAgent,
+    });
     const cases = await prisma.recoveryCase.findMany({
-      include: { auditEvents: true },
+      include: { actions: true, auditEvents: true },
       where: { paymentEvent: { razorpayPaymentId: "pay_test_ingest_1" } },
     });
 
@@ -90,8 +123,26 @@ describe.sequential("processPaymentEvent", () => {
             recommendedAction: "WAIT",
           }),
         }),
+        expect.objectContaining({
+          actor: "RECOVERY_AGENT",
+          decision: "CREATE_PAYMENT_LINK",
+          eventType: "agent.proposal.created",
+        }),
+        expect.objectContaining({
+          actor: "POLICY_ENGINE",
+          decision: "APPROVED",
+          eventType: "policy.approved",
+        }),
       ]),
     );
+    expect(cases[0]?.actions).toEqual([
+      expect.objectContaining({
+        actionType: "CREATE_PAYMENT_LINK",
+        policyDecision: "APPROVED",
+        proposedBy: "RECOVERY_AGENT",
+        result: "PENDING",
+      }),
+    ]);
   });
 
   it("escalates merchant failures without recommending customer contact", async () => {
@@ -99,6 +150,7 @@ describe.sequential("processPaymentEvent", () => {
       where: { slug: DEMO_MERCHANT_SLUG },
     });
     const payload = createFailedPaymentWebhookPayload({
+      createdAt: Math.floor(Date.now() / 1000),
       errorReason: "payment_method_disabled",
       errorSource: "business",
       orderId: "order_test_merchant_error",
@@ -118,9 +170,9 @@ describe.sequential("processPaymentEvent", () => {
       },
     });
 
-    await processPaymentEvent(prisma, webhook.id);
+    await processPaymentEvent(prisma, webhook.id, { recoveryAgent });
     const recoveryCase = await prisma.recoveryCase.findFirstOrThrow({
-      include: { auditEvents: true },
+      include: { actions: true, auditEvents: true },
       where: { paymentEvent: { razorpayPaymentId: "pay_test_merchant_error" } },
     });
     const diagnosisEvent = recoveryCase.auditEvents.find(
@@ -131,12 +183,29 @@ describe.sequential("processPaymentEvent", () => {
       failureCategory: "MERCHANT_ERROR",
       recoverabilityBand: "NONE",
       recoverabilityScore: 0,
+      status: "ESCALATED",
     });
     expect(diagnosisEvent?.output).toEqual(
       expect.objectContaining({
         customerContactAllowed: false,
         recommendedAction: "ESCALATE",
       }),
+    );
+    expect(recoveryCase.actions).toEqual([
+      expect.objectContaining({
+        actionType: "SEND_REMINDER",
+        policyDecision: "DENIED",
+        result: "SKIPPED",
+      }),
+    ]);
+    expect(recoveryCase.auditEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actor: "POLICY_ENGINE",
+          decision: "DENIED",
+          eventType: "policy.denied",
+        }),
+      ]),
     );
   });
 });

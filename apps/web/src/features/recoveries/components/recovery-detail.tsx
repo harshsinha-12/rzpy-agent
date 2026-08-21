@@ -6,6 +6,7 @@ import { formatDateTime, formatLabel, formatMoney } from "@/lib/formatters";
 
 import type { RecoveryCaseDetail } from "../schemas";
 import { DiagnosisEvidence } from "./diagnosis-evidence";
+import { RecoveryActionCard } from "./recovery-action-card";
 import styles from "./recovery-detail.module.css";
 
 function Fact({ label, value }: { label: string; value: string }) {
@@ -159,27 +160,7 @@ export function RecoveryDetail({ recovery }: { recovery: RecoveryCaseDetail }) {
             <div className={styles.actionList}>
               {recovery.actions.length > 0 ? (
                 recovery.actions.map((action) => (
-                  <article className={styles.action} key={action.id}>
-                    <div className={styles.actionHeader}>
-                      <strong className={styles.actionTitle}>
-                        Attempt {action.attemptNumber}:{" "}
-                        {formatLabel(action.actionType)}
-                      </strong>
-                      <StatusBadge value={action.result} />
-                    </div>
-                    <p className={styles.actionReason}>{action.reason}</p>
-                    <div className={styles.policy}>
-                      <StatusBadge value={action.policyDecision} />
-                      <span className={styles.policyReason}>
-                        {action.policyReason}
-                      </span>
-                    </div>
-                    <div className={styles.actionMeta}>
-                      <span>{action.confidence}% confidence</span>
-                      <span>Proposed by {formatLabel(action.proposedBy)}</span>
-                      <span>{formatDateTime(action.createdAt)}</span>
-                    </div>
-                  </article>
+                  <RecoveryActionCard action={action} key={action.id} />
                 ))
               ) : (
                 <p className={styles.panelSubtitle}>

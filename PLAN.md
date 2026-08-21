@@ -167,7 +167,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 6 — Deterministic diagnosis engine
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Normalize Razorpay signals into explainable recovery facts before involving an LLM.
 
@@ -188,7 +188,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 7 — AI proposal and deterministic policy engine
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Let AI propose a bounded strategy while deterministic code retains authority.
 

@@ -286,11 +286,39 @@
   line-height: 1.6;
 }
 
+.proposalSource {
+  color: var(--accent-strong);
+  font-size: 0.65rem;
+  font-weight: 780;
+  letter-spacing: 0.03em;
+}
+
+.proposalEvidence,
+.policyViolations {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--ink-muted);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
 .policy {
   display: grid;
   gap: 0.45rem;
   border-top: 1px solid var(--line);
   padding-top: 0.65rem;
+}
+
+.policyHeading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.65rem;
+  font-weight: 720;
 }
 
 .policyReason {

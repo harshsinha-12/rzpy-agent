@@ -59,11 +59,18 @@ const recoveryActionSchema = z.object({
   input: z.unknown(),
   output: z.unknown(),
   policyDecision: z.enum(policyDecisions),
+  policyViolations: z.array(
+    z.object({ code: z.string(), message: z.string() }),
+  ),
   policyReason: z.string(),
   proposedBy: z.enum(actors),
+  proposalEvidence: z.array(z.string()),
+  proposalModel: z.string().nullable(),
+  proposalSource: z.enum(["OPENAI", "DETERMINISTIC_FALLBACK"]).nullable(),
   razorpayReference: z.string().nullable(),
   reason: z.string(),
   result: z.enum(actionResults),
+  safeFallbackAction: z.enum(actionTypes).nullable(),
   scheduledFor: z.string().datetime().nullable(),
 });
 

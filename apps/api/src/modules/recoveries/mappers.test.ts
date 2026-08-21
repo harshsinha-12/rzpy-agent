@@ -7,7 +7,38 @@ function detailRecord(): RecoveryCaseDetailRecord {
   const occurredAt = new Date("2026-08-21T08:00:00.000Z");
 
   return {
-    actions: [],
+    actions: [
+      {
+        actionType: "SEND_REMINDER",
+        attemptNumber: 1,
+        confidence: 25,
+        createdAt: occurredAt,
+        dataSource: "RAZORPAY_TEST_MODE",
+        executedAt: null,
+        id: "action_test_policy",
+        input: {
+          evidence: ["Error source is business"],
+          model: "gpt-5.6-terra",
+          source: "OPENAI",
+        },
+        output: {
+          safeFallbackAction: "ESCALATE",
+          violations: [
+            {
+              code: "MERCHANT_FAILURE",
+              message: "Merchant failures must not contact the customer.",
+            },
+          ],
+        },
+        policyDecision: "DENIED",
+        policyReason: "Merchant failures must not contact the customer.",
+        proposedBy: "RECOVERY_AGENT",
+        razorpayReference: null,
+        reason: "Ask the customer to retry.",
+        result: "SKIPPED",
+        scheduledFor: null,
+      },
+    ],
     amountAtRiskPaise: 499_900,
     auditEvents: [
       {
@@ -83,6 +114,17 @@ describe("mapRecoveryCaseDetail", () => {
         },
       ],
       recommendedAction: "WAIT",
+    });
+    expect(mapped.actions[0]).toMatchObject({
+      policyViolations: [
+        {
+          code: "MERCHANT_FAILURE",
+        },
+      ],
+      proposalEvidence: ["Error source is business"],
+      proposalModel: "gpt-5.6-terra",
+      proposalSource: "OPENAI",
+      safeFallbackAction: "ESCALATE",
     });
   });
 });

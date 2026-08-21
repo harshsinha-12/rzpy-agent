@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import type { RecoveryAgent } from "@recoveryos/agents";
 import type { Prisma, PrismaClient } from "@recoveryos/database";
 import { DEFAULT_CURRENCY, DEMO_MERCHANT_SLUG } from "@recoveryos/domain";
 import {
@@ -11,9 +12,15 @@ import {
 } from "@recoveryos/razorpay";
 import { diagnosePaymentFailure } from "@recoveryos/recovery-engine";
 
+import { analyseRecoveryCase } from "./analyse-recovery.js";
+
 export interface ProcessPaymentEventResult {
   casePublicId: string | null;
   status: "FAILED" | "IGNORED" | "PROCESSED";
+}
+
+export interface ProcessPaymentEventDependencies {
+  recoveryAgent?: RecoveryAgent;
 }
 
 function jsonValue(value: Record<string, unknown>): Prisma.InputJsonValue {
@@ -36,6 +43,7 @@ function publicCaseId(paymentId: string): string {
 export async function processPaymentEvent(
   prisma: PrismaClient,
   webhookEventId: string,
+  dependencies: ProcessPaymentEventDependencies = {},
 ): Promise<ProcessPaymentEventResult> {
   const webhook = await prisma.webhookEvent.findUnique({
     where: { id: webhookEventId },
@@ -70,11 +78,18 @@ export async function processPaymentEvent(
     }
 
     if (parsed.data.event === "payment.failed") {
-      const casePublicId = await ingestFailedPayment(
+      const ingestedCase = await ingestFailedPayment(
         prisma,
         webhook.merchantId,
         payment,
       );
+      if (ingestedCase.created && dependencies.recoveryAgent) {
+        await analyseRecoveryCase(
+          prisma,
+          ingestedCase.caseId,
+          dependencies.recoveryAgent,
+        );
+      }
       await prisma.webhookEvent.update({
         data: {
           processedAt: new Date(),
@@ -82,7 +97,7 @@ export async function processPaymentEvent(
         },
         where: { id: webhook.id },
       });
-      return { casePublicId, status: "PROCESSED" };
+      return { casePublicId: ingestedCase.publicId, status: "PROCESSED" };
     }
 
     if (
@@ -125,7 +140,7 @@ async function ingestFailedPayment(
   prisma: PrismaClient,
   merchantId: string,
   payment: RazorpayPaymentEntity,
-): Promise<string> {
+): Promise<{ caseId: string; created: boolean; publicId: string }> {
   const merchant = await prisma.merchant.findUnique({
     where: { id: merchantId },
   });
@@ -203,7 +218,11 @@ async function ingestFailedPayment(
       where: { paymentEventId: paymentEvent.id },
     });
     if (existingCase) {
-      return existingCase.publicId;
+      return {
+        caseId: existingCase.id,
+        created: false,
+        publicId: existingCase.publicId,
+      };
     }
 
     const attemptCount = await tx.paymentEvent.count({
@@ -285,7 +304,11 @@ async function ingestFailedPayment(
       },
     });
 
-    return createdCase.publicId;
+    return {
+      caseId: createdCase.id,
+      created: true,
+      publicId: createdCase.publicId,
+    };
   });
 }
 
