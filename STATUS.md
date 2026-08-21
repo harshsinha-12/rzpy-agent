@@ -865,6 +865,65 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 
 - Review the new frontend page and architecture guide, then continue the remaining Step 12 deployment and demo-package work after approval.
 
+### 2026-08-21 — README project guide enrichment
+
+**Agent:** Codex
+
+**Requested outcome:** Enrich the README using the architecture, project-structure, status, limitations, configuration, and operating documents.
+
+**Completed:**
+
+- Reworked the README from an implementation-era outline into the primary project entry point for judges, developers, and future agents.
+- Added the problem statement, implemented demo capabilities, end-to-end recovery workflow, Mermaid architecture overview, integration responsibilities, queue and scheduler model, data ownership, and safety boundaries.
+- Expanded local setup, environment-variable guidance, demo walkthroughs, API reference, AI/policy behavior, simulator design, repository structure, validation commands, and current limitations.
+- Added a linked documentation map so detailed architecture, structure, planning, status, decisions, limitations, and agent rules remain easy to find without duplicating their full contents.
+
+**Files changed:**
+
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- README content was reconciled against `ARCHITECTURE.md`, `PROJECT_STRUCTURE.md`, `LIMITATIONS.md`, `.env.example`, root package scripts, and the current `STATUS.md` snapshot.
+- Prettier formatting and repository diff checks passed.
+
+**Blockers:**
+
+- None for the README work. Existing live webhook and paid Test Mode Payment Link acceptance items remain unchanged.
+
+**Next action:**
+
+- Review the enriched README, then continue the remaining Step 12 deployment and demo-package work after approval.
+
+### 2026-08-21 — README queue Mermaid diagram
+
+**Agent:** Codex
+
+**Requested outcome:** Add the Mermaid architecture chart directly to the README.
+
+**Completed:**
+
+- Retained the README's system-level Mermaid architecture overview.
+- Added a second Mermaid flowchart showing all five BullMQ queues, the recovery worker, PostgreSQL, and the 60-second reconciliation paths for stale webhooks, missing analysis, and overdue approved actions.
+
+**Files changed:**
+
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Prettier formatting and repository diff checks passed.
+
+**Blockers:**
+
+- None for this documentation change.
+
+**Next action:**
+
+- Review the rendered Mermaid diagrams on GitHub, then continue the remaining Step 12 work after approval.
+
 ## Session entry template
 
 ```markdown
