@@ -10,6 +10,30 @@ afterEach(async () => {
 });
 
 describe("GET /health", () => {
+  it("returns 200 for liveness without checking dependencies", async () => {
+    const app = await buildApp({
+      healthService: createHealthService({
+        close: async () => undefined,
+        postgres: async () => {
+          throw new Error("database unavailable");
+        },
+        redis: async () => {
+          throw new Error("redis unavailable");
+        },
+      }),
+      logger: false,
+    });
+    apps.push(app);
+
+    const response = await app.inject({ method: "GET", url: "/health/live" });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      service: "api",
+      status: "live",
+    });
+  });
+
   it("returns 200 when PostgreSQL and Redis are reachable", async () => {
     const app = await buildApp({
       healthService: createHealthService({

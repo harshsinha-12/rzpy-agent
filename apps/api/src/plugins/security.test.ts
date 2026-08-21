@@ -53,10 +53,12 @@ describe("API security plugins", () => {
     apps.push(app);
 
     const first = await app.inject({ method: "GET", url: "/health" });
-    const second = await app.inject({ method: "GET", url: "/health" });
+    const second = await app.inject({ method: "GET", url: "/health/live" });
+    const third = await app.inject({ method: "GET", url: "/health/live" });
 
     expect(first.statusCode).toBe(200);
     expect(second.statusCode).toBe(200);
+    expect(third.statusCode).toBe(200);
   });
 });
 

@@ -273,21 +273,31 @@ Create one Railway project with four services: PostgreSQL, Redis, API, and worke
 
 **Postgres and Redis**
 
-1. Add Railway **PostgreSQL** and **Redis** plugins. Copy `DATABASE_URL` and `REDIS_URL` from Railway. If the Postgres URL has no SSL query string, append `?sslmode=require`.
-2. From your laptop, against the remote database (never commit the URL):
+1. Add Railway **PostgreSQL** and **Redis** plugins.
+2. Reference their private-network variables from the API and worker services as `${{Postgres.DATABASE_URL}}` and `${{Redis.REDIS_URL}}`. Do not paste either credential into source control, documentation, chat, or build arguments.
+3. In the API service, set this one-time Railway **Pre-deploy Command** for the first successful deployment:
 
 ```bash
-export DATABASE_URL="postgresql://..."
 pnpm db:setup
 ```
 
-That generates the Prisma client, applies migrations, and loads the deterministic demo seed.
+Railway runs the command inside its private network with the API service variables available. It generates the Prisma client, applies migrations, and loads the deterministic demo seed without exposing PostgreSQL publicly.
+
+4. After the first seed succeeds, replace the API pre-deploy command with:
+
+```bash
+pnpm db:migrate
+```
+
+This applies future migrations without resetting the deterministic demo merchant on every API redeploy. Run `pnpm db:seed` from an intentional Railway one-off/pre-deploy run only when you want to reset the demo dataset.
+
+Do not run a `postgres.railway.internal` connection string from your laptop. The hostname is available only inside Railway's private network. If laptop access is genuinely needed, use the temporary public TCP connection details displayed by Railway and rotate or disable them afterward; the private pre-deploy path is preferred.
 
 **API service**
 
 1. New Railway service from the same GitHub repo.
 2. Set the builder to **Dockerfile** with path `deploy/Dockerfile.api` and context `/`.
-3. Health check path: `/health`.
+3. Health check path: `/health/live`. This liveness endpoint returns HTTP 200 when Fastify is accepting requests; use `/health` separately to verify PostgreSQL and Redis readiness.
 4. Variables:
 
 | Variable                        | Value                                         |
@@ -332,6 +342,8 @@ Generate public HTTPS domains for both Railway services. Confirm:
 curl https://<api-host>/health
 curl https://<worker-host>/health
 ```
+
+For the API, `/health/live` verifies only that the container is listening. `/health` remains the strict readiness endpoint and returns HTTP 503 with per-dependency errors when PostgreSQL or Redis is unavailable.
 
 Then update the three Vercel API/worker URLs and redeploy the web app.
 

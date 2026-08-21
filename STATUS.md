@@ -5,11 +5,11 @@ Last updated: 2026-08-21
 ## Current snapshot
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Step 12 is in progress. Railway PostgreSQL, Redis, and the worker are online; the API image builds but its deployment health check is failing because a local `API_PORT=4000` override was copied into Railway.
-- **Application code:** The frontend includes the About page and architecture diagram. The API and worker now give Railway's injected `PORT` precedence over local port overrides, preventing a copied development port from breaking platform routing.
+- **State:** Step 12 is in progress. Railway PostgreSQL is migrated and seeded, Redis and the worker are online, and the API container deploys but its strict dependency health check is preventing network activation.
+- **Application code:** The API now separates `/health/live` process liveness from strict `/health` PostgreSQL/Redis readiness, while continuing to give Railway's injected `PORT` precedence.
 - **Runtime services:** Railway PostgreSQL, Redis, and worker are online. The Railway API is not yet healthy; local services are unchanged.
-- **Current blocker:** The API service must remove `API_PORT`, use `NODE_ENV=production`, and redeploy. A public API domain and Razorpay webhook configuration follow after the health check passes.
-- **Exact next action:** Push the port-precedence fix, remove `API_PORT` from the Railway API variables, set `NODE_ENV=production`, and redeploy the API.
+- **Current blocker:** Hosted PostgreSQL and Redis credentials exposed during setup must be rotated. The API must deploy the liveness route and Railway must use `/health/live` as its deployment health-check path.
+- **Exact next action:** Push the liveness endpoint, set the Railway API health-check path to `/health/live`, deploy the latest commit, then call `/health` to inspect dependency readiness separately.
 
 ## Step overview
 
@@ -1025,6 +1025,75 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Remove `API_PORT`, change `NODE_ENV` to `production`, deploy the updated commit, and confirm the public `/health` endpoint returns HTTP 200.
+
+### 2026-08-21 — Railway private database seeding correction
+
+**Agent:** Codex
+
+**Requested outcome:** Seed the Railway PostgreSQL database using the provided connection information.
+
+**Completed:**
+
+- Declined to use or repeat the exposed credential and identified `postgres.railway.internal` as a Railway private-network hostname that is not reachable from a laptop.
+- Replaced the README's laptop-seeding instruction with a Railway-native pre-deploy procedure.
+- Documented `pnpm db:setup` as the one-time initial migration and seed command, followed by `pnpm db:migrate` for normal deployments so demo state is not reset each time.
+- Recorded the private-network deployment decision and credential-rotation requirement.
+
+**Files changed:**
+
+- `README.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Confirmed the referenced root database scripts against `package.json` and the Prisma package scripts.
+- Railway's current pre-deploy documentation confirms that these commands run inside the private network with application environment variables and are intended for migrations and data seeding.
+- Repository formatting and diff checks were run.
+
+**Blockers:**
+
+- The exposed PostgreSQL credential must be rotated in Railway before it is used.
+- The API deployment and initial private-network seed still need to be run from the updated Railway configuration.
+
+**Next action:**
+
+- Rotate the PostgreSQL credentials, set `pnpm db:setup` as the API pre-deploy command, remove `API_PORT`, use `NODE_ENV=production`, and redeploy.
+
+### 2026-08-21 — Railway liveness and readiness separation
+
+**Agent:** Codex
+
+**Requested outcome:** Resolve the Railway API network health-check failure after the image, database migration, and seed completed successfully.
+
+**Completed:**
+
+- Confirmed locally that the production API listens on Railway-style `PORT` and that the strict `/health` endpoint returns HTTP 503 when a dependency is unavailable.
+- Added `/health/live`, which returns HTTP 200 as soon as Fastify is accepting requests without waiting on PostgreSQL or Redis.
+- Retained `/health` as the strict readiness endpoint with per-dependency status and errors.
+- Exempted both health endpoints from rate limiting and added focused liveness/security tests.
+- Updated the Railway deployment guide and recorded the liveness/readiness boundary.
+
+**Files changed:**
+
+- `apps/api/src/modules/health/routes.ts` and `routes.test.ts`
+- `apps/api/src/plugins/security.ts` and `security.test.ts`
+- `README.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- API lint, TypeScript, focused health/security tests, production build, formatting, and diff checks were run.
+
+**Blockers:**
+
+- Railway must deploy the updated commit and change the API deployment health-check path from `/health` to `/health/live`.
+- Exposed hosted PostgreSQL and Redis credentials still require rotation.
+
+**Next action:**
+
+- Deploy the liveness change, verify `/health/live` returns 200, then inspect `/health` and fix whichever dependency remains degraded.
 
 ## Session entry template
 

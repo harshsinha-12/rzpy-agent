@@ -12,11 +12,14 @@ export async function registerSecurityPlugins(
   app: FastifyInstance,
   options: SecurityPluginOptions,
 ): Promise<void> {
+  const unrestrictedHealthPaths = new Set(["/health", "/health/live"]);
+
   await app.register(helmet, {
     global: true,
   });
   await app.register(rateLimit, {
-    allowList: (request) => request.url.split("?")[0] === "/health",
+    allowList: (request) =>
+      unrestrictedHealthPaths.has(request.url.split("?")[0] ?? ""),
     errorResponseBuilder: (_request, context) =>
       new AppError(
         context.statusCode,
