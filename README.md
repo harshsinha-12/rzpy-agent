@@ -373,7 +373,7 @@ pnpm db:setup
 
 | Document                                         | Use it for                                                                                           |
 | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| [`idea.md`](./idea.md)                           | Original product concept, personas, workflow, and hackathon framing                                  |
+| [`idea.md`](./IDEA.md)                           | Original product concept, personas, workflow, and hackathon framing                                  |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md)           | Complete system and queue diagrams, integrations, and runtime boundaries                             |
 | [`PROJECT_STRUCTURE.md`](./PROJECT_STRUCTURE.md) | Folder conventions, dependency direction, modularity, agents, utilities, configuration, and fetchers |
 | [`PLAN.md`](./PLAN.md)                           | Ordered implementation steps, deliverables, and acceptance gates                                     |
