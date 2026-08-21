@@ -31,6 +31,7 @@ export interface SimulationRunRecord {
   seed: number;
   paymentCount: number;
   revenueAtRiskPaise: number;
+  noInterventionRevenuePaise: number;
   recoveredRevenuePaise: number;
   baselineRevenuePaise: number;
   incrementalRevenuePaise: number;

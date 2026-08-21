@@ -40,6 +40,7 @@ export function createAnalyticsRepository(
             dataSource: true,
             falseInterventions: true,
             incrementalRevenuePaise: true,
+            noInterventionRevenuePaise: true,
             paymentCount: true,
             policyStops: true,
             recoveredRevenuePaise: true,

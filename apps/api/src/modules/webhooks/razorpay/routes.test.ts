@@ -8,7 +8,7 @@ import {
   createFailedPaymentWebhookPayload,
   signRazorpayWebhookPayload,
 } from "@recoveryos/razorpay";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { buildApp } from "../../../app.js";
 import { createHealthService } from "../../health/service.js";
@@ -42,6 +42,10 @@ describe.sequential("POST /webhooks/razorpay", () => {
       },
       razorpayWebhookSecret: webhookSecret,
     });
+  });
+
+  beforeEach(() => {
+    queued.length = 0;
   });
 
   afterAll(async () => {
@@ -115,5 +119,26 @@ describe.sequential("POST /webhooks/razorpay", () => {
         where: { providerEventId: "evt_test_duplicate" },
       }),
     ).toBe(1);
+  });
+
+  it("rejects a signed but malformed payload", async () => {
+    const rawBody = "{not-json";
+    const response = await app.inject({
+      headers: {
+        "content-type": "application/json",
+        "x-razorpay-event-id": "evt_test_malformed",
+        "x-razorpay-signature": signRazorpayWebhookPayload(
+          rawBody,
+          webhookSecret,
+        ),
+      },
+      method: "POST",
+      payload: rawBody,
+      url: "/webhooks/razorpay",
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.code).toBe("INVALID_WEBHOOK_PAYLOAD");
+    expect(queued).toHaveLength(0);
   });
 });
