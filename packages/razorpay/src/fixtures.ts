@@ -33,3 +33,45 @@ export function createFailedPaymentWebhookPayload(options: {
     },
   };
 }
+
+export function createPaymentLinkPaidWebhookPayload(options: {
+  amountPaise?: number;
+  createdAt?: number;
+  paymentId: string;
+  paymentLinkId: string;
+  referenceId: string;
+}): Record<string, unknown> {
+  const amount = options.amountPaise ?? 499900;
+  const createdAt = options.createdAt ?? 1_724_140_900;
+  return {
+    created_at: createdAt,
+    entity: "event",
+    event: "payment_link.paid",
+    payload: {
+      payment: {
+        entity: {
+          amount,
+          contact: "+919000000099",
+          created_at: createdAt,
+          currency: "INR",
+          email: "demo.customer@example.com",
+          id: options.paymentId,
+          method: "upi",
+          order_id: "order_recovery_test",
+          status: "captured",
+        },
+      },
+      payment_link: {
+        entity: {
+          amount,
+          amount_paid: amount,
+          currency: "INR",
+          id: options.paymentLinkId,
+          reference_id: options.referenceId,
+          short_url: "https://rzp.io/i/recovery-test",
+          status: "paid",
+        },
+      },
+    },
+  };
+}
