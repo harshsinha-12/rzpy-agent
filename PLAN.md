@@ -71,7 +71,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 2 — Database schema and deterministic seed data
 
-**Status:** Awaiting approval
+**Status:** Complete
 
 **Goal:** Establish the durable domain model and populate realistic demo cases.
 
@@ -95,7 +95,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 3 — Read-only product API
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Expose the seeded recovery data through validated API endpoints.
 

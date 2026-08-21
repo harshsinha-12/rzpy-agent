@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 2 database schema and seed implemented and awaiting approval before Step 3 API work.
+> Current state: Step 3 read-only product API is implemented and awaiting approval before Step 4 frontend work.
 
 ## Core workflow
 
@@ -92,6 +92,16 @@ Local endpoints:
 | Worker health | `http://localhost:4001/health` |
 | PostgreSQL    | `localhost:5432`               |
 | Redis         | `localhost:6380`               |
+
+Read-only product endpoints:
+
+| Endpoint                  | Purpose                                                                 |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `GET /recovery/cases`     | Paginated Reported Issues data with search, filters, and sorting        |
+| `GET /recovery/cases/:id` | Normalized payment, recovery actions, customer context, and audit trail |
+| `GET /analytics/overview` | Reconciled KPIs, funnel, breakdowns, strategy results, and simulation   |
+
+The case list accepts `page`, `pageSize`, `search`, `status`, `failureCategory`, `paymentMethod`, `dataSource`, `errorSource`, `sortBy`, and `sortOrder`. Sorting supports `amountAtRiskPaise` and `lastUpdatedAt`. Money remains in integer paise, each response carries data-source labels, and invalid requests use a consistent error envelope.
 
 Redis uses host port `6380` because port `6379` may already be occupied by a machine-level Redis service. Inside Docker, the project Redis service still uses its standard port `6379`.
 
