@@ -24,7 +24,7 @@ const PAYMENT_ID = "payment_constraint_harness";
 const CASE_ID = "case_constraint_harness";
 const CLOCK = new Date("2026-08-20T11:00:00.000Z");
 
-describe("database constraints", () => {
+describe.sequential("database constraints", () => {
   const prisma = createPrismaClient(databaseUrl);
 
   beforeAll(async () => {

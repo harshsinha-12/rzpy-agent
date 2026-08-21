@@ -27,6 +27,7 @@
     "lint-staged": "lint-staged",
     "prepare": "husky",
     "test": "pnpm -r --workspace-concurrency=1 --if-present test",
+    "test:e2e": "pnpm --filter @recoveryos/worker exec vitest run src/jobs/primary-recovery.e2e.test.ts --no-file-parallelism",
     "typecheck": "pnpm run build:packages && pnpm --filter './apps/**' typecheck"
   },
   "lint-staged": {
