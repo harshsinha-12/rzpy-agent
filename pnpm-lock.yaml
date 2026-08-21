@@ -156,6 +156,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@recoveryos/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       next:
         specifier: 'catalog:'
         version: 16.3.1(@babel/core@7.29.7)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -165,6 +168,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.2.8(react@19.2.8)
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
     devDependencies:
       '@recoveryos/config':
         specifier: workspace:*
