@@ -135,6 +135,7 @@ describe.sequential("read-only product API", () => {
     });
     expect(body.data.actions.length).toBeGreaterThan(0);
     expect(body.data.auditTimeline.length).toBeGreaterThan(0);
+    expect(body.data.diagnosisEvidence.length).toBeGreaterThan(0);
     expect(body.data.payment).not.toHaveProperty("rawPayload");
   });
 

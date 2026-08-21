@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 5 Razorpay Test Mode ingestion is implemented and tested with signed fixtures. A live Test Mode failure still needs dashboard keys and a public webhook URL.
+> Current state: Step 6 deterministic diagnosis is implemented and awaiting approval. Step 5's live Test Mode acceptance check still needs dashboard keys and a public webhook URL.
 
 ## Core workflow
 
@@ -59,6 +59,7 @@ packages/
   database/  Prisma schema, migrations, seed, and connection boundary
   domain/    Shared domain contracts
   razorpay/  Test-mode client, webhook verification, and payload mapping
+  recovery-engine/  Pure deterministic failure diagnosis and safe fallback rules
 ```
 
 The detailed structure contract is in `PROJECT_STRUCTURE.md`.
@@ -112,6 +113,8 @@ Razorpay Test Mode endpoints:
 
 The case list accepts `page`, `pageSize`, `search`, `status`, `failureCategory`, `paymentMethod`, `dataSource`, `errorSource`, `sortBy`, and `sortOrder`. Sorting supports `amountAtRiskPaise` and `lastUpdatedAt`. Money remains in integer paise, each response carries data-source labels, and invalid requests use a consistent error envelope.
 
+The deterministic diagnosis engine classifies normalized Razorpay signals before any LLM is involved. It records the matched evidence, recoverability score and band, whether customer contact is safe, and a bounded pre-policy fallback action. Merchant integration failures always escalate without customer contact; unknown first attempts wait, while repeated unknown failures escalate.
+
 To send a real Test Mode failure into Reported Issues:
 
 1. Create Test Mode API keys at [Razorpay API Keys](https://dashboard.razorpay.com/app/websiteapp-settings/api-keys).
@@ -140,6 +143,8 @@ pnpm db:setup
 ```
 
 `pnpm install` also prepares Husky. The pre-commit hook uses lint-staged to run ESLint and Prettier only against staged files. The production web build intentionally uses Next.js Webpack mode because Turbopack's CSS helper requires a temporary local port that is unavailable in some sandboxed build environments.
+
+The root test command runs workspace suites serially, and API test files disable parallel execution, because the API, worker, and database integration tests intentionally share and reseed the same local demo database.
 
 ## Repository documents
 

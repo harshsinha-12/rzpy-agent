@@ -4,30 +4,30 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 5 — Razorpay Test Mode ingestion
-- **State:** Blocked on Test Mode credentials for the live webhook acceptance check
-- **Application code:** Signed webhook ingest, idempotent case creation, worker payment-event jobs, and Test Mode checkout trigger are implemented
+- **Current step:** Step 6 — Deterministic diagnosis engine
+- **State:** Awaiting approval; Step 5 live acceptance remains externally blocked
+- **Application code:** Deterministic diagnosis, persisted evidence, safe fallback recommendations, and case-detail visibility are implemented
 - **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
-- **Current blocker:** `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` are empty in the local `.env` file
-- **Exact next action:** Add Razorpay Test Mode keys and a webhook secret, expose `POST /webhooks/razorpay` on HTTPS, fail a checkout with `failure@razorpay`, and confirm a `RAZORPAY_TEST_MODE` row in Reported Issues
+- **Current blocker:** User approval is required before Step 7; Step 5 separately still needs Test Mode credentials and a public HTTPS webhook URL
+- **Exact next action:** Review and approve Step 6; do not start Step 7 before explicit approval
 
 ## Step overview
 
-| Step | Name                                             | State       |
-| ---: | ------------------------------------------------ | ----------- |
-|    0 | Planning and operating documents                 | Complete    |
-|    1 | Workspace foundation                             | Complete    |
-|    2 | Database schema and deterministic seed data      | Complete    |
-|    3 | Read-only product API                            | Complete    |
-|    4 | Dashboard and Reported Issues frontend           | Complete    |
-|    5 | Razorpay Test Mode ingestion                     | Blocked     |
-|    6 | Deterministic diagnosis engine                   | Not started |
-|    7 | AI proposal and deterministic policy engine      | Not started |
-|    8 | BullMQ recovery orchestration                    | Not started |
-|    9 | Recovery execution tools                         | Not started |
-|   10 | Simulator and evaluation harness                 | Not started |
-|   11 | Reliability, security, and end-to-end validation | Not started |
-|   12 | Deployment and hackathon demo package            | Not started |
+| Step | Name                                             | State             |
+| ---: | ------------------------------------------------ | ----------------- |
+|    0 | Planning and operating documents                 | Complete          |
+|    1 | Workspace foundation                             | Complete          |
+|    2 | Database schema and deterministic seed data      | Complete          |
+|    3 | Read-only product API                            | Complete          |
+|    4 | Dashboard and Reported Issues frontend           | Complete          |
+|    5 | Razorpay Test Mode ingestion                     | Blocked           |
+|    6 | Deterministic diagnosis engine                   | Awaiting approval |
+|    7 | AI proposal and deterministic policy engine      | Not started       |
+|    8 | BullMQ recovery orchestration                    | Not started       |
+|    9 | Recovery execution tools                         | Not started       |
+|   10 | Simulator and evaluation harness                 | Not started       |
+|   11 | Reliability, security, and end-to-end validation | Not started       |
+|   12 | Deployment and hackathon demo package            | Not started       |
 
 ## Available local tooling observed
 
@@ -524,6 +524,63 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Add Test Mode keys from the Razorpay dashboard, configure `POST /webhooks/razorpay`, trigger `failure@razorpay`, and confirm a `RAZORPAY_TEST_MODE` row before marking Step 5 complete.
+
+### 2026-08-21 — Step 6 deterministic diagnosis engine
+
+**Agent:** Codex
+
+**Requested outcome:** Implement Step 6 while the live Razorpay credential check from Step 5 remains blocked.
+
+**Completed:**
+
+- Advanced Step 6 by explicit user instruction without marking Step 5's live acceptance check complete.
+- Added the pure `@recoveryos/recovery-engine` package with deterministic classification, recoverability scoring, evidence, customer-contact safety, and bounded fallback recommendations.
+- Covered merchant errors, customer authentication, insufficient funds, gateway transients, network failures, issuer failures, unknown signals, and repeated unknown attempts.
+- Wired diagnosis into Test Mode payment-event processing using the stored order attempt count.
+- Persisted normalized case fields and a `diagnosis.completed` audit event containing evidence, score, band, contact guardrail, and recommended fallback.
+- Exposed stored diagnosis metadata through the recovery detail API and displayed it in the case detail UI.
+- Kept deterministic recommendations visibly separate from later AI proposals and policy decisions.
+- Serialized workspace suites and API integration files after repeated full runs exposed shared demo-database reseed races.
+
+**Files changed:**
+
+- `packages/recovery-engine/*`
+- `apps/worker/package.json`
+- `apps/worker/src/jobs/process-payment-event.ts`
+- `apps/worker/src/jobs/process-payment-event.test.ts`
+- `apps/api/src/modules/recoveries/mappers.ts`
+- `apps/api/src/modules/recoveries/mappers.test.ts`
+- `apps/api/src/modules/recoveries/routes.test.ts`
+- `apps/web/src/features/recoveries/schemas.ts`
+- `apps/web/src/features/recoveries/components/diagnosis-evidence.tsx`
+- `apps/web/src/features/recoveries/components/diagnosis-evidence.test.tsx`
+- `apps/web/src/features/recoveries/components/recovery-detail.tsx`
+- `apps/web/src/features/recoveries/components/recovery-detail.module.css`
+- Root workspace dependency, test-runner, lockfile, and project tracking documents
+
+**Validation:**
+
+- `pnpm format:check` passed.
+- `pnpm lint` passed with zero warnings across all packages and applications.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 24 test files and 58 tests.
+- The diagnosis package passed 10 table-driven and fallback tests.
+- Worker integration tests proved stored gateway evidence and merchant escalation without customer contact.
+- API and frontend tests proved stored diagnosis evidence is returned and rendered.
+- `pnpm build` passed, including the new recovery-engine package and all application routes.
+
+**Issues handled:**
+
+- Full workspace runs exposed both cross-workspace and intra-API parallel suites reseeding the same PostgreSQL demo merchant. The root runner now serializes workspaces and the API disables file parallelism for database integration tests.
+
+**Blockers:**
+
+- Step 6 has no implementation blocker and awaits user approval.
+- Step 5's real Test Mode acceptance event remains blocked on credentials and a public HTTPS webhook endpoint.
+
+**Next action:**
+
+- Review Step 6, then approve it before any Step 7 AI or policy implementation begins.
 
 ## Session entry template
 

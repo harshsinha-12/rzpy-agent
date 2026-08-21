@@ -167,7 +167,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 6 — Deterministic diagnosis engine
 
-**Status:** Not started
+**Status:** Awaiting approval
 
 **Goal:** Normalize Razorpay signals into explainable recovery facts before involving an LLM.
 

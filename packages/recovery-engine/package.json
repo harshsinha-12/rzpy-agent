@@ -1,30 +1,28 @@
 {
-  "name": "@recoveryos/worker",
+  "name": "@recoveryos/recovery-engine",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./dist/worker.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json",
-    "dev": "tsx watch src/worker.ts",
     "lint": "eslint src --max-warnings=0",
-    "start": "node dist/worker.js",
     "test": "vitest run src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@recoveryos/database": "workspace:*",
-    "@recoveryos/domain": "workspace:*",
-    "@recoveryos/razorpay": "workspace:*",
-    "@recoveryos/recovery-engine": "workspace:*",
-    "bullmq": "catalog:",
-    "ioredis": "catalog:",
-    "zod": "catalog:"
+    "@recoveryos/domain": "workspace:*"
   },
   "devDependencies": {
     "@recoveryos/config": "workspace:*",
     "@types/node": "catalog:",
-    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

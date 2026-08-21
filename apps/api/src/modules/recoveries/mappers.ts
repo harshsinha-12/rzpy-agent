@@ -1,8 +1,108 @@
+import { actionTypes, type ActionType } from "@recoveryos/domain";
+
 import type {
   RecoveryActionRecord,
   RecoveryCaseDetailRecord,
   RecoveryCaseListRecord,
 } from "./types.js";
+
+interface DiagnosisEvidenceItem {
+  explanation: string;
+  signal:
+    | "ATTEMPT_COUNT"
+    | "CLASSIFICATION_RULE"
+    | "ERROR_CODE"
+    | "ERROR_REASON"
+    | "ERROR_SOURCE"
+    | "ERROR_STEP"
+    | "PAYMENT_METHOD";
+  value: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isActionType(value: unknown): value is ActionType {
+  return (
+    typeof value === "string" &&
+    (actionTypes as readonly string[]).includes(value)
+  );
+}
+
+function isDiagnosisEvidence(value: unknown): value is DiagnosisEvidenceItem {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.explanation === "string" &&
+    typeof value.signal === "string" &&
+    [
+      "ATTEMPT_COUNT",
+      "CLASSIFICATION_RULE",
+      "ERROR_CODE",
+      "ERROR_REASON",
+      "ERROR_SOURCE",
+      "ERROR_STEP",
+      "PAYMENT_METHOD",
+    ].includes(value.signal) &&
+    typeof value.value === "string"
+  );
+}
+
+function fallbackEvidence(
+  record: RecoveryCaseDetailRecord,
+): DiagnosisEvidenceItem[] {
+  const values = [
+    [
+      "ERROR_SOURCE",
+      record.paymentEvent.errorSource,
+      "Razorpay failure origin",
+    ],
+    ["ERROR_STEP", record.paymentEvent.errorStep, "Payment-flow step"],
+    [
+      "ERROR_REASON",
+      record.paymentEvent.errorReason,
+      "Normalized failure reason",
+    ],
+    ["ERROR_CODE", record.paymentEvent.errorCode, "Provider error code"],
+    [
+      "PAYMENT_METHOD",
+      record.paymentEvent.paymentMethod,
+      "Normalized payment method",
+    ],
+  ] as const;
+
+  return values.flatMap(([signal, value, explanation]) =>
+    value ? [{ explanation, signal, value }] : [],
+  );
+}
+
+function diagnosisMetadata(record: RecoveryCaseDetailRecord) {
+  const diagnosisEvent = [...record.auditEvents]
+    .reverse()
+    .find(
+      (event) =>
+        event.actor === "DIAGNOSIS_ENGINE" &&
+        event.eventType === "diagnosis.completed",
+    );
+  const output = isRecord(diagnosisEvent?.output)
+    ? diagnosisEvent.output
+    : undefined;
+  const evidence = Array.isArray(output?.evidence)
+    ? output.evidence.filter(isDiagnosisEvidence)
+    : [];
+
+  return {
+    customerContactAllowed:
+      typeof output?.customerContactAllowed === "boolean"
+        ? output.customerContactAllowed
+        : null,
+    diagnosisEvidence:
+      evidence.length > 0 ? evidence : fallbackEvidence(record),
+    recommendedAction: isActionType(output?.recommendedAction)
+      ? output.recommendedAction
+      : null,
+  };
+}
 
 function mapAction(action: RecoveryActionRecord) {
   return {
@@ -56,6 +156,7 @@ export function mapRecoveryCaseListItem(record: RecoveryCaseListRecord) {
 export function mapRecoveryCaseDetail(record: RecoveryCaseDetailRecord) {
   return {
     ...mapRecoveryCaseListItem(record),
+    ...diagnosisMetadata(record),
     actions: record.actions.map(mapAction),
     auditTimeline: record.auditEvents.map((event) => ({
       actionId: event.actionId,

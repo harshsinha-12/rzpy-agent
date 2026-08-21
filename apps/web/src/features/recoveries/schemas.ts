@@ -85,12 +85,28 @@ export const recoveryCaseDetailResponseSchema = z.object({
     actions: z.array(recoveryActionSchema),
     auditTimeline: z.array(auditEventSchema),
     closedAt: z.string().datetime().nullable(),
+    customerContactAllowed: z.boolean().nullable(),
     customer: z.object({
       dataSource: z.enum(dataSources),
       externalRef: z.string(),
       name: z.string(),
       optedOut: z.boolean(),
     }),
+    diagnosisEvidence: z.array(
+      z.object({
+        explanation: z.string(),
+        signal: z.enum([
+          "ATTEMPT_COUNT",
+          "CLASSIFICATION_RULE",
+          "ERROR_CODE",
+          "ERROR_REASON",
+          "ERROR_SOURCE",
+          "ERROR_STEP",
+          "PAYMENT_METHOD",
+        ]),
+        value: z.string(),
+      }),
+    ),
     payment: z.object({
       amountPaise: z.number().int().nonnegative(),
       currency: z.string(),
@@ -106,6 +122,7 @@ export const recoveryCaseDetailResponseSchema = z.object({
       paymentId: z.string(),
       status: z.enum(paymentStatuses),
     }),
+    recommendedAction: z.enum(actionTypes).nullable(),
   }),
 });
 
