@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 3 read-only product API is implemented and awaiting approval before Step 4 frontend work.
+> Current state: Step 4 dashboard, Reported Issues table, and recovery detail frontend are complete and user-approved. Step 5 has not started.
 
 ## Core workflow
 
@@ -26,15 +26,15 @@ The LLM never directly executes a payment action.
 
 ## Planned stack
 
-| Area       | Technology                              | Purpose                                                   |
-| ---------- | --------------------------------------- | --------------------------------------------------------- |
-| Frontend   | Next.js, TypeScript, Tailwind, Recharts | Dashboard, reported issues, case timelines                |
-| API        | Node.js, TypeScript, Fastify            | Webhooks and product APIs                                 |
-| Database   | PostgreSQL, Prisma                      | Durable cases, actions, policies, and audit events        |
-| Jobs       | Redis, BullMQ                           | Background work, delayed recovery, retries, verification  |
-| Payments   | Razorpay Test Mode                      | Orders, payment events, status checks, Payment Links      |
-| AI         | OpenAI API                              | Structured strategy proposal inside an allowed action set |
-| Validation | Zod                                     | Runtime validation of configuration, APIs, and AI output  |
+| Area       | Technology                                 | Purpose                                                   |
+| ---------- | ------------------------------------------ | --------------------------------------------------------- |
+| Frontend   | Next.js, TypeScript, Tailwind, CSS Modules | Dashboard, reported issues, case timelines                |
+| API        | Node.js, TypeScript, Fastify               | Webhooks and product APIs                                 |
+| Database   | PostgreSQL, Prisma                         | Durable cases, actions, policies, and audit events        |
+| Jobs       | Redis, BullMQ                              | Background work, delayed recovery, retries, verification  |
+| Payments   | Razorpay Test Mode                         | Orders, payment events, status checks, Payment Links      |
+| AI         | OpenAI API                                 | Structured strategy proposal inside an allowed action set |
+| Validation | Zod                                        | Runtime validation of configuration, APIs, and AI output  |
 
 No external cron service or dedicated VM is required. BullMQ needs Redis and a continuously running worker process, which can run locally or as a small Railway/Render service. Periodic reconciliation can use a BullMQ repeatable job.
 

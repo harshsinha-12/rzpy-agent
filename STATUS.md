@@ -4,30 +4,30 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 3 — Read-only product API
-- **State:** Awaiting approval
-- **Application code:** Read-only recovery case and analytics APIs implemented; frontend product work not started
-- **Runtime services:** Docker PostgreSQL and Redis are running with the seeded demo merchant; the temporary API validation process is stopped
-- **Current blocker:** User approval is required before Step 4
-- **Exact next action:** Review Step 3, then approve Step 4 separately
+- **Current step:** Step 4 — Dashboard and Reported Issues frontend
+- **State:** Complete and approved
+- **Application code:** API-backed dashboard, Reported Issues table, recovery detail, route states, and focused frontend tests are implemented
+- **Runtime services:** Docker PostgreSQL and Redis are running with the seeded demo merchant; temporary web, API, and worker processes are stopped
+- **Current blocker:** None; the unavailable browser-based design comparison remains documented in `design-qa.md` as a known validation limitation
+- **Exact next action:** Wait for explicit approval before starting Step 5 Razorpay Test Mode ingestion
 
 ## Step overview
 
-| Step | Name                                             | State             |
-| ---: | ------------------------------------------------ | ----------------- |
-|    0 | Planning and operating documents                 | Complete          |
-|    1 | Workspace foundation                             | Complete          |
-|    2 | Database schema and deterministic seed data      | Complete          |
-|    3 | Read-only product API                            | Awaiting approval |
-|    4 | Dashboard and Reported Issues frontend           | Not started       |
-|    5 | Razorpay Test Mode ingestion                     | Not started       |
-|    6 | Deterministic diagnosis engine                   | Not started       |
-|    7 | AI proposal and deterministic policy engine      | Not started       |
-|    8 | BullMQ recovery orchestration                    | Not started       |
-|    9 | Recovery execution tools                         | Not started       |
-|   10 | Simulator and evaluation harness                 | Not started       |
-|   11 | Reliability, security, and end-to-end validation | Not started       |
-|   12 | Deployment and hackathon demo package            | Not started       |
+| Step | Name                                             | State       |
+| ---: | ------------------------------------------------ | ----------- |
+|    0 | Planning and operating documents                 | Complete    |
+|    1 | Workspace foundation                             | Complete    |
+|    2 | Database schema and deterministic seed data      | Complete    |
+|    3 | Read-only product API                            | Complete    |
+|    4 | Dashboard and Reported Issues frontend           | Complete    |
+|    5 | Razorpay Test Mode ingestion                     | Not started |
+|    6 | Deterministic diagnosis engine                   | Not started |
+|    7 | AI proposal and deterministic policy engine      | Not started |
+|    8 | BullMQ recovery orchestration                    | Not started |
+|    9 | Recovery execution tools                         | Not started |
+|   10 | Simulator and evaluation harness                 | Not started |
+|   11 | Reliability, security, and end-to-end validation | Not started |
+|   12 | Deployment and hackathon demo package            | Not started |
 
 ## Available local tooling observed
 
@@ -403,6 +403,85 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review the categorized commits, then either request a push or approve Step 3 and start Step 4 separately.
+
+### 2026-08-21 — Step 4 dashboard and Reported Issues frontend
+
+**Agent:** Codex
+
+**Requested outcome:** Implement Plan Step 4 and align the UI with the supplied editorial cream, navy, cobalt, and yellow references.
+
+**Completed:**
+
+- Added a typed, Zod-validated web API client and feature-level dashboard and recovery fetchers.
+- Built the API-backed executive KPI grid, recovery funnel, failure exposure chart, strategy performance chart, and simulation comparison.
+- Built the Reported Issues table with every required field, combined URL-preserving search, filters, sorting, pagination, desktop table, mobile cards, and empty/loading/error states.
+- Built the recovery detail route with normalized payment evidence, diagnosis, customer context, proposed actions, policy decisions, and chronological audit trail.
+- Kept simulated and Razorpay Test Mode labels visible through shared data-source badges.
+- Applied the reference-led editorial visual system and removed the permanent headline highlight after user feedback.
+- Added focused formatter, query-state, KPI component, table component, and empty-state tests.
+- Recorded the incomplete browser comparison in `design-qa.md` without claiming visual acceptance.
+
+**Files changed:**
+
+- `apps/web/src/app/*`
+- `apps/web/src/components/*`
+- `apps/web/src/config/env.ts`
+- `apps/web/src/features/dashboard/*`
+- `apps/web/src/features/recoveries/*`
+- `apps/web/src/lib/*`
+- `apps/web/vitest.config.mts`
+- `apps/web/package.json` and `pnpm-lock.yaml`
+- `README.md`, `PLAN.md`, `STATUS.md`, `DECISIONS.md`, and `design-qa.md`
+
+**Validation:**
+
+- `pnpm format:check` passed.
+- `pnpm lint` passed with zero warnings.
+- `pnpm typecheck` passed across all packages and applications.
+- `pnpm test` passed: 14 test files and 35 tests, including 4 frontend files and 10 frontend tests.
+- `pnpm build` passed; Next.js built `/`, `/recoveries`, and `/recoveries/[id]` as dynamic server-rendered routes.
+- Local HTTP checks returned success for dashboard, combined filters/sorting, empty results, recovery detail, and missing-case states against persisted PostgreSQL seed data.
+
+**Blockers:**
+
+- The in-app browser is not connected, so post-fix desktop/mobile screenshots, interaction checks, console inspection, and the required combined source-to-implementation comparison could not be completed.
+
+**Next action:**
+
+- Connect an in-app browser, finish the browser/design QA acceptance gate, then request explicit Step 4 approval before Step 5.
+
+### 2026-08-21 — Step 4 approved for commit
+
+**Agent:** Codex
+
+**Requested outcome:** Accept Step 4 and commit its implementation.
+
+**Completed:**
+
+- Marked Step 4 complete after explicit user approval.
+- Retained the unavailable in-app browser comparison as a known validation limitation rather than rewriting the blocked QA evidence.
+- Kept Step 5 not started and preserved its credential-first implementation instruction.
+- Organized the Step 4 working tree into focused commits by responsibility.
+
+**Files changed:**
+
+- `PLAN.md`
+- `README.md`
+- `STATUS.md`
+- Step 4 frontend, tests, dependency metadata, visual decision, and QA files listed in the preceding session entry
+
+**Validation:**
+
+- Categorized commits passed the configured Husky and lint-staged checks.
+- Final local commit history and working-tree state were inspected.
+
+**Blockers:**
+
+- None for Step 4 approval. Browser-based design comparison remains unavailable and documented in `design-qa.md`.
+
+**Next action:**
+
+- Wait for explicit approval before starting Step 5 Razorpay Test Mode ingestion.
 
 ## Session entry template
 
