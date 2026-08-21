@@ -21,8 +21,8 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
-  RAZORPAY_KEY_ID: z.string().default(""),
-  RAZORPAY_KEY_SECRET: z.string().default(""),
+  RAZORPAY_TEST_MODE_API_KEY: z.string().default(""),
+  RAZORPAY_TEST_MODE_SECRET_KEY: z.string().default(""),
   RAZORPAY_WEBHOOK_SECRET: z.string().default(""),
   REDIS_URL: z.string().url().default("redis://localhost:6380"),
 });

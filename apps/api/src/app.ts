@@ -1,7 +1,11 @@
 import cors from "@fastify/cors";
 import { createPrismaClient, type PrismaClient } from "@recoveryos/database";
 import {
+  paymentEventJobId,
   paymentEventsQueueName,
+  processPaymentEventJobName,
+  recoveryJobAttempts,
+  recoveryJobBackoffMs,
   type PaymentEventJobData,
 } from "@recoveryos/domain";
 import { createRazorpayClient } from "@recoveryos/razorpay";
@@ -91,8 +95,8 @@ export async function buildApp(
   const demoCheckoutService =
     options.demoCheckoutService ??
     createRuntimeDemoCheckoutService(
-      env.RAZORPAY_KEY_ID,
-      env.RAZORPAY_KEY_SECRET,
+      env.RAZORPAY_TEST_MODE_API_KEY,
+      env.RAZORPAY_TEST_MODE_SECRET_KEY,
     );
 
   app.addHook("onClose", async () => {
@@ -133,9 +137,15 @@ function createRuntimePaymentEventQueue(
   return {
     close: () => queue.close(),
     enqueue: async (data) => {
-      await queue.add("process-payment-event", data, {
-        jobId: data.webhookEventId,
-        removeOnComplete: true,
+      await queue.add(processPaymentEventJobName, data, {
+        attempts: recoveryJobAttempts,
+        backoff: {
+          delay: recoveryJobBackoffMs,
+          type: "exponential",
+        },
+        jobId: paymentEventJobId(data.webhookEventId),
+        removeOnComplete: 200,
+        removeOnFail: false,
       });
     },
   };
