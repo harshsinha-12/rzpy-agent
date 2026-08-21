@@ -1,29 +1,31 @@
 import {
+  createOpenAIRecoveryAgent,
+  createRecoveryAgent,
+} from "@recoveryos/agents";
+import {
   checkDatabaseConnection,
   closeDatabasePool,
   createDatabasePool,
   createPrismaClient,
 } from "@recoveryos/database";
 import {
-  createOpenAIRecoveryAgent,
-  createRecoveryAgent,
-} from "@recoveryos/agents";
-import {
-  paymentEventsQueueName,
+  DEMO_MERCHANT_SLUG,
   type DependencyHealth,
   type HealthSnapshot,
-  type PaymentEventJobData,
 } from "@recoveryos/domain";
 import { Worker } from "bullmq";
 import { Redis } from "ioredis";
 
-import { env } from "./config/env.js";
 import { createPrismaRecoveryAgentTools } from "./agents/recovery-context.js";
+import { env } from "./config/env.js";
 import { startHealthServer } from "./health-server.js";
-import { processPaymentEvent } from "./jobs/process-payment-event.js";
 import { processSystemHealthJob } from "./jobs/system-health.js";
 import { createBullMqConnectionOptions } from "./queues/connection.js";
 import { SYSTEM_HEALTH_QUEUE } from "./queues/names.js";
+import { createRecoveryJobQueues } from "./queues/recovery-queues.js";
+import { createRecoveryWorkers } from "./queues/register-workers.js";
+import { createRecoveryActionExecutor } from "./tools/recovery-action-executor.js";
+import { createRuntimeRecoveryExecutionTools } from "./tools/runtime-recovery-tools.js";
 
 const database = createDatabasePool(env.DATABASE_URL);
 const prisma = createPrismaClient(env.DATABASE_URL);
@@ -32,6 +34,7 @@ const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 1,
 });
 const connection = createBullMqConnectionOptions(env.REDIS_URL);
+const queues = createRecoveryJobQueues(env.REDIS_URL);
 const recoveryAgentTools = createPrismaRecoveryAgentTools(prisma);
 const recoveryAgent = env.OPENAI_API_KEY
   ? createOpenAIRecoveryAgent({
@@ -40,15 +43,23 @@ const recoveryAgent = env.OPENAI_API_KEY
       tools: recoveryAgentTools,
     })
   : createRecoveryAgent({ tools: recoveryAgentTools });
+const recoveryExecutionTools = createRuntimeRecoveryExecutionTools();
+const recoveryActionExecutor = createRecoveryActionExecutor(
+  prisma,
+  recoveryExecutionTools,
+);
+
 const healthWorker = new Worker(SYSTEM_HEALTH_QUEUE, processSystemHealthJob, {
   connection,
 });
-const paymentWorker = new Worker<PaymentEventJobData>(
-  paymentEventsQueueName,
-  async (job) =>
-    processPaymentEvent(prisma, job.data.webhookEventId, { recoveryAgent }),
-  { connection },
-);
+const recoveryWorkers = createRecoveryWorkers({
+  connection,
+  prisma,
+  queues,
+  recoveryAgent,
+  recoveryTools: recoveryExecutionTools,
+  toolExecutor: recoveryActionExecutor,
+});
 
 async function checkDependency(
   check: () => Promise<void>,
@@ -89,7 +100,8 @@ async function getHealthSnapshot(): Promise<HealthSnapshot> {
 
 await Promise.all([
   healthWorker.waitUntilReady(),
-  paymentWorker.waitUntilReady(),
+  ...recoveryWorkers.map((worker) => worker.waitUntilReady()),
+  queues.scheduleReconciliation(DEMO_MERCHANT_SLUG),
 ]);
 
 const healthServer = await startHealthServer({
@@ -99,15 +111,20 @@ const healthServer = await startHealthServer({
 });
 
 console.info(
-  `Worker ready; health endpoint listening on ${env.WORKER_HEALTH_HOST}:${env.WORKER_HEALTH_PORT}`,
+  JSON.stringify({
+    event: "worker.ready",
+    healthPort: env.WORKER_HEALTH_PORT,
+    queues: recoveryWorkers.map((worker) => worker.name),
+  }),
 );
 
 const shutdown = async (signal: string) => {
-  console.info(`Stopping worker after ${signal}`);
+  console.info(JSON.stringify({ event: "worker.stopping", signal }));
   healthServer.close();
   await Promise.all([
     healthWorker.close(),
-    paymentWorker.close(),
+    ...recoveryWorkers.map((worker) => worker.close()),
+    queues.close(),
     prisma.$disconnect(),
     closeDatabasePool(database),
     redis.status === "wait" || redis.status === "end"

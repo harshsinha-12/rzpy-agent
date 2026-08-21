@@ -13,6 +13,7 @@ import {
 import { diagnosePaymentFailure } from "@recoveryos/recovery-engine";
 
 import { analyseRecoveryCase } from "./analyse-recovery.js";
+import { applyPaymentLinkPaidWebhook } from "./recovery-outcome.js";
 
 export interface ProcessPaymentEventResult {
   casePublicId: string | null;
@@ -20,6 +21,7 @@ export interface ProcessPaymentEventResult {
 }
 
 export interface ProcessPaymentEventDependencies {
+  enqueueAnalysis?: (caseId: string) => Promise<void>;
   recoveryAgent?: RecoveryAgent;
 }
 
@@ -65,13 +67,40 @@ export async function processPaymentEvent(
     const payment = parsed.success
       ? parsed.data.payload?.payment?.entity
       : undefined;
+    const paymentLink = parsed.success
+      ? parsed.data.payload?.payment_link?.entity
+      : undefined;
 
-    if (!parsed.success || !payment) {
+    if (!parsed.success || (!payment && !paymentLink)) {
       await prisma.webhookEvent.update({
         data: {
           processedAt: new Date(),
           processingStatus: "IGNORED",
         },
+        where: { id: webhook.id },
+      });
+      return { casePublicId: null, status: "IGNORED" };
+    }
+
+    if (parsed.data.event === "payment_link.paid" && paymentLink) {
+      await applyPaymentLinkPaidWebhook(
+        prisma,
+        paymentLink,
+        payment?.id ?? null,
+      );
+      await prisma.webhookEvent.update({
+        data: {
+          processedAt: new Date(),
+          processingStatus: "PROCESSED",
+        },
+        where: { id: webhook.id },
+      });
+      return { casePublicId: null, status: "PROCESSED" };
+    }
+
+    if (!payment) {
+      await prisma.webhookEvent.update({
+        data: { processedAt: new Date(), processingStatus: "IGNORED" },
         where: { id: webhook.id },
       });
       return { casePublicId: null, status: "IGNORED" };
@@ -83,12 +112,16 @@ export async function processPaymentEvent(
         webhook.merchantId,
         payment,
       );
-      if (ingestedCase.created && dependencies.recoveryAgent) {
-        await analyseRecoveryCase(
-          prisma,
-          ingestedCase.caseId,
-          dependencies.recoveryAgent,
-        );
+      if (ingestedCase.created) {
+        if (dependencies.enqueueAnalysis) {
+          await dependencies.enqueueAnalysis(ingestedCase.caseId);
+        } else if (dependencies.recoveryAgent) {
+          await analyseRecoveryCase(
+            prisma,
+            ingestedCase.caseId,
+            dependencies.recoveryAgent,
+          );
+        }
       }
       await prisma.webhookEvent.update({
         data: {
