@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDateTime, formatLabel, formatMoney } from "@/lib/formatters";
 
 import type { RecoveryCaseDetail } from "../schemas";
+import { DiagnosisEvidence } from "./diagnosis-evidence";
 import styles from "./recovery-detail.module.css";
 
 function Fact({ label, value }: { label: string; value: string }) {
@@ -63,13 +64,25 @@ export function RecoveryDetail({ recovery }: { recovery: RecoveryCaseDetail }) {
           </span>
         </article>
         <article className={`surface ${styles.summaryCard}`}>
-          <span className={styles.summaryLabel}>Proposed action</span>
+          <span className={styles.summaryLabel}>
+            {recovery.proposedAction
+              ? "Proposed action"
+              : "Deterministic next step"}
+          </span>
           <strong className={styles.summaryValueSmall}>
             {recovery.proposedAction
               ? formatLabel(recovery.proposedAction)
-              : "No action proposed"}
+              : recovery.recommendedAction
+                ? formatLabel(recovery.recommendedAction)
+                : "No action stored"}
           </strong>
-          <span className={styles.summaryHint}>Policy-controlled</span>
+          <span className={styles.summaryHint}>
+            {recovery.proposedAction
+              ? "Policy-controlled proposal"
+              : recovery.recommendedAction
+                ? "Pre-policy diagnosis fallback"
+                : "Awaiting a safe recommendation"}
+          </span>
         </article>
         <article className={`surface ${styles.summaryCard}`}>
           <span className={styles.summaryLabel}>Recovered value</span>
@@ -97,6 +110,10 @@ export function RecoveryDetail({ recovery }: { recovery: RecoveryCaseDetail }) {
               <StatusBadge value={recovery.failureCategory} />
             </div>
             <p className={styles.diagnosis}>{recovery.diagnosis}</p>
+            <DiagnosisEvidence
+              customerContactAllowed={recovery.customerContactAllowed}
+              evidence={recovery.diagnosisEvidence}
+            />
             <dl className={styles.facts}>
               <Fact label="Payment ID" value={recovery.payment.paymentId} />
               <Fact label="Order ID" value={recovery.payment.orderId} />

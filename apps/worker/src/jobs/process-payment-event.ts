@@ -9,6 +9,7 @@ import {
   razorpayWebhookPayloadSchema,
   type RazorpayPaymentEntity,
 } from "@recoveryos/razorpay";
+import { diagnosePaymentFailure } from "@recoveryos/recovery-engine";
 
 export interface ProcessPaymentEventResult {
   casePublicId: string | null;
@@ -205,24 +206,40 @@ async function ingestFailedPayment(
       return existingCase.publicId;
     }
 
+    const attemptCount = await tx.paymentEvent.count({
+      where: {
+        merchantId,
+        razorpayOrderId: paymentEvent.razorpayOrderId,
+        status: "FAILED",
+      },
+    });
+    const diagnosis = diagnosePaymentFailure({
+      attemptCount,
+      errorCode: paymentEvent.errorCode,
+      errorReason: paymentEvent.errorReason,
+      errorSource: paymentEvent.errorSource,
+      errorStep: paymentEvent.errorStep,
+      method: paymentEvent.paymentMethod,
+    });
+    const diagnosisAt = new Date(now.getTime() + 1);
+
     const createdCase = await tx.recoveryCase.create({
       data: {
         amountAtRiskPaise: payment.amount,
         currency: payment.currency || DEFAULT_CURRENCY,
         customerId: customer.id,
         dataSource: "RAZORPAY_TEST_MODE",
-        diagnosis:
-          "Razorpay Test Mode payment failed. Diagnosis has not run yet.",
-        failureCategory: "UNKNOWN",
+        diagnosis: diagnosis.diagnosis,
+        failureCategory: diagnosis.category,
         id: `case_${payment.id}`,
-        lastUpdatedAt: now,
+        lastUpdatedAt: diagnosisAt,
         merchantId,
         openedAt: occurredAt,
         paymentEventId: paymentEvent.id,
         publicId: publicCaseId(payment.id),
-        recoverabilityBand: "LOW",
-        recoverabilityScore: 0,
-        status: "OPEN",
+        recoverabilityBand: diagnosis.recoverabilityBand,
+        recoverabilityScore: diagnosis.recoverabilityScore,
+        status: "ACTION_REQUIRED",
       },
     });
 
@@ -237,6 +254,34 @@ async function ingestFailedPayment(
         occurredAt: now,
         reasoning:
           "A signed Razorpay Test Mode webhook created this recovery case.",
+      },
+    });
+
+    await tx.auditEvent.create({
+      data: {
+        actor: "DIAGNOSIS_ENGINE",
+        caseId: createdCase.id,
+        dataSource: "RAZORPAY_TEST_MODE",
+        decision: diagnosis.category,
+        eventType: "diagnosis.completed",
+        id: randomUUID(),
+        input: jsonValue({
+          attemptCount,
+          errorCode: paymentEvent.errorCode,
+          errorReason: paymentEvent.errorReason,
+          errorSource: paymentEvent.errorSource,
+          errorStep: paymentEvent.errorStep,
+          method: paymentEvent.paymentMethod,
+        }),
+        occurredAt: diagnosisAt,
+        output: jsonValue({
+          customerContactAllowed: diagnosis.customerContactAllowed,
+          evidence: diagnosis.evidence,
+          recommendedAction: diagnosis.recommendedAction,
+          recoverabilityBand: diagnosis.recoverabilityBand,
+          recoverabilityScore: diagnosis.recoverabilityScore,
+        }),
+        reasoning: diagnosis.diagnosis,
       },
     });
 

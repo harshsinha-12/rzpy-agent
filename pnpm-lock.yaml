@@ -223,6 +223,9 @@ importers:
       '@recoveryos/razorpay':
         specifier: workspace:*
         version: link:../../packages/razorpay
+      '@recoveryos/recovery-engine':
+        specifier: workspace:*
+        version: link:../../packages/recovery-engine
       bullmq:
         specifier: 'catalog:'
         version: 6.1.2(ioredis@6.0.0)(pg@8.23.0)
@@ -311,6 +314,25 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.4.3
+    devDependencies:
+      '@recoveryos/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@types/node@22.20.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/recovery-engine:
+    dependencies:
+      '@recoveryos/domain':
+        specifier: workspace:*
+        version: link:../domain
     devDependencies:
       '@recoveryos/config':
         specifier: workspace:*
