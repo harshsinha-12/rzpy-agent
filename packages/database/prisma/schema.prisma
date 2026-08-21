@@ -97,12 +97,12 @@ enum WebhookProcessingStatus {
 }
 
 model Merchant {
-  id        String   @id
-  slug      String   @unique
-  name      String
+  id         String     @id
+  slug       String     @unique
+  name       String
   dataSource DataSource
-  createdAt DateTime
-  updatedAt DateTime
+  createdAt  DateTime
+  updatedAt  DateTime
 
   customers      Customer[]
   paymentEvents  PaymentEvent[]
@@ -132,16 +132,16 @@ model Customer {
 }
 
 model RecoveryPolicy {
-  id                         String       @id
-  merchantId                 String       @unique
-  maxAttemptsPerCase         Int
-  maxMessagesPerDay          Int
-  minimumRetryDelayMinutes   Int
-  recoveryWindowHours        Int
-  allowedActions             ActionType[]
-  dataSource                 DataSource
-  createdAt                  DateTime
-  updatedAt                  DateTime
+  id                       String       @id
+  merchantId               String       @unique
+  maxAttemptsPerCase       Int
+  maxMessagesPerDay        Int
+  minimumRetryDelayMinutes Int
+  recoveryWindowHours      Int
+  allowedActions           ActionType[]
+  dataSource               DataSource
+  createdAt                DateTime
+  updatedAt                DateTime
 
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 }
@@ -176,23 +176,23 @@ model PaymentEvent {
 }
 
 model RecoveryCase {
-  id                    String              @id
-  publicId              String              @unique
-  merchantId            String
-  customerId            String
-  paymentEventId        String              @unique
-  amountAtRiskPaise     Int
-  recoveredAmountPaise  Int                 @default(0)
-  currency              String
-  status                RecoveryCaseStatus
-  failureCategory       FailureCategory
-  recoverabilityBand    RecoverabilityBand
-  recoverabilityScore   Int
-  diagnosis             String
-  openedAt              DateTime
-  closedAt              DateTime?
-  lastUpdatedAt         DateTime
-  dataSource            DataSource
+  id                   String             @id
+  publicId             String             @unique
+  merchantId           String
+  customerId           String
+  paymentEventId       String             @unique
+  amountAtRiskPaise    Int
+  recoveredAmountPaise Int                @default(0)
+  currency             String
+  status               RecoveryCaseStatus
+  failureCategory      FailureCategory
+  recoverabilityBand   RecoverabilityBand
+  recoverabilityScore  Int
+  diagnosis            String
+  openedAt             DateTime
+  closedAt             DateTime?
+  lastUpdatedAt        DateTime
+  dataSource           DataSource
 
   merchant     Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -205,7 +205,7 @@ model RecoveryCase {
 }
 
 model RecoveryAction {
-  id                String          @id
+  id                String         @id
   caseId            String
   attemptNumber     Int
   actionType        ActionType
@@ -218,7 +218,7 @@ model RecoveryAction {
   executedAt        DateTime?
   result            ActionResult
   razorpayReference String?
-  idempotencyKey    String          @unique
+  idempotencyKey    String         @unique
   input             Json?
   output            Json?
   dataSource        DataSource
@@ -251,42 +251,68 @@ model AuditEvent {
 }
 
 model SimulationRun {
-  id                       String     @id
-  merchantId               String
-  seed                     Int
-  configuration            Json
-  paymentCount             Int
-  revenueAtRiskPaise       Int
-  recoveredRevenuePaise    Int
-  baselineRevenuePaise     Int
-  incrementalRevenuePaise  Int
-  recoveryRateBps          Int
-  attempts                 Int
-  falseInterventions       Int
-  policyStops              Int
-  customerContacts         Int
-  dataSource               DataSource
-  startedAt                DateTime
-  completedAt              DateTime
-  createdAt                DateTime
+  id                         String     @id
+  merchantId                 String
+  seed                       Int
+  configurationHash          String
+  configuration              Json
+  paymentCount               Int
+  revenueAtRiskPaise         Int
+  noInterventionRevenuePaise Int
+  recoveredRevenuePaise      Int
+  baselineRevenuePaise       Int
+  incrementalRevenuePaise    Int
+  recoveryRateBps            Int
+  attempts                   Int
+  falseInterventions         Int
+  policyStops                Int
+  customerContacts           Int
+  dataSource                 DataSource
+  startedAt                  DateTime
+  completedAt                DateTime
+  createdAt                  DateTime
 
-  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  outcomes SimulationOutcome[]
 
-  @@unique([merchantId, seed])
+  @@unique([merchantId, seed, configurationHash])
+}
+
+model SimulationOutcome {
+  id                   String     @id
+  runId                String
+  paymentIndex         Int
+  paymentId            String
+  strategy             String
+  action               String
+  visibleInput         Json
+  recovered            Boolean
+  recoveredAmountPaise Int
+  attempts             Int
+  falseIntervention    Boolean
+  policyStopped        Boolean
+  customerContacted    Boolean
+  dataSource           DataSource
+  createdAt            DateTime
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, strategy, paymentIndex])
+  @@index([runId, strategy])
 }
 
 model WebhookEvent {
-  id                String                   @id
-  merchantId        String
-  providerEventId   String                   @unique
-  eventType         String
-  processingStatus  WebhookProcessingStatus
-  paymentId         String?
-  rawPayload        Json
-  dataSource        DataSource
-  receivedAt        DateTime
-  processedAt       DateTime?
-  errorMessage      String?
+  id               String                  @id
+  merchantId       String
+  providerEventId  String                  @unique
+  eventType        String
+  processingStatus WebhookProcessingStatus
+  paymentId        String?
+  rawPayload       Json
+  dataSource       DataSource
+  receivedAt       DateTime
+  processedAt      DateTime?
+  errorMessage     String?
 
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
@@ -302,22 +328,22 @@ enum RecoveryJobStatus {
 }
 
 model RecoveryJob {
-  id            String             @id
-  queueName     String
-  bullJobId     String
-  jobName       String
-  payload       Json
-  status        RecoveryJobStatus
-  attemptCount  Int                @default(0)
-  maxAttempts   Int
-  lastError     String?
-  caseId        String?
-  actionId      String?
-  dataSource    DataSource
-  scheduledFor  DateTime?
-  createdAt     DateTime
-  updatedAt     DateTime
-  completedAt   DateTime?
+  id           String            @id
+  queueName    String
+  bullJobId    String
+  jobName      String
+  payload      Json
+  status       RecoveryJobStatus
+  attemptCount Int               @default(0)
+  maxAttempts  Int
+  lastError    String?
+  caseId       String?
+  actionId     String?
+  dataSource   DataSource
+  scheduledFor DateTime?
+  createdAt    DateTime
+  updatedAt    DateTime
+  completedAt  DateTime?
 
   @@unique([queueName, bullJobId])
   @@index([status, updatedAt])

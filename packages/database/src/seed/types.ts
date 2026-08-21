@@ -111,8 +111,10 @@ export interface SeedDataset {
   simulationRun: {
     id: string;
     seed: number;
+    configurationHash: string;
     paymentCount: number;
     revenueAtRiskPaise: number;
+    noInterventionRevenuePaise: number;
     recoveredRevenuePaise: number;
     baselineRevenuePaise: number;
     incrementalRevenuePaise: number;
