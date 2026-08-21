@@ -1,12 +1,23 @@
+import cors from "@fastify/cors";
 import { createPrismaClient, type PrismaClient } from "@recoveryos/database";
+import {
+  paymentEventsQueueName,
+  type PaymentEventJobData,
+} from "@recoveryos/domain";
+import { createRazorpayClient } from "@recoveryos/razorpay";
+import { Queue } from "bullmq";
 import Fastify, { type FastifyInstance } from "fastify";
 
 import { env } from "./config/env.js";
 import { registerErrorHandlers } from "./lib/error-handler.js";
+import { createBullMqConnectionOptions } from "./lib/queue-connection.js";
 import { createAnalyticsRepository } from "./modules/analytics/repository.js";
 import { registerAnalyticsRoutes } from "./modules/analytics/routes.js";
 import { createAnalyticsService } from "./modules/analytics/service.js";
 import type { AnalyticsService } from "./modules/analytics/types.js";
+import { createDemoCheckoutService } from "./modules/demo/razorpay/service.js";
+import { registerDemoCheckoutRoutes } from "./modules/demo/razorpay/routes.js";
+import type { DemoCheckoutService } from "./modules/demo/razorpay/types.js";
 import { registerHealthRoutes } from "./modules/health/routes.js";
 import {
   createRuntimeHealthService,
@@ -16,13 +27,24 @@ import { createRecoveryCaseRepository } from "./modules/recoveries/repository.js
 import { registerRecoveryCaseRoutes } from "./modules/recoveries/routes.js";
 import { createRecoveryCaseService } from "./modules/recoveries/service.js";
 import type { RecoveryCaseService } from "./modules/recoveries/types.js";
+import { createRazorpayWebhookRepository } from "./modules/webhooks/razorpay/repository.js";
+import { registerRazorpayWebhookRoutes } from "./modules/webhooks/razorpay/routes.js";
+import { createRazorpayWebhookService } from "./modules/webhooks/razorpay/service.js";
+import type {
+  PaymentEventJobQueue,
+  RazorpayWebhookService,
+} from "./modules/webhooks/razorpay/types.js";
 
 interface BuildAppOptions {
   analyticsService?: AnalyticsService;
   database?: PrismaClient;
+  demoCheckoutService?: DemoCheckoutService;
   healthService?: HealthService;
   logger?: boolean;
+  paymentEventQueue?: PaymentEventJobQueue;
   recoveryCaseService?: RecoveryCaseService;
+  razorpayWebhookSecret?: string;
+  razorpayWebhookService?: RazorpayWebhookService;
 }
 
 export async function buildApp(
@@ -36,7 +58,9 @@ export async function buildApp(
       redisUrl: env.REDIS_URL,
     });
   const needsDatabase =
-    !options.analyticsService || !options.recoveryCaseService;
+    !options.analyticsService ||
+    !options.recoveryCaseService ||
+    !options.razorpayWebhookService;
   const database = needsDatabase
     ? (options.database ?? createPrismaClient(env.DATABASE_URL))
     : null;
@@ -47,18 +71,87 @@ export async function buildApp(
   const recoveryCaseService =
     options.recoveryCaseService ??
     createRecoveryCaseService(createRecoveryCaseRepository(database!));
+  const ownsQueue =
+    !options.paymentEventQueue &&
+    !options.razorpayWebhookService &&
+    options.logger !== false;
+  const paymentEventQueue =
+    options.paymentEventQueue ??
+    (ownsQueue
+      ? createRuntimePaymentEventQueue(env.REDIS_URL)
+      : { enqueue: async () => undefined });
+  const razorpayWebhookService =
+    options.razorpayWebhookService ??
+    createRazorpayWebhookService({
+      queue: paymentEventQueue,
+      repository: createRazorpayWebhookRepository(database!),
+      webhookSecret:
+        options.razorpayWebhookSecret ?? env.RAZORPAY_WEBHOOK_SECRET,
+    });
+  const demoCheckoutService =
+    options.demoCheckoutService ??
+    createRuntimeDemoCheckoutService(
+      env.RAZORPAY_KEY_ID,
+      env.RAZORPAY_KEY_SECRET,
+    );
 
   app.addHook("onClose", async () => {
     await Promise.all([
       healthService.close(),
       ownsDatabase ? database!.$disconnect() : Promise.resolve(),
+      ownsQueue && "close" in paymentEventQueue
+        ? (
+            paymentEventQueue as PaymentEventJobQueue & {
+              close: () => Promise<void>;
+            }
+          ).close()
+        : Promise.resolve(),
     ]);
   });
 
+  await app.register(cors, {
+    methods: ["GET", "POST"],
+    origin: env.APP_BASE_URL,
+  });
   registerErrorHandlers(app);
   await registerHealthRoutes(app, healthService);
   await registerRecoveryCaseRoutes(app, recoveryCaseService);
   await registerAnalyticsRoutes(app, analyticsService);
+  await registerRazorpayWebhookRoutes(app, razorpayWebhookService);
+  await registerDemoCheckoutRoutes(app, demoCheckoutService);
 
   return app;
+}
+
+function createRuntimePaymentEventQueue(
+  redisUrl: string,
+): PaymentEventJobQueue & { close: () => Promise<void> } {
+  const queue = new Queue<PaymentEventJobData>(paymentEventsQueueName, {
+    connection: createBullMqConnectionOptions(redisUrl),
+  });
+
+  return {
+    close: () => queue.close(),
+    enqueue: async (data) => {
+      await queue.add("process-payment-event", data, {
+        jobId: data.webhookEventId,
+        removeOnComplete: true,
+      });
+    },
+  };
+}
+
+function createRuntimeDemoCheckoutService(keyId: string, keySecret: string) {
+  if (!keyId || !keySecret) {
+    return createDemoCheckoutService({ keyId: "" });
+  }
+
+  return createDemoCheckoutService({
+    keyId,
+    orders: createRazorpayClient({
+      keyId,
+      keySecret,
+      mode: "test",
+    }),
+  });
 }
