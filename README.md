@@ -2,7 +2,7 @@
 
 RecoveryOS is an AI-assisted revenue recovery layer for Razorpay merchants. It receives failed-payment events, diagnoses the likely cause, proposes an appropriate recovery strategy, applies deterministic policy guardrails, executes approved actions, and measures simulated incremental revenue recovered.
 
-> Current state: Step 4 dashboard, Reported Issues table, and recovery detail frontend are complete and user-approved. Step 5 has not started.
+> Current state: Step 5 Razorpay Test Mode ingestion is implemented and tested with signed fixtures. A live Test Mode failure still needs dashboard keys and a public webhook URL.
 
 ## Core workflow
 
@@ -58,7 +58,7 @@ packages/
   config/    Shared TypeScript configuration
   database/  Prisma schema, migrations, seed, and connection boundary
   domain/    Shared domain contracts
-  razorpay/  Test-mode configuration boundary; API behavior begins in Step 5
+  razorpay/  Test-mode client, webhook verification, and payload mapping
 ```
 
 The detailed structure contract is in `PROJECT_STRUCTURE.md`.
@@ -85,13 +85,14 @@ pnpm dev
 
 Local endpoints:
 
-| Service       | URL                            |
-| ------------- | ------------------------------ |
-| Web           | `http://localhost:3000`        |
-| API health    | `http://localhost:4000/health` |
-| Worker health | `http://localhost:4001/health` |
-| PostgreSQL    | `localhost:5432`               |
-| Redis         | `localhost:6380`               |
+| Service                | URL                                   |
+| ---------------------- | ------------------------------------- |
+| Web                    | `http://localhost:3000`               |
+| Web Test Mode checkout | `http://localhost:3000/demo/checkout` |
+| API health             | `http://localhost:4000/health`        |
+| Worker health          | `http://localhost:4001/health`        |
+| PostgreSQL             | `localhost:5432`                      |
+| Redis                  | `localhost:6380`                      |
 
 Read-only product endpoints:
 
@@ -101,7 +102,23 @@ Read-only product endpoints:
 | `GET /recovery/cases/:id` | Normalized payment, recovery actions, customer context, and audit trail |
 | `GET /analytics/overview` | Reconciled KPIs, funnel, breakdowns, strategy results, and simulation   |
 
+Razorpay Test Mode endpoints:
+
+| Endpoint                      | Purpose                                                         |
+| ----------------------------- | --------------------------------------------------------------- |
+| `POST /webhooks/razorpay`     | Signed webhook ingest, raw payload persistence, and job enqueue |
+| `GET /demo/razorpay/checkout` | Whether Test Mode keys are configured                           |
+| `POST /demo/razorpay/orders`  | Create a Test Mode order for the demo checkout                  |
+
 The case list accepts `page`, `pageSize`, `search`, `status`, `failureCategory`, `paymentMethod`, `dataSource`, `errorSource`, `sortBy`, and `sortOrder`. Sorting supports `amountAtRiskPaise` and `lastUpdatedAt`. Money remains in integer paise, each response carries data-source labels, and invalid requests use a consistent error envelope.
+
+To send a real Test Mode failure into Reported Issues:
+
+1. Create Test Mode API keys at [Razorpay API Keys](https://dashboard.razorpay.com/app/websiteapp-settings/api-keys).
+2. Put `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in the untracked `.env` file. Never commit them.
+3. Create a webhook at [Razorpay Webhooks](https://dashboard.razorpay.com/app/webhooks) for `payment.failed`, `payment.authorized`, and `payment.captured`. Point it at a public HTTPS URL for `POST /webhooks/razorpay` and store the webhook secret as `RAZORPAY_WEBHOOK_SECRET`.
+4. Restart the API and worker, open `/demo/checkout`, and pay with UPI ID `failure@razorpay`.
+5. Filter Reported Issues by `RAZORPAY_TEST_MODE`.
 
 Redis uses host port `6380` because port `6379` may already be occupied by a machine-level Redis service. Inside Docker, the project Redis service still uses its standard port `6379`.
 

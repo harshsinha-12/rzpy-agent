@@ -25,6 +25,8 @@ This file records durable product and architecture decisions. Add a new row when
 | D-019 | 2026-08-20 | Allow Prisma engine install scripts in the pnpm `onlyBuiltDependencies` list.                                            | Prisma CLI needs its engine postinstall to generate the client and run migrations.                                                        | Accepted |
 | D-020 | 2026-08-21 | Expose normalized recovery data through the merchant-facing API while keeping raw webhook payloads out of its responses. | The product needs auditable payment facts without leaking provider payload details or coupling the UI to Razorpay shapes.                 | Accepted |
 | D-021 | 2026-08-21 | Use a warm cream, deep navy, editorial-serif, cobalt-accent visual system for the RecoveryOS product UI.                 | The user-selected references establish a distinctive financial editorial direction while outlined panels keep dense recovery data usable. | Accepted |
+| D-022 | 2026-08-21 | Persist Razorpay webhooks in a dedicated `WebhookEvent` table keyed by `x-razorpay-event-id`.                            | Duplicate deliveries must not create extra cases; raw payloads stay auditable apart from normalized payment fields.                       | Accepted |
+| D-023 | 2026-08-21 | Issue the Test Mode checkout key from the API instead of a `NEXT_PUBLIC_` secret.                                        | The Key ID is needed by Checkout.js, but Key Secret and webhook secret must never reach the browser.                                      | Accepted |
 
 ## Open decisions
 

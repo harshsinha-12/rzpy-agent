@@ -4,12 +4,12 @@ Last updated: 2026-08-21
 
 ## Current snapshot
 
-- **Current step:** Step 4 — Dashboard and Reported Issues frontend
-- **State:** Complete and approved
-- **Application code:** API-backed dashboard, Reported Issues table, recovery detail, route states, and focused frontend tests are implemented
-- **Runtime services:** Docker PostgreSQL and Redis are running with the seeded demo merchant; temporary web, API, and worker processes are stopped
-- **Current blocker:** None; the unavailable browser-based design comparison remains documented in `design-qa.md` as a known validation limitation
-- **Exact next action:** Wait for explicit approval before starting Step 5 Razorpay Test Mode ingestion
+- **Current step:** Step 5 — Razorpay Test Mode ingestion
+- **State:** Blocked on Test Mode credentials for the live webhook acceptance check
+- **Application code:** Signed webhook ingest, idempotent case creation, worker payment-event jobs, and Test Mode checkout trigger are implemented
+- **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
+- **Current blocker:** `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` are empty in the local `.env` file
+- **Exact next action:** Add Razorpay Test Mode keys and a webhook secret, expose `POST /webhooks/razorpay` on HTTPS, fail a checkout with `failure@razorpay`, and confirm a `RAZORPAY_TEST_MODE` row in Reported Issues
 
 ## Step overview
 
@@ -20,7 +20,7 @@ Last updated: 2026-08-21
 |    2 | Database schema and deterministic seed data      | Complete    |
 |    3 | Read-only product API                            | Complete    |
 |    4 | Dashboard and Reported Issues frontend           | Complete    |
-|    5 | Razorpay Test Mode ingestion                     | Not started |
+|    5 | Razorpay Test Mode ingestion                     | Blocked     |
 |    6 | Deterministic diagnosis engine                   | Not started |
 |    7 | AI proposal and deterministic policy engine      | Not started |
 |    8 | BullMQ recovery orchestration                    | Not started |
@@ -482,6 +482,48 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Wait for explicit approval before starting Step 5 Razorpay Test Mode ingestion.
+
+### 2026-08-21 — Step 5 Razorpay Test Mode ingestion
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:** Inspect operating docs after Step 4 completion and implement Step 5 Razorpay Test Mode ingestion.
+
+**Completed:**
+
+- Confirmed Steps 0–4 are complete and started Step 5 only.
+- Added a `WebhookEvent` table and migration for raw signed payload persistence.
+- Added Razorpay webhook signature verification, Test Mode order client, and payload mappers.
+- Added `POST /webhooks/razorpay` with raw-body verification, event-id idempotency, fast ACK, and BullMQ enqueue.
+- Added worker processing that creates `RAZORPAY_TEST_MODE` recovery cases without duplicating retries.
+- Added `/demo/checkout` and demo order APIs. Live checkout remains blocked until Test Mode keys are added locally.
+
+**Files changed:**
+
+- `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/20260821065049_add_webhook_events/`
+- `packages/domain/src/queues.ts`, `packages/domain/src/webhooks.ts`
+- `packages/razorpay/src/*`
+- `apps/api/src/modules/webhooks/razorpay/*`, `apps/api/src/modules/demo/razorpay/*`, `apps/api/src/app.ts`
+- `apps/worker/src/jobs/process-payment-event.ts`, `apps/worker/src/worker.ts`
+- `apps/web/src/app/demo/checkout/page.tsx`, `apps/web/src/features/demo-checkout/*`
+- `README.md`, `PLAN.md`, `STATUS.md`, `DECISIONS.md`
+
+**Validation:**
+
+- `pnpm format` then `pnpm lint` passed with zero warnings.
+- `pnpm typecheck` passed.
+- `pnpm test` passed, including signed webhook reject/accept/duplicate tests and worker ingest idempotency.
+- `pnpm build` passed; Next.js includes `/demo/checkout`.
+- Live Razorpay Test Mode checkout was not run because local credentials are empty.
+
+**Blockers:**
+
+- `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` are not set.
+- Razorpay cannot deliver webhooks to `localhost`; a public HTTPS URL is required for the live acceptance check.
+
+**Next action:**
+
+- Add Test Mode keys from the Razorpay dashboard, configure `POST /webhooks/razorpay`, trigger `failure@razorpay`, and confirm a `RAZORPAY_TEST_MODE` row before marking Step 5 complete.
 
 ## Session entry template
 

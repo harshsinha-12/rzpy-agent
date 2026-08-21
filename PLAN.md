@@ -142,7 +142,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 5 — Razorpay Test Mode ingestion
 
-**Status:** Not started
+**Status:** Blocked
 
 **Goal:** Safely receive and persist actual Razorpay Test Mode payment events. Initially redirect to where I can get the API keys if needed for razorpay test mode and let me add them then after confirmation start implementing
 
