@@ -119,12 +119,19 @@ export function DashboardOverview({
             <div>
               <h2 className={styles.panelTitle}>Recovery uplift simulation</h2>
               <p className={styles.panelSubtitle}>
-                Deterministic agent strategy compared with the seeded baseline
+                Deterministic comparison across no action, naive retry, and the
+                RecoveryOS strategy
               </p>
             </div>
             <DataSourceBadge source={simulation.dataSource} />
           </div>
           <div className={styles.comparison}>
+            <div className={styles.comparisonItem}>
+              <span className={styles.comparisonLabel}>No intervention</span>
+              <strong className={styles.comparisonValue}>
+                {formatMoney(simulation.noInterventionRevenuePaise)}
+              </strong>
+            </div>
             <div className={styles.comparisonItem}>
               <span className={styles.comparisonLabel}>Naive baseline</span>
               <strong className={styles.comparisonValue}>
@@ -153,6 +160,8 @@ export function DashboardOverview({
             <span>{simulation.attempts} recovery attempts</span>
             <span>{simulation.policyStops} policy stops</span>
             <span>{simulation.falseInterventions} false interventions</span>
+            <span>{simulation.customerContacts} simulated contacts</span>
+            <span>All amounts are simulated; no real money moved</span>
           </div>
         </section>
       ) : null}

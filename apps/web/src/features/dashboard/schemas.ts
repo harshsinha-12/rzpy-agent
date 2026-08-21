@@ -17,6 +17,7 @@ const simulationRunSchema = z.object({
   dataSource: z.enum(dataSources),
   falseInterventions: z.number().int().nonnegative(),
   incrementalRevenuePaise: z.number().int(),
+  noInterventionRevenuePaise: z.number().int().nonnegative(),
   paymentCount: z.number().int().nonnegative(),
   policyStops: z.number().int().nonnegative(),
   recoveredRevenuePaise: z.number().int().nonnegative(),
