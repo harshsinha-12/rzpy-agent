@@ -1,0 +1,33 @@
+.badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid currentcolor;
+  border-radius: 0.3rem;
+  background: #eef0f5;
+  color: #596174;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.3rem 0.5rem;
+  white-space: nowrap;
+}
+
+.positive {
+  background: var(--positive-soft);
+  color: var(--positive);
+}
+
+.warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.brand {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}

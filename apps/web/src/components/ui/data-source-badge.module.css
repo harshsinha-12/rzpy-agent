@@ -1,0 +1,19 @@
+.badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--brand-strong);
+  border-radius: 0.3rem;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.34rem 0.52rem;
+}
+
+.testMode {
+  border-color: var(--positive);
+  background: var(--positive-soft);
+  color: var(--positive);
+}
