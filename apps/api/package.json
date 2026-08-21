@@ -13,8 +13,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fastify/cors": "catalog:",
     "@recoveryos/database": "workspace:*",
     "@recoveryos/domain": "workspace:*",
+    "@recoveryos/razorpay": "workspace:*",
+    "bullmq": "catalog:",
     "fastify": "catalog:",
     "ioredis": "catalog:",
     "zod": "catalog:"

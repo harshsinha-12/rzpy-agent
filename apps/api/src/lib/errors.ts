@@ -19,3 +19,14 @@ export class AppError extends Error {
 export function notFoundError(code: string, message: string): AppError {
   return new AppError(404, code, message);
 }
+
+export function badRequestError(code: string, message: string): AppError {
+  return new AppError(400, code, message);
+}
+
+export function serviceUnavailableError(
+  code: string,
+  message: string,
+): AppError {
+  return new AppError(503, code, message);
+}

@@ -13,6 +13,7 @@ try {
 const envSchema = z.object({
   API_HOST: z.string().default("0.0.0.0"),
   API_PORT: z.coerce.number().int().positive().default(4000),
+  APP_BASE_URL: z.string().url().default("http://localhost:3000"),
   DATABASE_URL: z
     .string()
     .url()
@@ -20,6 +21,9 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  RAZORPAY_KEY_ID: z.string().default(""),
+  RAZORPAY_KEY_SECRET: z.string().default(""),
+  RAZORPAY_WEBHOOK_SECRET: z.string().default(""),
   REDIS_URL: z.string().url().default("redis://localhost:6380"),
 });
 

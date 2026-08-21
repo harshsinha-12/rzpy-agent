@@ -12,6 +12,7 @@ ignoredBuiltDependencies:
   - unrs-resolver
 
 catalog:
+  "@fastify/cors": 11.2.0
   "@prisma/adapter-pg": 7.9.1
   "@prisma/client": 7.9.1
   "@tailwindcss/postcss": 4.3.3
