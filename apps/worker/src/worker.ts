@@ -5,6 +5,10 @@ import {
   createPrismaClient,
 } from "@recoveryos/database";
 import {
+  createOpenAIRecoveryAgent,
+  createRecoveryAgent,
+} from "@recoveryos/agents";
+import {
   paymentEventsQueueName,
   type DependencyHealth,
   type HealthSnapshot,
@@ -14,6 +18,7 @@ import { Worker } from "bullmq";
 import { Redis } from "ioredis";
 
 import { env } from "./config/env.js";
+import { createPrismaRecoveryAgentTools } from "./agents/recovery-context.js";
 import { startHealthServer } from "./health-server.js";
 import { processPaymentEvent } from "./jobs/process-payment-event.js";
 import { processSystemHealthJob } from "./jobs/system-health.js";
@@ -27,12 +32,21 @@ const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 1,
 });
 const connection = createBullMqConnectionOptions(env.REDIS_URL);
+const recoveryAgentTools = createPrismaRecoveryAgentTools(prisma);
+const recoveryAgent = env.OPENAI_API_KEY
+  ? createOpenAIRecoveryAgent({
+      apiKey: env.OPENAI_API_KEY,
+      model: env.OPENAI_MODEL,
+      tools: recoveryAgentTools,
+    })
+  : createRecoveryAgent({ tools: recoveryAgentTools });
 const healthWorker = new Worker(SYSTEM_HEALTH_QUEUE, processSystemHealthJob, {
   connection,
 });
 const paymentWorker = new Worker<PaymentEventJobData>(
   paymentEventsQueueName,
-  async (job) => processPaymentEvent(prisma, job.data.webhookEventId),
+  async (job) =>
+    processPaymentEvent(prisma, job.data.webhookEventId, { recoveryAgent }),
   { connection },
 );
 

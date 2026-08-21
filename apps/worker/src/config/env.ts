@@ -18,6 +18,12 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  OPENAI_API_KEY: z
+    .string()
+    .trim()
+    .default("")
+    .transform((value) => value || undefined),
+  OPENAI_MODEL: z.string().trim().min(1).default("gpt-5.6-terra"),
   REDIS_URL: z.string().url().default("redis://localhost:6380"),
   WORKER_HEALTH_HOST: z.string().default("0.0.0.0"),
   WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4001),
