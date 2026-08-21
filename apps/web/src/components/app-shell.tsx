@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { publicApiUrl, publicWorkerHealthUrl } from "@/config/env";
+
 import styles from "./app-shell.module.css";
+
+const apiHealthUrl = new URL("/health", publicApiUrl).toString();
+const workerHealthUrl = new URL("/health", publicWorkerHealthUrl).toString();
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -23,8 +28,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           </nav>
           <div className={styles.workspace}>
-            <span>Aurora Retail</span>
-            <span className={styles.workspaceMode}>Demo workspace</span>
+            <span>RecoveryOS</span>
+            <span className={styles.workspaceHealth}>
+              <a href={apiHealthUrl} rel="noreferrer" target="_blank">
+                API health
+              </a>
+              <a href={workerHealthUrl} rel="noreferrer" target="_blank">
+                Worker health
+              </a>
+            </span>
           </div>
         </div>
       </header>

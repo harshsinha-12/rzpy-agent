@@ -6,7 +6,7 @@ Last updated: 2026-08-21
 
 - **Current step:** Step 11 — Reliability, security, and end-to-end validation
 - **State:** Step 11 is implemented and awaiting approval; Steps 9 and 10 also await approval
-- **Application code:** The API now sends Helmet headers and in-process rate limits, logs redact secrets, Razorpay 5xx retries with a visible `recovery.execution.failed` audit event, and the primary recovery flow has an end-to-end unhappy-path test. The Step 10 simulator remains in the tree and also awaits approval.
+- **Application code:** The API now sends Helmet headers and in-process rate limits, logs redact secrets, Razorpay 5xx retries with a visible `recovery.execution.failed` audit event, and the primary recovery flow has an end-to-end unhappy-path test. The Step 10 simulator remains in the tree and also awaits approval. The header workspace label now reads RecoveryOS and links to API and worker health endpoints.
 - **Runtime services:** Docker PostgreSQL and Redis are running; API/web/worker are not left running after validation
 - **Current blocker:** A signed live webhook still needs a separate webhook secret and public HTTPS URL; API-only verification is configured and authenticated
 - **Exact next action:** Review Step 11 evidence and approve it. Step 10 also awaits approval. Do not start Step 12 until those approvals land.
@@ -792,6 +792,38 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Blockers:**
 
 - Step 11 has no implementation blocker. Live signed webhooks and one paid Test Mode link remain outstanding for Steps 5 and 9.
+
+**Next action:**
+
+- Review and approve Step 11. Step 10 also awaits approval. Do not start Step 12 until those gates pass.
+
+### 2026-08-21 — Header health links and RecoveryOS label
+
+**Agent:** Cursor
+
+**Requested outcome:** Replace the header workspace merchant name with RecoveryOS and add API and worker health links to the UI.
+
+**Completed:**
+
+- Replaced the header workspace label `Aurora Retail` / `Demo workspace` with `RecoveryOS`.
+- Added header links to API health (`/health` on the public API URL) and worker health (`NEXT_PUBLIC_WORKER_HEALTH_URL`).
+- Documented the worker health URL in `.env.example`.
+
+**Files changed:**
+
+- `apps/web/src/components/app-shell.tsx`
+- `apps/web/src/components/app-shell.module.css`
+- `apps/web/src/config/env.ts`
+- `.env.example`
+- `STATUS.md`
+
+**Validation:**
+
+- Linter diagnostics for the edited web files reported no issues.
+
+**Blockers:**
+
+- Unchanged: live signed webhooks and one paid Test Mode link remain outstanding for Steps 5 and 9.
 
 **Next action:**
 
