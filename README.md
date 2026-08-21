@@ -303,6 +303,8 @@ That generates the Prisma client, applies migrations, and loads the deterministi
 
 Do not set `API_PORT`. Railway injects `PORT`, and the API listens on it.
 
+If a deployment builds successfully but the `/health` check reports `service unavailable`, first remove any manually copied `API_PORT` variable and redeploy. Railway uses its injected `PORT` for both routing and health checks. The code gives that platform port precedence, while `API_PORT=4000` remains a local-development fallback only.
+
 **Worker service**
 
 1. Second Railway service, Dockerfile path `deploy/Dockerfile.worker`, context `/`.
@@ -321,6 +323,8 @@ Do not set `API_PORT`. Railway injects `PORT`, and the API listens on it.
 | `WORKER_HEALTH_HOST`            | `0.0.0.0`                 |
 
 Do not set `WORKER_HEALTH_PORT`. The worker health server also uses Railway's `PORT`.
+
+Do not copy the complete local `.env` file into either Railway service. Set only the service-specific variables in the tables above. In particular, use `NODE_ENV=production`, omit localhost frontend variables from the API and worker, and let Railway provide `PORT`.
 
 Generate public HTTPS domains for both Railway services. Confirm:
 

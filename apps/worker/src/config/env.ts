@@ -44,5 +44,7 @@ const parsed = envSchema.parse(process.env);
 
 export const env = Object.freeze({
   ...parsed,
-  listenPort: parsed.WORKER_HEALTH_PORT ?? parsed.PORT ?? 4001,
+  // Hosting platforms such as Railway route traffic and health checks to PORT.
+  // Keep WORKER_HEALTH_PORT as the local override only when no platform port exists.
+  listenPort: parsed.PORT ?? parsed.WORKER_HEALTH_PORT ?? 4001,
 });

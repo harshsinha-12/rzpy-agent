@@ -5,11 +5,11 @@ Last updated: 2026-08-21
 ## Current snapshot
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Step 12 is in progress. Hosting is decided: Vercel for the Next.js web app; Railway for the API, worker, PostgreSQL, and Redis. Vercel project files and Railway Dockerfiles are in the repo; hosted Postgres, Redis, webhook URL, and live Railway services are not deployed yet.
-- **Application code:** The frontend includes the About page and architecture diagram. The web `tsconfig.json` no longer uses deprecated TypeScript `baseUrl`. The API and worker now listen on platform `PORT` when `API_PORT` / `WORKER_HEALTH_PORT` are unset.
-- **Runtime services:** Local Docker PostgreSQL and Redis remain the running data stores until Railway is provisioned
-- **Current blocker:** Hosted PostgreSQL, Redis, API, worker, and a public HTTPS Razorpay webhook URL are still outstanding. The Vercel web app can be published tonight; dashboard data waits on Railway.
-- **Exact next action:** Push `main` and import the GitHub repo into Vercel with Root Directory `apps/web`. Tomorrow provision Railway Postgres/Redis/API/worker, then configure the Razorpay webhook.
+- **State:** Step 12 is in progress. Railway PostgreSQL, Redis, and the worker are online; the API image builds but its deployment health check is failing because a local `API_PORT=4000` override was copied into Railway.
+- **Application code:** The frontend includes the About page and architecture diagram. The API and worker now give Railway's injected `PORT` precedence over local port overrides, preventing a copied development port from breaking platform routing.
+- **Runtime services:** Railway PostgreSQL, Redis, and worker are online. The Railway API is not yet healthy; local services are unchanged.
+- **Current blocker:** The API service must remove `API_PORT`, use `NODE_ENV=production`, and redeploy. A public API domain and Razorpay webhook configuration follow after the health check passes.
+- **Exact next action:** Push the port-precedence fix, remove `API_PORT` from the Railway API variables, set `NODE_ENV=production`, and redeploy the API.
 
 ## Step overview
 
@@ -49,7 +49,7 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 | Razorpay Test Key ID and Secret |              5 | Configured and authenticated   |
 | Razorpay webhook secret         |              5 | Not created                    |
 | OpenAI API key                  |              7 | Configured locally             |
-| Deployment credentials          |             12 | Vercel/Railway not created yet         |
+| Deployment credentials          |             12 | Vercel/Railway not created yet |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -987,6 +987,44 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Push `main` and import the repo into Vercel with Root Directory `apps/web`. Tomorrow: Railway Postgres/Redis/API/worker, then the webhook.
+
+### 2026-08-21 — Railway API health-check port fix
+
+**Agent:** Codex
+
+**Requested outcome:** Diagnose the Railway API deployment that built successfully but never passed `/health`.
+
+**Completed:**
+
+- Traced the Docker start command, Fastify listener, environment parsing, health route, PostgreSQL check, and Redis check.
+- Identified the deployed `API_PORT=4000` variable as conflicting with Railway's injected `PORT`, which Railway also uses for deployment health checks.
+- Changed API and worker configuration so platform `PORT` takes precedence over local-only port overrides.
+- Documented the Railway troubleshooting step, service-specific environment guidance, and the durable port-precedence decision.
+
+**Files changed:**
+
+- `apps/api/src/config/env.ts`
+- `apps/worker/src/config/env.ts`
+- `README.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- API and worker lint, TypeScript checks, and production builds passed.
+- Direct built-module checks with both variables set confirmed that the API selected platform `PORT=12345` over `API_PORT=4000` and the worker selected platform `PORT=12346` over `WORKER_HEALTH_PORT=4001`.
+- Four dependency-free API test files and 8 tests passed; three database-backed files could not start because local PostgreSQL was not running (`ECONNREFUSED` on port 5432). This was an unavailable test dependency, not a failing port assertion.
+- Repository formatting and diff checks passed.
+- Railway's current documentation confirms that it injects `PORT`, uses the same value for deployment health checks, and reports `service unavailable` when the application listens elsewhere.
+
+**Blockers:**
+
+- The Railway API variable `API_PORT` must still be removed and the service redeployed from the updated commit.
+- If `/health` then returns JSON with a degraded dependency, inspect the returned `dependencies.postgres.error` or `dependencies.redis.error` and the deployment logs.
+
+**Next action:**
+
+- Remove `API_PORT`, change `NODE_ENV` to `production`, deploy the updated commit, and confirm the public `/health` endpoint returns HTTP 200.
 
 ## Session entry template
 

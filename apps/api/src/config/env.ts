@@ -40,5 +40,7 @@ const parsed = envSchema.parse(process.env);
 
 export const env = Object.freeze({
   ...parsed,
-  listenPort: parsed.API_PORT ?? parsed.PORT ?? 4000,
+  // Hosting platforms such as Railway route traffic and health checks to PORT.
+  // Keep API_PORT as the local override only when no platform port is present.
+  listenPort: parsed.PORT ?? parsed.API_PORT ?? 4000,
 });
