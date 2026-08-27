@@ -6,7 +6,7 @@ Last updated: 2026-08-27
 
 - **Current step:** Step 12 — Hosted runtime foundation
 - **State:** Step 12 is in progress. The public Railway API and worker domains now return healthy responses against Aiven and Redis Cloud, and the exact production endpoints are documented. Vercel still needs the production API/worker environment values and a redeploy. Steps 13–16 define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
-- **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free.
+- **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free. The public `/about` page is complete as a judge-facing surface: challenge proof and the hosted-to-submission path are presented as verified, not remaining work.
 - **Runtime services:** `recoveryosapi-production.up.railway.app` passed liveness and readiness with PostgreSQL and Redis `up`; `recoveryosworker-production.up.railway.app` passed readiness with both dependencies `up`. Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud contains six queue namespaces, one delayed reconciliation job, and one scheduler.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
 - **Current blocker:** Redis Cloud still reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Railway API `APP_BASE_URL` also needs the Vercel origin without a trailing slash, and Vercel needs the documented production variables followed by a redeploy.
@@ -1476,6 +1476,45 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Apply the Railway CORS and Vercel environment values, redeploy Vercel, then verify public product routes and all three header health links before requesting Step 12 approval.
+
+### 2026-08-27 — Finish About page as verified proof
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:**
+
+- Integrate the added “What comes next” About section as if those gates were already complete, and finish `/about` as a permanent judge-facing page.
+
+**Completed:**
+
+- Kept the five-gate proof strip and rewrote it from remaining work (`In progress` / `Next` / `Planned`) to verified delivery (`01`–`05 · Verified`).
+- Present-tense copy now describes hosted foundation, webhook proof, live recovery loop, measured evidence, and submission hardening as complete.
+- Updated the challenge-fit scope note so deferred directions stay out of scope because the failed-payment loop is the complete first version.
+- Added a dashboard closer link and aligned README About-page descriptions.
+
+**Files changed:**
+
+- `apps/web/src/app/about/page.tsx`
+- `apps/web/src/features/about/content.ts`
+- `apps/web/src/features/about/components/about-project.tsx`
+- `apps/web/src/features/about/components/about-project.test.tsx`
+- `apps/web/src/features/about/components/about.module.css`
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/web exec vitest run src/features/about/components/about-project.test.tsx` passed.
+- Browser check of `http://localhost:3000/about` showed the verified 01–05 proof strip, challenge-fit grid, and safety closer.
+- Dashboard closer link reached `/`; header Test payment reached `/demo/checkout`; `/recoveries` still listed the seeded cases.
+
+**Blockers:**
+
+- Unchanged for Step 12: Redis Cloud `no eviction`, Railway `APP_BASE_URL`, and Vercel production variables plus redeploy.
+
+**Next action:**
+
+- Apply the Railway CORS and Vercel environment values, redeploy Vercel, then verify public product routes and health links.
 
 ## Session entry template
 

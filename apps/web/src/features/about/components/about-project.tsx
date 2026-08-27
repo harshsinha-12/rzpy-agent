@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-import { integrationCards, recoveryStages } from "../content";
+import {
+  challengeProof,
+  deliveryProof,
+  integrationCards,
+  recoveryStages,
+} from "../content";
 import { ArchitectureDiagram } from "./architecture-diagram";
 import styles from "./about.module.css";
 
@@ -27,6 +32,37 @@ export function AboutProject() {
             see what recovered and why.
           </p>
         </div>
+      </section>
+
+      <section aria-labelledby="challenge-fit" className={styles.section}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.sectionEyebrow}>Razorpay challenge fit</p>
+            <h2 className={styles.sectionTitle} id="challenge-fit">
+              Payment degradation → root cause → recovery action.
+            </h2>
+          </div>
+          <p>
+            RecoveryOS deliberately completes one revenue-recovery direction end
+            to end: detect the loss, determine the intervention, execute within
+            policy, and prove the outcome with measured money and an audit
+            trail.
+          </p>
+        </div>
+        <div className={styles.proofGrid}>
+          {challengeProof.map((proof) => (
+            <article key={proof.label}>
+              <span>{proof.label}</span>
+              <h3>{proof.title}</h3>
+              <p>{proof.detail}</p>
+            </article>
+          ))}
+        </div>
+        <p className={styles.scopeNote}>
+          Checkout abandonment, subscription recovery, B2B receivables, mandate
+          sequencing, voice recovery, and promise-to-pay tracking remain out of
+          scope. The failed-payment loop is the complete first version.
+        </p>
       </section>
 
       <section aria-labelledby="recovery-loop" className={styles.section}>
@@ -102,6 +138,32 @@ export function AboutProject() {
         </div>
       </section>
 
+      <section aria-labelledby="delivery-proof" className={styles.section}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.sectionEyebrow}>Judge-ready proof</p>
+            <h2 className={styles.sectionTitle} id="delivery-proof">
+              From healthy infrastructure to judge-ready proof.
+            </h2>
+          </div>
+          <p>
+            Each gate is verified. Live Razorpay Test Mode evidence stays
+            separate from the labelled simulated batch comparison.
+          </p>
+        </div>
+        <ol className={styles.roadmapGrid}>
+          {deliveryProof.map((item) => (
+            <li key={item.step}>
+              <span>
+                {item.step} · {item.status}
+              </span>
+              <strong>{item.title}</strong>
+              <p>{item.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <section aria-label="Project safety principles" className={styles.closer}>
         <div>
           <p className={styles.sectionEyebrow}>The important boundary</p>
@@ -113,6 +175,7 @@ export function AboutProject() {
           </p>
         </div>
         <div className={styles.closerLinks}>
+          <Link href="/">Review the dashboard →</Link>
           <Link href="/recoveries">Explore Reported Issues →</Link>
           <Link href="/demo/checkout">Open Test Mode checkout →</Link>
         </div>

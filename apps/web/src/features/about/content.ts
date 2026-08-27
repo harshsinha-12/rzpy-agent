@@ -37,6 +37,83 @@ export const recoveryStages = [
   },
 ] as const;
 
+export const challengeProof = [
+  {
+    detail:
+      "A signed Razorpay Test Mode failure becomes one durable, idempotent recovery case instead of disappearing into a payment log.",
+    label: "Detect",
+    title: "Find revenue at risk",
+  },
+  {
+    detail:
+      "Deterministic diagnosis explains the failure, then GPT-5.6 Terra proposes one structured intervention from read-only facts.",
+    label: "Determine",
+    title: "Choose the right response",
+  },
+  {
+    detail:
+      "Policy can approve, delay, replace, escalate, or deny the proposal before the worker reaches any Razorpay tool.",
+    label: "Bound",
+    title: "Keep execution controlled",
+  },
+  {
+    detail:
+      "A reproducible 250–500-payment run compares RecoveryOS with no intervention and a naive retry using the same outcomes.",
+    label: "Measure",
+    title: "Show incremental recovery",
+  },
+  {
+    detail:
+      "Attempt limits, cooldowns, merchant-error rules, duplicate protection, and payment-state checks decide when to escalate or stop.",
+    label: "Protect",
+    title: "Avoid false intervention",
+  },
+  {
+    detail:
+      "The case timeline retains detection, evidence, proposal, policy decision, execution, verification, and the final outcome.",
+    label: "Explain",
+    title: "Make every action auditable",
+  },
+] as const;
+
+export const deliveryProof = [
+  {
+    detail:
+      "The Vercel merchant experience is connected to healthy Railway API and worker runtimes backed by Aiven PostgreSQL and Redis Cloud.",
+    status: "Verified",
+    step: "01",
+    title: "Hosted foundation",
+  },
+  {
+    detail:
+      "A signed payment.failed event creates exactly one visible Test Mode case. Replaying the same provider event does not duplicate the case, action, or job.",
+    status: "Verified",
+    step: "02",
+    title: "Webhook proof",
+  },
+  {
+    detail:
+      "The case timeline shows a GPT-5.6 Terra proposal, an independent policy decision, a silent action-bound Payment Link, and a verified paid Test Mode outcome.",
+    status: "Verified",
+    step: "03",
+    title: "Live recovery loop",
+  },
+  {
+    detail:
+      "A frozen 250–500-payment run compares RecoveryOS with no intervention and naive retry, reconciling incremental rupees, policy stops, escalations, and false interventions.",
+    status: "Verified",
+    step: "04",
+    title: "Measured evidence",
+  },
+  {
+    detail:
+      "The reset flow, audit trail, graceful Razorpay 5xx retry, architecture explanation, and judge walkthrough are packaged as a repeatable demo.",
+    status: "Verified",
+    step: "05",
+    title: "Submission hardening",
+  },
+] as const;
+
 export const integrationCards = [
   {
     detail:

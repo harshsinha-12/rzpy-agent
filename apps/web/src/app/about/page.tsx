@@ -4,7 +4,7 @@ import { AboutProject } from "@/features/about/components/about-project";
 
 export const metadata: Metadata = {
   description:
-    "Understand how RecoveryOS combines Razorpay Test Mode, OpenAI, deterministic policy, PostgreSQL, Redis, BullMQ, and a background worker.",
+    "See how RecoveryOS detects failed Razorpay payments, proposes bounded AI recovery, enforces deterministic policy, measures incremental recovery, and preserves an audit trail.",
   title: "About the project",
 };
 

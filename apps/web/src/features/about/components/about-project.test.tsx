@@ -14,5 +14,18 @@ describe("AboutProject", () => {
     expect(markup).toContain("Reconciliation every 60 seconds");
     expect(markup).toContain("No external cron service");
     expect(markup).toContain("AI can propose. It cannot move money.");
+    expect(markup).toContain(
+      "Payment degradation → root cause → recovery action.",
+    );
+    expect(markup).toContain("Show incremental recovery");
+    expect(markup).toContain(
+      "From healthy infrastructure to judge-ready proof.",
+    );
+    expect(markup).toContain("01 · Verified");
+    expect(markup).toContain("Webhook proof");
+    expect(markup).toContain("Live recovery loop");
+    expect(markup).toContain(
+      "The failed-payment loop is the complete first version.",
+    );
   });
 });

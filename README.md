@@ -58,7 +58,7 @@ The remaining delivery order is intentionally sequential:
 - Five BullMQ queues for ingestion, analysis, action, verification, and reconciliation.
 - A deterministic simulator comparing no intervention, naive retry, and RecoveryOS over 250–500 synthetic failed payments.
 - Security and reliability controls including Helmet, API rate limits, log redaction, bounded retries, payment-state rechecks, and idempotent Payment Link references.
-- A public `/about` page that explains the product and architecture without requiring repository knowledge.
+- A public `/about` page that explains the product, challenge proof, architecture, and AI safety boundary without requiring repository knowledge.
 
 ## Recovery workflow
 
@@ -203,13 +203,13 @@ No external cron provider or dedicated VM is required, but the application does 
 
 ## Product surfaces
 
-| Route              | Purpose                                                           |
-| ------------------ | ----------------------------------------------------------------- |
-| `/`                | Executive recovery dashboard and simulator comparison             |
-| `/recoveries`      | Searchable, filterable, and sortable Reported Issues table        |
-| `/recoveries/[id]` | Case facts, recovery reasoning, actions, and audit timeline       |
-| `/demo/checkout`   | Razorpay Test Mode checkout and failure generation                |
-| `/about`           | Plain-language project, integration, and architecture explanation |
+| Route              | Purpose                                                                        |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `/`                | Executive recovery dashboard and simulator comparison                          |
+| `/recoveries`      | Searchable, filterable, and sortable Reported Issues table                     |
+| `/recoveries/[id]` | Case facts, recovery reasoning, actions, and audit timeline                    |
+| `/demo/checkout`   | Razorpay Test Mode checkout and failure generation                             |
+| `/about`           | Judge-facing product, challenge proof, architecture, and AI safety explanation |
 
 ## Quick start
 

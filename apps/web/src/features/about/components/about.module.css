@@ -20,7 +20,8 @@
 
 .sectionEyebrow,
 .nodeLabel,
-.integrationGrid article > span {
+.integrationGrid article > span,
+.proofGrid article > span {
   display: block;
   margin: 0 0 0.65rem;
   color: var(--brand-strong);
@@ -294,21 +295,24 @@
   line-height: 1.55;
 }
 
-.integrationGrid {
+.integrationGrid,
+.proofGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
 }
 
-.integrationGrid article {
+.integrationGrid article,
+.proofGrid article {
   min-height: 11rem;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   padding: 1.2rem;
 }
 
-.integrationGrid h3 {
+.integrationGrid h3,
+.proofGrid h3 {
   margin: 1.1rem 0 0;
   color: var(--ink-strong);
   font-family: var(--font-display);
@@ -316,10 +320,70 @@
   font-weight: 600;
 }
 
-.integrationGrid article > p {
+.integrationGrid article > p,
+.proofGrid article > p {
   margin: 0.5rem 0 0;
   color: var(--ink-muted);
   font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.scopeNote {
+  margin: 0;
+  border-left: 0.3rem solid var(--brand);
+  background: var(--brand-soft);
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  padding: 0.9rem 1rem;
+}
+
+.roadmapGrid {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  list-style: none;
+  padding: 0;
+}
+
+.roadmapGrid li {
+  min-height: 12rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(
+    180deg,
+    var(--positive-soft) 0 0.28rem,
+    transparent 0.28rem
+  );
+  padding: 1.1rem;
+}
+
+.roadmapGrid li > span {
+  display: block;
+  margin: 0 0 0.65rem;
+  color: var(--positive);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.roadmapGrid li > strong {
+  display: block;
+  margin-top: 1.1rem;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.roadmapGrid li > p {
+  margin: 0.6rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
   line-height: 1.5;
 }
 
@@ -370,7 +434,12 @@
 
   .stageGrid,
   .integrationGrid,
+  .proofGrid,
   .decisionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .roadmapGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -401,6 +470,8 @@
   .decisionGrid,
   .stageGrid,
   .integrationGrid,
+  .proofGrid,
+  .roadmapGrid,
   .cronNote {
     grid-template-columns: 1fr;
   }
