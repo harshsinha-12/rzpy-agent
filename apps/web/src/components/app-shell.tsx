@@ -5,7 +5,8 @@ import { publicApiUrl, publicWorkerHealthUrl } from "@/config/env";
 
 import styles from "./app-shell.module.css";
 
-const apiHealthUrl = new URL("/health", publicApiUrl).toString();
+const apiLivenessUrl = new URL("/health/live", publicApiUrl).toString();
+const apiReadinessUrl = new URL("/health", publicApiUrl).toString();
 const workerHealthUrl = new URL("/health", publicWorkerHealthUrl).toString();
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -33,11 +34,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className={styles.workspace}>
             <span>RecoveryOS</span>
             <span className={styles.workspaceHealth}>
-              <a href={apiHealthUrl} rel="noreferrer" target="_blank">
-                API health
+              <a href={apiLivenessUrl} rel="noreferrer" target="_blank">
+                API live
+              </a>
+              <a href={apiReadinessUrl} rel="noreferrer" target="_blank">
+                API ready
               </a>
               <a href={workerHealthUrl} rel="noreferrer" target="_blank">
-                Worker health
+                Worker
               </a>
             </span>
           </div>

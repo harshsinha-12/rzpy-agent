@@ -61,6 +61,7 @@
 
 .workspaceHealth {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.7rem;
   color: var(--ink-muted);
   font-size: 0.62rem;

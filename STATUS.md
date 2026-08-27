@@ -5,12 +5,12 @@ Last updated: 2026-08-27
 ## Current snapshot
 
 - **Current step:** Step 12 — Hosted runtime foundation
-- **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Observed API liveness and readiness JSON outcomes are now documented. Railway still needs the updated code and service variables. Steps 13–16 now define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
+- **State:** Step 12 is in progress. The public Railway API and worker domains now return healthy responses against Aiven and Redis Cloud, and the exact production endpoints are documented. Vercel still needs the production API/worker environment values and a redeploy. Steps 13–16 define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
 - **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free.
-- **Runtime services:** Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud is reachable with six queue namespaces, one delayed reconciliation job, and one scheduler. The bootstrap worker was stopped and port 4001 is closed.
+- **Runtime services:** `recoveryosapi-production.up.railway.app` passed liveness and readiness with PostgreSQL and Redis `up`; `recoveryosworker-production.up.railway.app` passed readiness with both dependencies `up`. Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud contains six queue namespaces, one delayed reconciliation job, and one scheduler.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Redis Cloud reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Hosted API/worker deployment and public worker readiness remain unverified.
-- **Exact next action:** Change Redis Cloud's Data eviction policy to `no eviction`, deploy the updated API/worker code and fresh variables to Railway, then verify public API `/health/live`, API `/health`, and worker `/health`.
+- **Current blocker:** Redis Cloud still reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Railway API `APP_BASE_URL` also needs the Vercel origin without a trailing slash, and Vercel needs the documented production variables followed by a redeploy.
+- **Exact next action:** Set Redis Cloud to `no eviction`, set Railway API `APP_BASE_URL=https://rzpy-agent-web.vercel.app`, paste the four documented variables into Vercel Production, redeploy Vercel, and verify `/`, `/recoveries`, `/demo/checkout`, and all three health links.
 
 ## Step overview
 
@@ -47,16 +47,16 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 
 ## Credentials status
 
-| Credential                      | Needed in step | Status                                                   |
-| ------------------------------- | -------------: | -------------------------------------------------------- |
-| Local PostgreSQL URL            |              1 | Configured with Docker default                           |
-| Local Redis URL                 |              1 | Configured on host port 6380                             |
-| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                             |
-| Razorpay webhook secret         |          5, 13 | Not created                                              |
-| OpenAI API key                  |          7, 14 | Rotated; fresh value pending in Railway worker           |
-| Redis Cloud credentials         |             12 | Connected; BullMQ initialized; eviction policy pending   |
-| Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified          |
-| Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified |
+| Credential                      | Needed in step | Status                                                        |
+| ------------------------------- | -------------: | ------------------------------------------------------------- |
+| Local PostgreSQL URL            |              1 | Configured with Docker default                                |
+| Local Redis URL                 |              1 | Configured on host port 6380                                  |
+| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                                  |
+| Razorpay webhook secret         |          5, 13 | Not created                                                   |
+| OpenAI API key                  |          7, 14 | Rotated; fresh value pending in Railway worker                |
+| Redis Cloud credentials         |             12 | Connected; BullMQ initialized; eviction policy pending        |
+| Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified               |
+| Deployment credentials          |             12 | Railway API/worker verified; Vercel production wiring pending |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -820,6 +820,7 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 
 - `apps/web/src/components/app-shell.tsx`
 - `apps/web/src/components/app-shell.module.css`
+- `apps/web/src/components/app-shell.test.tsx`
 - `apps/web/src/config/env.ts`
 - `.env.example`
 - `STATUS.md`
@@ -1429,6 +1430,52 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Change the Redis Cloud eviction policy, deploy both Railway services, and verify public liveness/readiness before configuring the Razorpay webhook.
+
+### 2026-08-27 — Wire public Railway endpoints into frontend configuration
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Add the public Railway API and worker domains, their health routes, frontend links, and copy-paste Vercel environment values.
+
+**Completed:**
+
+- Added the production Vercel, Railway API, Railway worker, API liveness, API readiness, worker readiness, and future webhook URLs to the README and architecture guide.
+- Added an exact four-variable Vercel Production block using URL values without trailing slashes.
+- Pointed the ignored root `.env` and `apps/web/.env.local` frontend configuration at the public Railway API and worker.
+- Split the frontend header health navigation into `API live`, `API ready`, and `Worker` links while keeping the base URLs environment-controlled.
+- Identified that the deployed API currently emits the configured Vercel CORS origin with a trailing slash and documented the corrected Railway API `APP_BASE_URL` value without the slash.
+- Did not add any database, Redis, Razorpay, webhook, or OpenAI secret to frontend source or tracked documentation.
+
+**Files changed:**
+
+- `apps/web/src/components/app-shell.tsx`
+- `apps/web/src/components/app-shell.module.css`
+- `README.md`
+- `ARCHITECTURE.md`
+- `STATUS.md`
+- Ignored local configuration: `.env` and `apps/web/.env.local`
+
+**Validation:**
+
+- Public API `/health/live` returned HTTP 200 with `status: live`.
+- Public API `/health` returned HTTP 200 with PostgreSQL and Redis both `up`.
+- Public worker `/health` returned HTTP 200 with PostgreSQL and Redis both `up`.
+- Web lint and TypeScript checks passed.
+- All 9 frontend test files and 15 tests passed, including the three health-link destinations.
+- The frontend production build passed while loading `apps/web/.env.local`.
+- Documentation formatting, ignored-file checks, and repository diff checks passed.
+
+**Blockers:**
+
+- Redis Cloud still needs `no eviction`.
+- Railway API `APP_BASE_URL` must be changed to `https://rzpy-agent-web.vercel.app` without a trailing slash.
+- The four Vercel Production variables must be saved and the frontend redeployed before public browser verification.
+
+**Next action:**
+
+- Apply the Railway CORS and Vercel environment values, redeploy Vercel, then verify public product routes and all three header health links before requesting Step 12 approval.
 
 ## Session entry template
 

@@ -104,6 +104,16 @@ This is the project's cron-like behavior. There is no external cron service or d
 | PostgreSQL      | Aiven       | TLS-protected durable source of truth              |
 | Redis           | Redis Cloud | Queue, retry, and scheduler state                  |
 
+### Deployed public runtime routes
+
+| Runtime | Base URL                                             | Health contract                                                    |
+| ------- | ---------------------------------------------------- | ------------------------------------------------------------------ |
+| Web     | `https://rzpy-agent-web.vercel.app`                  | Public product routes                                              |
+| API     | `https://recoveryosapi-production.up.railway.app`    | `/health/live` for liveness and `/health` for dependency readiness |
+| Worker  | `https://recoveryosworker-production.up.railway.app` | `/health` for PostgreSQL and Redis readiness                       |
+
+The Razorpay Test Mode webhook route is `https://recoveryosapi-production.up.railway.app/webhooks/razorpay`. It remains inactive until Step 13 configures the webhook signing secret and provider subscriptions.
+
 Vercel cannot run the API or worker. Those processes must stay online so delayed jobs and webhook acknowledgements survive.
 
 The API distinguishes liveness from readiness. `GET /health/live` returns `{ "service": "api", "status": "live" }` as soon as Fastify accepts traffic and does not check data stores. `GET /health` returns `{ "status": "healthy" }` only when `dependencies.postgres` and `dependencies.redis` are both `"up"`; otherwise it returns HTTP 503 with `"status": "degraded"` and a per-dependency `error`. Railway's API deployment health check uses `/health/live`. The worker exposes only `/health` and uses the same readiness snapshot shape with `"service": "worker"`.

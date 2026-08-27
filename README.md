@@ -267,6 +267,20 @@ RecoveryOS is three runtimes plus two data stores. Only the Next.js app belongs 
 | PostgreSQL    | **Aiven**       | TLS-protected durable source of truth                                             |
 | Redis         | **Redis Cloud** | Externally managed queue, retry, and scheduler state                              |
 
+### Hosted endpoints
+
+| Service             | Public URL                                                          |
+| ------------------- | ------------------------------------------------------------------- |
+| Vercel web          | `https://rzpy-agent-web.vercel.app`                                 |
+| Railway API base    | `https://recoveryosapi-production.up.railway.app`                   |
+| API liveness        | `https://recoveryosapi-production.up.railway.app/health/live`       |
+| API readiness       | `https://recoveryosapi-production.up.railway.app/health`            |
+| Razorpay webhook    | `https://recoveryosapi-production.up.railway.app/webhooks/razorpay` |
+| Railway worker base | `https://recoveryosworker-production.up.railway.app`                |
+| Worker readiness    | `https://recoveryosworker-production.up.railway.app/health`         |
+
+The webhook route is deployed but should not receive Razorpay events until Step 13 creates a separate signing secret and configures the Test Mode webhook.
+
 Do not try to run the API or worker as Vercel serverless functions. They are persistent Node processes. Render can replace Railway if you prefer; the same split still applies.
 
 The web app can be published independently. Dashboard and Reported Issues show the existing API-unavailable state until the Railway API is live; `/about` is static and works without the backend.
@@ -282,12 +296,23 @@ The web app can be published independently. Dashboard and Reported Issues show t
    - Build: `cd ../.. && pnpm --filter @recoveryos/domain build && pnpm --filter @recoveryos/web build`
 6. Add these Vercel environment variables for Production. During frontend-only setup, the API URLs may remain on localhost; replace them when Railway is live.
 
-| Variable                        | Before backend                                              | After backend                                                           |
-| ------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `APP_BASE_URL`                  | Optional. Vercel preview/production URLs are used if unset. | Your production Vercel URL, for example `https://recoveryos.vercel.app` |
-| `API_BASE_URL`                  | `http://localhost:4000`                                     | Public Railway API URL, no trailing slash                               |
-| `NEXT_PUBLIC_API_URL`           | `http://localhost:4000`                                     | Same Railway API URL                                                    |
-| `NEXT_PUBLIC_WORKER_HEALTH_URL` | `http://localhost:4001`                                     | Public Railway worker URL                                               |
+| Variable                        | Production value                                     |
+| ------------------------------- | ---------------------------------------------------- |
+| `APP_BASE_URL`                  | `https://rzpy-agent-web.vercel.app`                  |
+| `API_BASE_URL`                  | `https://recoveryosapi-production.up.railway.app`    |
+| `NEXT_PUBLIC_API_URL`           | `https://recoveryosapi-production.up.railway.app`    |
+| `NEXT_PUBLIC_WORKER_HEALTH_URL` | `https://recoveryosworker-production.up.railway.app` |
+
+Copy these values into Vercel Production environment variables, with no trailing slashes:
+
+```dotenv
+APP_BASE_URL=https://rzpy-agent-web.vercel.app
+API_BASE_URL=https://recoveryosapi-production.up.railway.app
+NEXT_PUBLIC_API_URL=https://recoveryosapi-production.up.railway.app
+NEXT_PUBLIC_WORKER_HEALTH_URL=https://recoveryosworker-production.up.railway.app
+```
+
+Set `APP_BASE_URL=https://rzpy-agent-web.vercel.app` on the Railway API service as well. Do not include a trailing slash: browser `Origin` headers omit it, so an exact CORS allow-origin value with `/` can reject browser-side checkout requests.
 
 Do **not** put Razorpay secrets, the webhook secret, `DATABASE_URL`, Redis credentials, or `OPENAI_API_KEY` on Vercel. Those belong only in the Railway API/worker secret stores even though PostgreSQL and Redis are managed elsewhere.
 
@@ -361,7 +386,7 @@ This applies future migrations without resetting the deterministic demo merchant
 | Variable                        | Value                                         |
 | ------------------------------- | --------------------------------------------- |
 | `NODE_ENV`                      | `production`                                  |
-| `APP_BASE_URL`                  | The production Vercel URL                     |
+| `APP_BASE_URL`                  | `https://rzpy-agent-web.vercel.app`           |
 | `DATABASE_URL`                  | Rotated Aiven URI including `sslmode=require` |
 | `DATABASE_POOL_MAX`             | `3`                                           |
 | `REDIS_URL` or `REDIS_*`        | External Redis Cloud connection               |
@@ -396,12 +421,12 @@ Do not set `WORKER_HEALTH_PORT`. The worker health server also uses Railway's `P
 
 Do not copy the complete local `.env` file into either Railway service. Set only the service-specific variables in the tables above. In particular, use `NODE_ENV=production`, omit localhost frontend variables from the API and worker, and let Railway provide `PORT`.
 
-Generate public HTTPS domains for both Railway services. Confirm:
+The current public HTTPS domains are configured. Confirm:
 
 ```bash
-curl https://<api-host>/health/live
-curl https://<api-host>/health
-curl https://<worker-host>/health
+curl https://recoveryosapi-production.up.railway.app/health/live
+curl https://recoveryosapi-production.up.railway.app/health
+curl https://recoveryosworker-production.up.railway.app/health
 ```
 
 A healthy API liveness response has `"status": "live"`. A healthy API readiness response has `"status": "healthy"` with `dependencies.postgres` and `dependencies.redis` both `"up"`. Full example bodies are in [Health](#health). `/health` returns HTTP 503 with per-dependency errors when PostgreSQL or Redis is unavailable; `/health/live` still returns HTTP 200 in that case.
@@ -410,7 +435,7 @@ Then update the three Vercel API/worker URLs and redeploy the web app.
 
 **Razorpay webhook**
 
-1. In Razorpay Dashboard → Webhooks, create a Test Mode webhook for `https://<api-host>/webhooks/razorpay`.
+1. In Razorpay Dashboard → Webhooks, create a Test Mode webhook for `https://recoveryosapi-production.up.railway.app/webhooks/razorpay`.
 2. Subscribe to `payment.failed`, `payment.authorized`, `payment.captured`, and `payment_link.paid`.
 3. Store the webhook's signing secret as `RAZORPAY_WEBHOOK_SECRET` on the Railway API service only. Redeploy or restart the API.
 4. Pay with UPI ID `failure@razorpay` on the deployed `/demo/checkout`, then filter Reported Issues by `RAZORPAY_TEST_MODE`.
