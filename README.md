@@ -295,6 +295,8 @@ Use `rediss://` instead of `redis://` only when TLS is enabled for that Redis Cl
 
 If `REDIS_URL` and the component variables are both configured, `REDIS_URL` takes precedence. Never put either form in Git, screenshots, logs, documentation, or chat.
 
+In Redis Cloud, edit the database and set **Data eviction policy** to **no eviction**. BullMQ state is operational data, not a disposable cache; an LRU policy can remove delayed jobs, locks, or scheduler metadata. Provision enough memory because `no eviction` rejects new writes instead of deleting existing keys when the limit is reached.
+
 **Aiven PostgreSQL**
 
 Copy the newly rotated Aiven service URI directly into `DATABASE_URL` on both Railway services. It must retain the provider-assigned host, port, database, and `sslmode=require` query parameter:
@@ -305,13 +307,15 @@ postgresql://<user>:<percent-encoded-password>@<host>:<provider-port>/<database>
 
 Do not construct the production value in source code or documentation. If a password contains reserved URL characters, use Aiven's generated service URI or percent-encode the password. Set `DATABASE_POOL_MAX=3` on both services. With one API replica and one worker replica, each runtime can use at most three Prisma connections plus one health-check connection, reserving more than half of the stated 20-connection plan for migrations, rolling deploys, and administrative access.
 
+For an Aiven URI that has `sslmode=require` but no `sslrootcert`, the runtime explicitly uses standard libpq semantics: transport remains encrypted, but a custom CA is not required. This is scoped to the PostgreSQL pools and does not disable TLS verification globally. A future stricter deployment can mount Aiven's CA and use `sslmode=verify-full`.
+
 Then set this one-time API **Pre-deploy Command**:
 
 ```bash
 pnpm db:setup
 ```
 
-That generates the Prisma client, applies migrations, and loads the deterministic demo seed.
+That generates the Prisma client, applies migrations, and loads the deterministic demo seed. The seed uses a bounded 30-second interactive transaction so it remains atomic across the managed network connection.
 
 After the first seed succeeds, replace the API pre-deploy command with:
 

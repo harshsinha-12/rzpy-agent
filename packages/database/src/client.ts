@@ -1,5 +1,7 @@
 import { Pool } from "pg";
 
+import { createPostgresPoolConfig } from "./connection-config.js";
+
 export const DEFAULT_DATABASE_HEALTH_POOL_MAX = 1;
 
 export interface DatabasePoolOptions {
@@ -10,10 +12,12 @@ export function createDatabasePool(
   connectionString: string,
   options: DatabasePoolOptions = {},
 ): Pool {
-  return new Pool({
-    connectionString,
-    max: options.max ?? DEFAULT_DATABASE_HEALTH_POOL_MAX,
-  });
+  return new Pool(
+    createPostgresPoolConfig(
+      connectionString,
+      options.max ?? DEFAULT_DATABASE_HEALTH_POOL_MAX,
+    ),
+  );
 }
 
 export async function checkDatabaseConnection(pool: Pool): Promise<void> {

@@ -35,15 +35,15 @@ export interface RecoveryReconciliationJobData {
 }
 
 export function analysisJobId(caseId: string): string {
-  return `analyse:${caseId}`;
+  return `analyse-${caseId}`;
 }
 
 export function executeJobId(actionId: string): string {
-  return `execute:${actionId}`;
+  return `execute-${actionId}`;
 }
 
 export function verifyJobId(actionId: string): string {
-  return `verify:${actionId}`;
+  return `verify-${actionId}`;
 }
 
 export function paymentEventJobId(webhookEventId: string): string {

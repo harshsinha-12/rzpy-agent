@@ -20,6 +20,7 @@ This document records demo and product limits that are intentional or not yet in
 - Worker jobs survive process restarts because BullMQ stores them in Redis. PostgreSQL remains the durable source of truth for cases, actions, and audit events.
 - The Next.js frontend deploys to Vercel, while the Fastify API and BullMQ worker run on Railway. Redis is externally managed by Redis Cloud, and PostgreSQL is externally managed by Aiven with `sslmode=require`. Vercel cannot host the persistent API or worker processes.
 - The current Aiven plan allows 20 PostgreSQL connections. One API and one worker replica are budgeted for at most eight normal runtime connections; scaling replicas requires recalculating `DATABASE_POOL_MAX` and preserving migration headroom.
+- Redis Cloud is reachable and BullMQ queues are initialized, but the database currently reports `volatile-lru`. Change its Data eviction policy to `no eviction` before treating delayed jobs and scheduler state as reliable.
 
 ## Credentials and operations
 

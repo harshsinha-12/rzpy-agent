@@ -5,11 +5,11 @@ Last updated: 2026-08-27
 ## Current snapshot
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Step 12 is in progress. Railway will host only the API and worker; BullMQ will use external Redis Cloud, and Aiven will provide PostgreSQL over required TLS.
-- **Application code:** API and worker configuration accept either a canonical `REDIS_URL` or separate Redis component variables. Aiven runtime pools are bounded through `DATABASE_POOL_MAX`, while health checks use one PostgreSQL connection and the OpenAI credential remains worker-only.
-- **Runtime services:** No current hosted API/worker/data-store deployment is recorded as verified. Previous Railway-managed PostgreSQL and Redis state is no longer part of the target architecture.
-- **Current blocker:** Fresh Aiven, Redis, and OpenAI values must be entered directly into Railway. Live connectivity, migrations, seed data, and hosted readiness have not yet been verified.
-- **Exact next action:** Set the rotated Aiven URI plus `DATABASE_POOL_MAX=3` on both Railway services, configure Redis on both and OpenAI on the worker, run the API's one-time `pnpm db:setup`, then redeploy and verify readiness.
+- **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Railway still needs the updated code and service variables.
+- **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free.
+- **Runtime services:** Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud is reachable with six queue namespaces, one delayed reconciliation job, and one scheduler. The bootstrap worker was stopped and port 4001 is closed.
+- **Current blocker:** Redis Cloud reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Hosted API/worker deployment and public readiness remain unverified.
+- **Exact next action:** Change Redis Cloud's Data eviction policy to `no eviction`, deploy the updated API/worker code and fresh variables to Railway, then verify API `/health/live`, API `/health`, and worker `/health`.
 
 ## Step overview
 
@@ -42,16 +42,16 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 
 ## Credentials status
 
-| Credential                      | Needed in step | Status                                                    |
-| ------------------------------- | -------------: | --------------------------------------------------------- |
-| Local PostgreSQL URL            |              1 | Configured with Docker default                            |
-| Local Redis URL                 |              1 | Configured on host port 6380                              |
-| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                              |
-| Razorpay webhook secret         |              5 | Not created                                               |
-| OpenAI API key                  |              7 | Rotated; fresh value pending in Railway worker            |
-| Redis Cloud credentials         |             12 | Provider selected; fresh values pending in both services  |
-| Aiven PostgreSQL URL            |             12 | Provider selected; rotated value pending in both services |
-| Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified  |
+| Credential                      | Needed in step | Status                                                   |
+| ------------------------------- | -------------: | -------------------------------------------------------- |
+| Local PostgreSQL URL            |              1 | Configured with Docker default                           |
+| Local Redis URL                 |              1 | Configured on host port 6380                             |
+| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                             |
+| Razorpay webhook secret         |              5 | Not created                                              |
+| OpenAI API key                  |              7 | Rotated; fresh value pending in Railway worker           |
+| Redis Cloud credentials         |             12 | Connected; BullMQ initialized; eviction policy pending   |
+| Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified          |
+| Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -1189,6 +1189,98 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Set the rotated provider values directly in Railway, run `pnpm db:setup` once, redeploy both runtimes, and check API `/health/live`, API `/health`, and worker `/health`.
+
+### 2026-08-27 — External sample-data readiness audit
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Inspect the schema and populate PostgreSQL and Redis with sample data.
+
+**Completed:**
+
+- Confirmed that the deterministic PostgreSQL seed owns sample merchant, policy, customer, payment, recovery-case, action, audit, and simulator data.
+- Preserved Redis as BullMQ queue, retry, delayed-job, and repeatable-scheduler state rather than duplicating business records as arbitrary keys.
+- Inspected the effective untracked environment without printing any credential values.
+- Confirmed that the effective PostgreSQL and precedence-winning Redis URL still point to local Docker, while separate Redis component configuration exists but is currently ignored because `REDIS_URL` wins.
+- Did not connect to or mutate Aiven or Redis Cloud using credentials disclosed in chat.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- Verified the Prisma schema contains merchant, customer, policy, payment, recovery case, action, audit, simulation, webhook, and recovery-job models.
+- Verified `prisma/seed.ts` runs the deterministic `runDemoSeed` path.
+- Safely classified the effective environment targets as local without exposing their values.
+
+**Blockers:**
+
+- The fresh Aiven URI is not present in the untracked local environment.
+- The local `REDIS_URL` currently overrides the configured external Redis component variables.
+
+**Next action:**
+
+- After the user enters the rotated Aiven URI locally and removes or empties the local `REDIS_URL`, run `pnpm db:setup`, verify seeded PostgreSQL counts, start the worker long enough to create BullMQ queue/scheduler state, stop it cleanly, and verify Redis queue keys without exposing credentials.
+
+### 2026-08-27 — External sample data loaded and verified
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Continue after fresh local provider configuration and populate PostgreSQL and Redis Cloud with the project sample state.
+
+**Completed:**
+
+- Confirmed the effective PostgreSQL target is external with `sslmode=require` and Redis resolves from external component credentials; `.env` remains ignored.
+- Applied all four RecoveryOS migrations to Aiven.
+- Fixed the Prisma `pg` runtime's CA-less Aiven TLS compatibility without disabling TLS globally or changing certificate-verified URLs.
+- Increased only the deterministic seed's interactive transaction timeout from 5 to 30 seconds so the atomic remote seed can tolerate managed-network latency.
+- Seeded Aurora Retail with deterministic seed `20260820`.
+- Verified PostgreSQL counts: 1 merchant, 7 customers, 7 payments, 7 recovery cases, 13 recovery actions, 12 audit events, 1 recovery policy, and 1 simulation run; webhook and recovery-job counts were zero immediately after seeding.
+- Initialized Redis Cloud with payment-event, analysis, action, verification, reconciliation, and system-health queue namespaces plus one reconciliation scheduler.
+- Replaced colon-delimited custom BullMQ IDs with stable hyphen-delimited IDs after current BullMQ rejected colons.
+- Removed only two failed reconciliation artifacts created during bootstrap and retained one delayed reconciliation job plus one scheduler.
+- Re-ran the seed through the final seed-client-only timeout configuration and reproduced all seven cases.
+- Verified exactly two matching exhausted reconciliation audit rows in Aiven, deleted only those bootstrap artifacts, and restored the clean zero-`RecoveryJob` baseline.
+- Stopped the bootstrap worker and confirmed port 4001 is closed.
+- Recorded D-040 through D-042.
+
+**Files changed:**
+
+- `packages/database/src/connection-config.ts` and `connection-config.test.ts`
+- `packages/database/prisma/seed.ts`
+- `packages/database/src/client.ts`, `prisma.ts`, and `seed/run-seed.ts`
+- `packages/domain/src/queues.ts` and `queues.test.ts`
+- `README.md`, `LIMITATIONS.md`, `DECISIONS.md`, `PROJECT_STRUCTURE.md`, and `STATUS.md`
+
+**Validation:**
+
+- Aiven migration status initially showed four pending migrations; `pnpm db:setup` applied all four.
+- The first seed failed before writing rows because `pg` rejected Aiven's private certificate chain; the TLS compatibility fix passed focused tests.
+- The second seed attempt reached Aiven but exceeded Prisma's 5-second transaction timeout and rolled back atomically.
+- The bounded 30-second retry passed and reported seven seeded recovery cases.
+- The final idempotent re-seed using constructor-level seed transaction options also passed with the same seed and case count.
+- Direct read-only Aiven count verification passed with the expected related records.
+- Database lint, typecheck, build, and 6 focused pool/TLS tests passed.
+- Domain lint, typecheck, and all 7 domain tests passed.
+- The transitive worker production build passed.
+- The transitive API production build passed with the same database TLS configuration.
+- Redis Cloud audit found 15 BullMQ keys across all six queue namespaces; bootstrap cleanup left zero failed jobs, one delayed reconciliation job, and one scheduler.
+- Scoped PostgreSQL bootstrap cleanup removed exactly two exhausted reconciliation rows and left zero recovery jobs.
+- Formatting and diff checks passed.
+
+**Blockers:**
+
+- Redis Cloud emitted `volatile-lru` warnings and did not expose `CONFIG GET`; change the Data eviction policy to `no eviction` in the provider console.
+- Railway API/worker deployment and public readiness have not yet been verified with this code.
+
+**Next action:**
+
+- Change the Redis Cloud eviction policy, deploy both Railway services, and verify public liveness/readiness before configuring the Razorpay webhook.
 
 ## Session entry template
 

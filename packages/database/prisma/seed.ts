@@ -5,6 +5,9 @@ import { DEFAULT_DEMO_SEED } from "@recoveryos/domain";
 import { createPrismaClient } from "../src/prisma.js";
 import { runDemoSeed } from "../src/seed/run-seed.js";
 
+const DEMO_SEED_MAX_WAIT_MS = 10_000;
+const DEMO_SEED_TRANSACTION_TIMEOUT_MS = 30_000;
+
 try {
   loadEnvFile(new URL("../../../.env", import.meta.url));
 } catch (error) {
@@ -21,7 +24,12 @@ const seed = Number.parseInt(
   10,
 );
 
-const prisma = createPrismaClient(databaseUrl);
+const prisma = createPrismaClient(databaseUrl, {
+  transactionOptions: {
+    maxWait: DEMO_SEED_MAX_WAIT_MS,
+    timeout: DEMO_SEED_TRANSACTION_TIMEOUT_MS,
+  },
+});
 
 try {
   const summary = await runDemoSeed(prisma, seed);

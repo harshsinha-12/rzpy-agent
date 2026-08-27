@@ -43,9 +43,15 @@ export async function runDemoSeed(
       await tx.recoveryAction.deleteMany({
         where: { recoveryCase: { merchantId: existing.id } },
       });
-      await tx.recoveryCase.deleteMany({ where: { merchantId: existing.id } });
-      await tx.simulationRun.deleteMany({ where: { merchantId: existing.id } });
-      await tx.paymentEvent.deleteMany({ where: { merchantId: existing.id } });
+      await tx.recoveryCase.deleteMany({
+        where: { merchantId: existing.id },
+      });
+      await tx.simulationRun.deleteMany({
+        where: { merchantId: existing.id },
+      });
+      await tx.paymentEvent.deleteMany({
+        where: { merchantId: existing.id },
+      });
       await tx.customer.deleteMany({ where: { merchantId: existing.id } });
       await tx.recoveryPolicy.deleteMany({
         where: { merchantId: existing.id },

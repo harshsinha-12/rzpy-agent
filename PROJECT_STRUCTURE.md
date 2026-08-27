@@ -119,6 +119,8 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   └── src/
 │   │       ├── client.ts
 │   │       ├── client.test.ts
+│   │       ├── connection-config.ts
+│   │       ├── connection-config.test.ts
 │   │       └── prisma.ts
 │   ├── domain/
 │   │   └── src/
