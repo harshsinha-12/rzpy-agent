@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { Pagination } from "@/features/recoveries/components/pagination";
 import { RecoveryFilters } from "@/features/recoveries/components/recovery-filters";
 import { RecoveryTable } from "@/features/recoveries/components/recovery-table";
+import { RecoveryWorkflow } from "@/features/recoveries/components/recovery-workflow";
 import { fetchRecoveryCases } from "@/features/recoveries/fetchers";
 import {
   parseRecoveryQuery,
@@ -12,7 +13,7 @@ import {
 
 export const metadata: Metadata = {
   description:
-    "Search and investigate failed payments and their recovery state.",
+    "See how each failed payment moves through detect, diagnose, decide, guard, execute, and observe.",
   title: "Reported issues",
 };
 
@@ -41,6 +42,7 @@ export default async function RecoveriesPage({
           </p>
         </div>
       </header>
+      <RecoveryWorkflow />
       <RecoveryFilters query={query} />
       <RecoveryTable items={response.data} query={query} />
       <Pagination meta={response.meta} query={query} />

@@ -441,10 +441,14 @@ This is the binding implementation order for the project. We will complete, veri
 
 These items require a separate plan after the core project is complete:
 
-- Subscription recovery
+- Checkout drop-off recovery
+- Failed-subscription recovery
+- B2B receivables chasing
+- Mandate retry sequencing
+- Hinglish voice recovery
+- Promise-to-pay tracking as a dedicated product
 - Real SMS, email, or WhatsApp delivery
 - Merchant chat interface
 - Multi-merchant authentication and onboarding
-- Voice recovery
 - Adaptive strategy learning from production outcomes
 - Live Mode Razorpay integration

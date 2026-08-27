@@ -44,8 +44,11 @@ function MobileCaseCard({ item }: { item: RecoveryCaseListItem }) {
     <article className={styles.mobileCard}>
       <div className={styles.mobileCardTop}>
         <Link className={styles.caseLink} href={`/recoveries/${item.caseId}`}>
-          <span>{item.caseId}</span>
-          <span className={styles.subtleId}>{item.paymentId}</span>
+          <span className={styles.caseLinkIds}>
+            <span>{item.caseId}</span>
+            <span className={styles.subtleId}>{item.paymentId}</span>
+          </span>
+          <span className={styles.caseLinkCue}>Open →</span>
         </Link>
         <StatusBadge value={item.recoveryStatus} />
       </div>
@@ -143,8 +146,11 @@ export function RecoveryTable({
                     className={styles.caseLink}
                     href={`/recoveries/${item.caseId}`}
                   >
-                    <span>{item.paymentId}</span>
-                    <span className={styles.subtleId}>{item.caseId}</span>
+                    <span className={styles.caseLinkIds}>
+                      <span>{item.paymentId}</span>
+                      <span className={styles.subtleId}>{item.caseId}</span>
+                    </span>
+                    <span className={styles.caseLinkCue}>Open →</span>
                   </Link>
                 </td>
                 <td className={styles.subtleId}>{item.orderId}</td>

@@ -44,6 +44,8 @@ describe("RecoveryTable", () => {
     expect(markup).toContain("pay_sim_1001");
     expect(markup).toContain("Wait");
     expect(markup).toContain("SIMULATED DATA");
+    expect(markup).toContain("Open →");
+    expect(markup).toContain("/recoveries/RC-1001");
   });
 
   it("renders a useful empty state", () => {

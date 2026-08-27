@@ -116,10 +116,52 @@
 }
 
 .caseLink {
-  display: grid;
-  gap: 0.18rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 0.4rem;
+  background: var(--brand-soft);
+  color: var(--ink-strong);
+  cursor: pointer;
+  padding: 0.38rem 0.55rem 0.38rem 0.6rem;
+  white-space: nowrap;
+}
+
+.caseLinkIds {
+  display: inline-flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.caseLinkIds > span:first-child {
   color: var(--brand-strong);
   font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.16em;
+}
+
+.caseLinkCue {
+  margin-left: auto;
+  color: var(--brand-strong);
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.caseLink:hover,
+.table tbody tr:hover .caseLink {
+  background: var(--highlight);
+  border-color: var(--ink-strong);
+}
+
+.caseLink:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 .subtleId {
@@ -183,6 +225,11 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.mobileCardTop .caseLink {
+  min-width: 0;
+  flex: 1;
 }
 
 .mobileMeta {
@@ -279,9 +326,89 @@
   opacity: 0.4;
 }
 
+.workflow {
+  display: grid;
+  gap: 1.1rem;
+  padding: 1.1rem 1.15rem 0;
+}
+
+.workflowEyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--brand-strong);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.workflowTitle {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.4vw, 2.05rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.workflowCopy {
+  max-width: 42rem;
+  margin: 0.55rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.workflowGrid {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(6, 1fr);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  list-style: none;
+  padding: 0;
+}
+
+.workflowGrid li {
+  min-height: 11.5rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 1rem;
+}
+
+.workflowGrid li > span {
+  display: block;
+  color: var(--brand);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workflowGrid li > strong {
+  display: block;
+  margin-top: 1.15rem;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.workflowGrid li > p {
+  margin: 0.5rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 1180px) {
   .filters {
     grid-template-columns: 2fr repeat(2, 1fr);
+  }
+
+  .workflowGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -311,6 +438,10 @@
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .workflowGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 440px) {
@@ -330,5 +461,9 @@
   .pageLink,
   .pageDisabled {
     flex: 1;
+  }
+
+  .workflowGrid {
+    grid-template-columns: 1fr;
   }
 }

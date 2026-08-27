@@ -62,7 +62,7 @@ At the end of every session:
 
 ## Scope guardrails
 
-The first version includes failed-payment recovery only. Subscriptions, real SMS/WhatsApp delivery, voice recovery, multi-merchant authentication, and adaptive model training stay out of scope until the core demo is complete.
+The first version includes failed-payment recovery only. Checkout drop-off, failed subscriptions, B2B receivables, mandate sequencing, voice recovery, real SMS/WhatsApp delivery, multi-merchant authentication, and adaptive model training stay out of scope until the core demo is complete.
 
 The must-have user experience is:
 

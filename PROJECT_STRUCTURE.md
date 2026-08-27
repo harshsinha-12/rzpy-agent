@@ -47,6 +47,7 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   │   │   │   └── utils.ts
 │   │   │   │   └── recoveries/
 │   │   │   │       ├── components/
+│   │   │   │       ├── content.ts
 │   │   │   │       ├── fetchers.ts
 │   │   │   │       ├── schemas.ts
 │   │   │   │       ├── types.ts

@@ -4,6 +4,12 @@ RecoveryOS is an explainable recovery layer on top of Razorpay. It turns a faile
 
 The model is advisory. It cannot call Razorpay, write to PostgreSQL, enqueue work, or contact a customer.
 
+## Track and scope
+
+RecoveryOS is a Track 03 AI Revenue Recovery system. The implemented workflow is payment degradation → root cause → recovery action for failed one-time Razorpay Test Mode payments.
+
+Checkout drop-off, failed subscriptions, B2B receivables, mandate retry sequencing, Hinglish voice recovery, and promise-to-pay tracking are official Track 03 examples and remain out of this architecture. Adding them would require new event types, provider APIs, and (for voice) real customer contact.
+
 ## System architecture
 
 ```mermaid

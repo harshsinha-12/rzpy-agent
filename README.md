@@ -10,6 +10,20 @@ The project combines a merchant-facing recovery dashboard with Razorpay Test Mod
 
 > **Project status:** Steps 0–4, 6–8, and 10–11 are complete. Step 12's hosted runtime foundation is in progress. Steps 13–16 now define the remaining Razorpay webhook, bounded Test Mode recovery, measured batch proof, and final judge-demo gates. Step 5's live webhook and Step 9's paid-link checks close inside those later acceptance steps. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
 
+## What we are doing
+
+RecoveryOS is a **Track 03 — AI Revenue Recovery** submission for the Razorpay AI Buildathon. It does not grow new sales, score fraud, or close the books. It finds revenue that is already slipping away after a **failed one-time payment** and tries to win it back under policy.
+
+The chosen example direction is:
+
+```text
+Payment degradation → root cause → recovery action
+```
+
+A ₹10,000 UPI failure does not become a blind retry. It becomes a durable case, a diagnosed cause, one AI proposal, a deterministic policy decision, and a bounded next step (wait, silent Test Mode Payment Link, escalate, or stop). The merchant sees that loop on Reported Issues, the case timeline, the dashboard, and a 250–500-payment batch comparison labelled `SIMULATED` or `RAZORPAY_TEST_MODE`.
+
+That is the track bar: detect, choose an intervention, execute a bounded workflow, measure money across a batch, escalate or stop compliantly, and keep an audit trail. Checkout drop-off, failed subscriptions, B2B invoices, mandate sequencing, voice recovery, and promise-to-pay tracking are documented as other Track 03 directions and are **not** in this MVP. See [Other Track 03 directions](#other-track-03-directions).
+
 ## Why this project exists
 
 Razorpay can tell a merchant that a payment failed. The harder operational question is what should happen next.
@@ -29,6 +43,21 @@ RecoveryOS intentionally selects one of Razorpay's example directions and comple
 > **Payment degradation → root cause → recovery action**
 
 Checkout abandonment, failed subscriptions, B2B receivables, mandate sequencing, voice recovery, and promise-to-pay tracking remain valid future directions, but they are not being added to this MVP. The submission is optimized for the track's higher bar: detect revenue at risk, determine the right intervention, execute a bounded workflow, and prove measured recovery with compliant escalation, stopping rules, and an audit trail.
+
+### Other Track 03 directions
+
+These official examples stay out of the first version. They are recorded here so the submission is honest about scope.
+
+| Official example             | What it would recover                   | Why it is deferred                                    |
+| ---------------------------- | --------------------------------------- | ----------------------------------------------------- |
+| Checkout drop-off recovery   | Orders created but never paid           | Different ingest path than `payment.failed`           |
+| Failed-subscription recovery | Recurring charges that pend or halt     | Separate Razorpay subscription events and retry rules |
+| B2B receivables chaser       | Overdue invoices / unpaid payment links | Invoice AR, not a one-time checkout failure           |
+| Mandate retry sequencer      | e-mandate / auto-debit failures         | Mandate APIs and bank retry calendars                 |
+| Hinglish voice recovery      | Spoken outreach after a failure         | Real customer contact is out of scope                 |
+| Promise-to-pay tracker       | A customer commitment to pay later      | A WAIT flavour, not a second product                  |
+
+The closest overlap already in RecoveryOS is a **silent Test Mode Payment Link** after a failed payment, plus **WAIT** when an immediate retry is the wrong move. Those are still payment-degradation mechanics, not new verticals.
 
 | Razorpay requirement          | RecoveryOS evidence                                                                    | Remaining live gate                             |
 | ----------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------- |
@@ -206,7 +235,7 @@ No external cron provider or dedicated VM is required, but the application does 
 | Route              | Purpose                                                                        |
 | ------------------ | ------------------------------------------------------------------------------ |
 | `/`                | Executive recovery dashboard and simulator comparison                          |
-| `/recoveries`      | Searchable, filterable, and sortable Reported Issues table                     |
+| `/recoveries`      | Reported Issues table plus the detect-to-observe workflow for each row         |
 | `/recoveries/[id]` | Case facts, recovery reasoning, actions, and audit timeline                    |
 | `/demo/checkout`   | Razorpay Test Mode checkout and failure generation                             |
 | `/about`           | Judge-facing product, challenge proof, architecture, and AI safety explanation |

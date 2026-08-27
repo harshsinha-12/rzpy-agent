@@ -83,7 +83,18 @@ RecoveryOS will satisfy that contract through the focused direction already sele
 Payment degradation → root cause → recovery action
 ```
 
-The remaining acceptance sequence is defined in `PLAN.md` Steps 12–16: healthy hosted runtimes, a signed Razorpay Test Mode failure webhook, one policy-gated AI recovery paid in Test Mode, frozen batch-level uplift evidence, and a repeatable judge demo. The other example directions remain deferred until this loop is proven end to end.
+The remaining acceptance sequence is defined in `PLAN.md` Steps 12–16: healthy hosted runtimes, a signed Razorpay Test Mode failure webhook, one policy-gated AI recovery paid in Test Mode, frozen batch-level uplift evidence, and a repeatable judge demo.
+
+The other official Track 03 example directions remain deferred until this loop is proven end to end:
+
+| Official example | What it would do | RecoveryOS stance |
+| --- | --- | --- |
+| Checkout drop-off recovery | Recover carts/orders that never became a payment | Out of scope. Needs checkout-session ingest, not `payment.failed`. |
+| Failed-subscription recovery | Recover recurring charges that pend or halt | Out of scope. Optional later; Razorpay already has subscription retries. |
+| B2B receivables chaser | Chase overdue invoices | Out of scope. Payment Links here recover a *failed payment*, not AR. |
+| Mandate retry sequencer | Sequence e-mandate / auto-debit retries | Out of scope. Different provider APIs and bank windows. |
+| Hinglish voice recovery | Spoken customer outreach | Out of scope. No real voice, SMS, or WhatsApp in this MVP. |
+| Promise-to-pay tracker | Track a customer commitment to pay later | Out of scope as a product. WAIT already covers “not now”. |
 
 ---
 

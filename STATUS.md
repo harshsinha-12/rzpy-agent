@@ -6,7 +6,7 @@ Last updated: 2026-08-27
 
 - **Current step:** Step 12 — Hosted runtime foundation
 - **State:** Step 12 is in progress. The public Railway API and worker domains now return healthy responses against Aiven and Redis Cloud, and the exact production endpoints are documented. Vercel still needs the production API/worker environment values and a redeploy. Steps 13–16 define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
-- **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free. The public `/about` page is complete as a judge-facing surface: challenge proof and the hosted-to-submission path are presented as verified, not remaining work.
+- **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free. The public `/about` page is complete as a judge-facing surface. README, architecture, and limitations now name Track 03 and the deferred example directions. Reported Issues includes the detect-to-observe workflow.
 - **Runtime services:** `recoveryosapi-production.up.railway.app` passed liveness and readiness with PostgreSQL and Redis `up`; `recoveryosworker-production.up.railway.app` passed readiness with both dependencies `up`. Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud contains six queue namespaces, one delayed reconciliation job, and one scheduler.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
 - **Current blocker:** Redis Cloud still reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Railway API `APP_BASE_URL` also needs the Vercel origin without a trailing slash, and Vercel needs the documented production variables followed by a redeploy.
@@ -1511,6 +1511,41 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Blockers:**
 
 - Unchanged for Step 12: Redis Cloud `no eviction`, Railway `APP_BASE_URL`, and Vercel production variables plus redeploy.
+
+**Next action:**
+
+- Apply the Railway CORS and Vercel environment values, redeploy Vercel, then verify public product routes and health links.
+
+### 2026-08-27 — Track 03 summary and Reported Issues workflow
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:**
+
+- Document what RecoveryOS is doing for Track 03, and add a workflow explanation to Reported Issues.
+
+**Completed:**
+
+- Added a Track 03 “what we are doing” summary and deferred-direction table to the README.
+- Explained the same scope in `idea.md`, `ARCHITECTURE.md`, `LIMITATIONS.md`, `PLAN.md`, and `AGENTS.md`.
+- Added a detect-to-observe workflow strip on `/recoveries` mapped to table columns.
+
+**Files changed:**
+
+- `README.md`, `idea.md`, `ARCHITECTURE.md`, `LIMITATIONS.md`, `PLAN.md`, `AGENTS.md`, `PROJECT_STRUCTURE.md`, `STATUS.md`
+- `apps/web/src/app/recoveries/page.tsx`
+- `apps/web/src/features/recoveries/content.ts`
+- `apps/web/src/features/recoveries/components/recovery-workflow.tsx`
+- `apps/web/src/features/recoveries/components/recovery-workflow.test.tsx`
+- `apps/web/src/features/recoveries/components/recoveries.module.css`
+
+**Validation:**
+
+- Focused Reported Issues workflow tests and browser verification of `/recoveries`.
+
+**Blockers:**
+
+- Unchanged for Step 12.
 
 **Next action:**
 
