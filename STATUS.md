@@ -5,12 +5,12 @@ Last updated: 2026-08-27
 ## Current snapshot
 
 - **Current step:** Step 12 — Hosted runtime foundation
-- **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Railway still needs the updated code and service variables. Steps 13–16 now define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
+- **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Observed API liveness and readiness JSON outcomes are now documented. Railway still needs the updated code and service variables. Steps 13–16 now define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
 - **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free.
 - **Runtime services:** Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud is reachable with six queue namespaces, one delayed reconciliation job, and one scheduler. The bootstrap worker was stopped and port 4001 is closed.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Redis Cloud reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Hosted API/worker deployment and public readiness remain unverified.
-- **Exact next action:** Change Redis Cloud's Data eviction policy to `no eviction`, deploy the updated API/worker code and fresh variables to Railway, then verify API `/health/live`, API `/health`, and worker `/health`.
+- **Current blocker:** Redis Cloud reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Hosted API/worker deployment and public worker readiness remain unverified.
+- **Exact next action:** Change Redis Cloud's Data eviction policy to `no eviction`, deploy the updated API/worker code and fresh variables to Railway, then verify public API `/health/live`, API `/health`, and worker `/health`.
 
 ## Step overview
 
@@ -1394,6 +1394,41 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Complete Step 12 only: change Redis eviction policy, deploy the API and worker with clean variables, and verify all three public health endpoints before requesting approval to begin Step 13.
+
+### 2026-08-27 — Document API live and health outcomes
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:**
+
+- Add the observed API `/health/live` and `/health` JSON outcomes to the project documentation.
+
+**Completed:**
+
+- Documented the API liveness contract (`status: live`) and readiness contract (`status: healthy` with PostgreSQL and Redis `up`) using the observed response bodies.
+- Linked the Railway deploy verification curls to those expected bodies.
+- Split the local-services table into API liveness and API readiness URLs.
+- Added the liveness-versus-readiness boundary to the architecture hosting notes.
+
+**Files changed:**
+
+- `README.md`
+- `ARCHITECTURE.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Reconciled the documented JSON against `apps/api/src/modules/health/routes.ts`, the health service snapshot, and the existing health-route tests.
+- Did not treat these documented bodies as public Railway worker verification.
+
+**Blockers:**
+
+- Redis Cloud still needs `no eviction`.
+- Public Railway API/worker deployment and worker `/health` remain unverified.
+
+**Next action:**
+
+- Change the Redis Cloud eviction policy, deploy both Railway services, and verify public liveness/readiness before configuring the Razorpay webhook.
 
 ## Session entry template
 

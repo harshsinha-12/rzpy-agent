@@ -241,7 +241,8 @@ pnpm dev
 | Web application        | `http://localhost:3000`               |
 | Test Mode checkout     | `http://localhost:3000/demo/checkout` |
 | About and architecture | `http://localhost:3000/about`         |
-| API health             | `http://localhost:4000/health`        |
+| API liveness           | `http://localhost:4000/health/live`   |
+| API readiness          | `http://localhost:4000/health`        |
 | Worker health          | `http://localhost:4001/health`        |
 | PostgreSQL             | `localhost:5432`                      |
 | Redis                  | `localhost:6380`                      |
@@ -354,7 +355,7 @@ This applies future migrations without resetting the deterministic demo merchant
 
 1. New Railway service from the same GitHub repo.
 2. Set the builder to **Dockerfile** with path `deploy/Dockerfile.api` and context `/`.
-3. Health check path: `/health/live`. This liveness endpoint returns HTTP 200 when Fastify is accepting requests; use `/health` separately to verify PostgreSQL and Redis readiness.
+3. Health check path: `/health/live`. This liveness endpoint returns HTTP 200 when Fastify is accepting requests; use `/health` separately to verify PostgreSQL and Redis readiness. Expected successful bodies are in [Health](#health).
 4. Variables:
 
 | Variable                        | Value                                         |
@@ -398,11 +399,12 @@ Do not copy the complete local `.env` file into either Railway service. Set only
 Generate public HTTPS domains for both Railway services. Confirm:
 
 ```bash
+curl https://<api-host>/health/live
 curl https://<api-host>/health
 curl https://<worker-host>/health
 ```
 
-For the API, `/health/live` verifies only that the container is listening. `/health` remains the strict readiness endpoint and returns HTTP 503 with per-dependency errors when PostgreSQL or Redis is unavailable.
+A healthy API liveness response has `"status": "live"`. A healthy API readiness response has `"status": "healthy"` with `dependencies.postgres` and `dependencies.redis` both `"up"`. Full example bodies are in [Health](#health). `/health` returns HTTP 503 with per-dependency errors when PostgreSQL or Redis is unavailable; `/health/live` still returns HTTP 200 in that case.
 
 Then update the three Vercel API/worker URLs and redeploy the web app.
 
@@ -462,6 +464,47 @@ The credential names above are intentional. Legacy `RAZORPAY_KEY_ID` and `RAZORP
 Payment Links created by RecoveryOS are silent Test Mode links: provider notifications and reminders are disabled. Reminder and alternative-method actions are recorded as simulated rather than contacting a customer.
 
 ## API reference
+
+### Health
+
+The API separates liveness from readiness. Railway's deployment probe uses `/health/live` so a PostgreSQL or Redis outage cannot make the container look unstarted. Operators use `/health` to inspect those dependencies.
+
+| Endpoint           | Purpose                                                           | Success HTTP | Success `status` |
+| ------------------ | ----------------------------------------------------------------- | ------------ | ---------------- |
+| `GET /health/live` | Fastify is accepting requests; does not check PostgreSQL or Redis | 200          | `live`           |
+| `GET /health`      | PostgreSQL and Redis are reachable                                | 200          | `healthy`        |
+
+Successful liveness:
+
+```json
+{
+  "service": "api",
+  "status": "live",
+  "timestamp": "2026-08-27T10:19:04.308Z"
+}
+```
+
+Successful readiness:
+
+```json
+{
+  "dependencies": {
+    "postgres": {
+      "error": null,
+      "status": "up"
+    },
+    "redis": {
+      "error": null,
+      "status": "up"
+    }
+  },
+  "service": "api",
+  "status": "healthy",
+  "timestamp": "2026-08-27T10:18:49.934Z"
+}
+```
+
+`timestamp` is generated at request time. If either dependency is down, `/health` returns HTTP 503 with `"status": "degraded"` and the failing dependency set to `"down"` plus an `error` string. `/health/live` still returns HTTP 200.
 
 ### Product and analytics
 

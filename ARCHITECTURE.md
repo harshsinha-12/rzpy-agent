@@ -106,6 +106,8 @@ This is the project's cron-like behavior. There is no external cron service or d
 
 Vercel cannot run the API or worker. Those processes must stay online so delayed jobs and webhook acknowledgements survive.
 
+The API distinguishes liveness from readiness. `GET /health/live` returns `{ "service": "api", "status": "live" }` as soon as Fastify accepts traffic and does not check data stores. `GET /health` returns `{ "status": "healthy" }` only when `dependencies.postgres` and `dependencies.redis` are both `"up"`; otherwise it returns HTTP 503 with `"status": "degraded"` and a per-dependency `error`. Railway's API deployment health check uses `/health/live`. The worker exposes only `/health` and uses the same readiness snapshot shape with `"service": "worker"`.
+
 Both Railway runtimes use the rotated Aiven service URI with `sslmode=require`. Prisma's `pg` pool defaults to three connections per runtime and each readiness checker uses a separate one-connection pool. One API replica plus one worker replica therefore reserve at most eight PostgreSQL connections during normal operation, leaving headroom within the current 20-connection service limit.
 
 ## Integrated components
