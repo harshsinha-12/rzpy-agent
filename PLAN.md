@@ -437,17 +437,155 @@ This is the binding implementation order for the project. We will complete, veri
 - All relevant validations pass and no secrets appear in Git, logs, screenshots, or frontend bundles.
 - The user explicitly approves the final submission package.
 
+---
+
+## Step 17 — Checkout drop-off recovery
+
+**Status:** Not started
+
+**Goal:** Recover orders that were created but never paid by letting the merchant choose which drop-offs receive a policy-gated recovery email.
+
+**Deliverables:**
+
+- Determine the classification for checkout drop-off cases
+- Ingest and list checkout drop-off cases separately from `payment.failed` rows
+- Merchant multi-select of drop-off cases that should receive a recovery email
+- Email draft containing the unpaid order facts and a recovery Payment Link
+- Deterministic policy approval before any email is queued
+- Audit events for selection, draft, approval, send, and outcome
+
+**Acceptance gate:**
+
+- Drop-off cases are visible and selectable without mixing them into failed-payment rows.
+- Only merchant-selected, policy-approved cases are emailed.
+- The LLM can draft copy but cannot send email or create a Payment Link directly.
+- Replay or re-select does not send duplicate email for the same case and draft.
+
+---
+
+## Step 18 — Failed-subscription recovery
+
+**Status:** Not started
+
+**Goal:** Recover recurring charges that pend or halt using the same select-and-email pattern as checkout drop-off.
+
+**Deliverables:**
+
+- Subscription failure cases from Razorpay pending/halted (or equivalent Test Mode) signals
+- Merchant selection of which failed subscriptions receive a recovery email
+- Policy-gated email with the failed cycle facts and a bounded recovery path
+- Diagnosis that never nags a customer for a merchant-side subscription misconfiguration
+- Audit trail covering detection, selection, policy, send, and subscription outcome
+
+**Acceptance gate:**
+
+- Failed-subscription rows are distinct from one-time payment failures.
+- Email goes only to selected, policy-approved subscriptions.
+- A captured or already-recovered cycle cannot receive another recovery email.
+- Escalation and stop rules remain enforceable regardless of model copy.
+
+---
+
+## Step 19 — B2B receivables human-in-the-loop alerts
+
+**Status:** Not started
+
+**Goal:** Surface overdue B2B invoices as operator alerts so a human can take the next collection step.
+
+**Deliverables:**
+
+- Overdue receivables cases with due date, amount in paise, and ageing
+- In-product human-in-the-loop alert when an invoice crosses the merchant threshold
+- Operator acknowledge, snooze, escalate, or stop actions
+- Optional policy-gated customer email after a human confirms outreach
+- Audit events for alert raised, operator decision, and invoice outcome
+
+**Acceptance gate:**
+
+- An overdue invoice creates a visible alert rather than a silent retry.
+- A human decision is required before customer outreach.
+- Duplicate alerts are not raised for the same unpaid invoice.
+- Dashboard and case detail show who was alerted and what they decided.
+
+---
+
+## Step 20 — Mandate retry sequencing
+
+**Status:** Not started
+
+**Goal:** Sequence e-mandate and auto-debit failures with the same select, email, and human-alert pattern.
+
+**Deliverables:**
+
+- Mandate failure cases with bank/NPCI window and retry eligibility
+- Merchant selection of which mandate failures receive a recovery email
+- Human-in-the-loop alert when a mandate is cancelled, exhausted, or unsafe to retry
+- Bounded retry schedule that respects cooldowns and stop rules
+- Audit trail for each sequenced attempt and operator override
+
+**Acceptance gate:**
+
+- Mandate cases are not treated as ordinary checkout failures.
+- Retries follow the sequenced window; they do not fire immediately on every event.
+- Cancelled or exhausted mandates escalate to a human instead of another debit.
+- Selected email outreach remains policy-gated and idempotent.
+
+---
+
+## Step 21 — Generated voice recovery messages
+
+**Status:** Not started
+
+**Goal:** Generate the outbound recovery call the customer would receive, store it, and let the merchant play it in the product.
+
+**Deliverables:**
+
+- OpenAI text-to-speech generation of a Hinglish or Hindi recovery message
+- Script that states the failed amount, the reason-safe next step, and the recovery Payment Link
+- Persistent storage of the audio object plus Postgres metadata (case, language, script, URI, created-by)
+- In-product player so the merchant can hear the message the customer would receive
+- Policy check before a voice message is generated or marked ready to send
+- Evaluation of a durable object/blob store for audio; Redis remains job infrastructure only
+
+**Acceptance gate:**
+
+- A merchant can generate, store, and replay a voice message for a selected case.
+- The spoken script includes the recovery link and does not invent payment state.
+- Regenerating the same case keeps an auditable version history.
+- Secrets never appear in the audio metadata, logs, or frontend bundle.
+
+---
+
+## Step 22 — Promise-to-pay and udhaar tracker
+
+**Status:** Not started
+
+**Goal:** Track customers who took udhaar (credit now, settle later) and remind them with a dated recovery message and generated voice.
+
+**Deliverables:**
+
+- Promise-to-pay / udhaar records with amount in paise, promise date, and month-end default due date
+- Hindi-first reminder copy in the spirit of “udhaar le liya, mahine ke end tak wapas karna hai”
+- Scheduled reminder when the due date approaches
+- Generated voice recovery message the customer would receive, replayable by the merchant
+- Policy-gated email or in-product reminder alongside the voice message
+- Outcome of kept promise, broken promise, extension, or human escalation
+
+**Acceptance gate:**
+
+- An udhaar case shows who owes what and by when.
+- A reminder and voice message are generated before the due date, not as a blind immediate retry.
+- A kept promise marks the case recovered; a broken promise escalates or schedules one bounded follow-up.
+- Live Test Mode money, simulated batch money, and udhaar reminders stay distinctly labelled.
+
+---
+
 ## Deferred work
 
-These items require a separate plan after the core project is complete:
+These items still require a separate plan after Steps 17–22:
 
-- Checkout drop-off recovery
-- Failed-subscription recovery
-- B2B receivables chasing
-- Mandate retry sequencing
-- Hinglish voice recovery
-- Promise-to-pay tracking as a dedicated product
-- Real SMS, email, or WhatsApp delivery
+- Live placement of the generated voice onto a telephony carrier
+- Real SMS or WhatsApp delivery
 - Merchant chat interface
 - Multi-merchant authentication and onboarding
 - Adaptive strategy learning from production outcomes

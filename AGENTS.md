@@ -62,7 +62,7 @@ At the end of every session:
 
 ## Scope guardrails
 
-The first version includes failed-payment recovery only. Checkout drop-off, failed subscriptions, B2B receivables, mandate sequencing, voice recovery, real SMS/WhatsApp delivery, multi-merchant authentication, and adaptive model training stay out of scope until the core demo is complete.
+The first version includes failed-payment recovery only. Checkout drop-off, failed subscriptions, B2B receivables, mandate sequencing, generated voice recovery, promise-to-pay / udhaar tracking, real SMS/WhatsApp delivery, multi-merchant authentication, and adaptive model training stay out of implementation until the core demo is complete. Those Track 03 expansions are sequenced as `PLAN.md` Steps 17–22 and must not start while an earlier step is in progress.
 
 The must-have user experience is:
 

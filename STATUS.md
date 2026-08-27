@@ -5,7 +5,7 @@ Last updated: 2026-08-27
 ## Current snapshot
 
 - **Current step:** Step 12 — Hosted runtime foundation
-- **State:** Step 12 is in progress. The public Railway API and worker domains now return healthy responses against Aiven and Redis Cloud, and the exact production endpoints are documented. Vercel still needs the production API/worker environment values and a redeploy. Steps 13–16 define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
+- **State:** Step 12 is in progress. The public Railway API and worker domains now return healthy responses against Aiven and Redis Cloud, and the exact production endpoints are documented. Vercel still needs the production API/worker environment values and a redeploy. Steps 13–16 define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates. Steps 17–22 now sequence the other Track 03 directions after that core loop.
 - **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free. The public `/about` page is complete as a judge-facing surface. README, architecture, and limitations now name Track 03 and the deferred example directions. Reported Issues includes the detect-to-observe workflow.
 - **Runtime services:** `recoveryosapi-production.up.railway.app` passed liveness and readiness with PostgreSQL and Redis `up`; `recoveryosworker-production.up.railway.app` passed readiness with both dependencies `up`. Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud contains six queue namespaces, one delayed reconciliation job, and one scheduler.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
@@ -33,6 +33,12 @@ Last updated: 2026-08-27
 |   14 | Bounded AI recovery and paid Test Mode outcome   | Not started       |
 |   15 | Measured batch recovery evidence                 | Not started       |
 |   16 | Final judge demo and submission hardening        | Not started       |
+|   17 | Checkout drop-off recovery                       | Not started       |
+|   18 | Failed-subscription recovery                     | Not started       |
+|   19 | B2B receivables human-in-the-loop alerts         | Not started       |
+|   20 | Mandate retry sequencing                         | Not started       |
+|   21 | Generated voice recovery messages                | Not started       |
+|   22 | Promise-to-pay and udhaar tracker                | Not started       |
 
 ## Available local tooling observed
 
@@ -1542,6 +1548,40 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Validation:**
 
 - Focused Reported Issues workflow tests and browser verification of `/recoveries`.
+
+**Blockers:**
+
+- Unchanged for Step 12.
+
+**Next action:**
+
+- Apply the Railway CORS and Vercel environment values, redeploy Vercel, then verify public product routes and health links.
+
+### 2026-08-27 — Track 03 expansion sequenced as Steps 17–22
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:**
+
+- Track checkout drop-off, failed subscriptions, B2B alerts, mandate sequencing, generated voice recovery, and promise-to-pay / udhaar in `PLAN.md`.
+
+**Completed:**
+
+- Added Steps 17–22 after the failed-payment judge demo, without starting those steps.
+- Checkout drop-off and failed subscriptions use merchant-selected, policy-gated recovery email.
+- B2B receivables raise a human-in-the-loop alert before outreach.
+- Mandate retries reuse the same email and human-alert pattern on a sequenced window.
+- Voice recovery generates the outbound message with OpenAI TTS, stores audio, and lets the merchant play what the customer would receive.
+- Promise-to-pay tracks udhaar with a month-end due date, Hindi reminder, and generated voice.
+- Recorded D-044 and aligned README, idea, architecture, limitations, and agent scope.
+
+**Files changed:**
+
+- `PLAN.md`, `README.md`, `idea.md`, `ARCHITECTURE.md`, `LIMITATIONS.md`, `AGENTS.md`, `DECISIONS.md`, `STATUS.md`
+
+**Validation:**
+
+- Confirmed Step 12 remains the only in-progress step; Steps 17–22 are `Not started`.
 
 **Blockers:**
 

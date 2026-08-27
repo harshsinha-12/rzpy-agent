@@ -22,7 +22,7 @@ Payment degradation → root cause → recovery action
 
 A ₹10,000 UPI failure does not become a blind retry. It becomes a durable case, a diagnosed cause, one AI proposal, a deterministic policy decision, and a bounded next step (wait, silent Test Mode Payment Link, escalate, or stop). The merchant sees that loop on Reported Issues, the case timeline, the dashboard, and a 250–500-payment batch comparison labelled `SIMULATED` or `RAZORPAY_TEST_MODE`.
 
-That is the track bar: detect, choose an intervention, execute a bounded workflow, measure money across a batch, escalate or stop compliantly, and keep an audit trail. Checkout drop-off, failed subscriptions, B2B invoices, mandate sequencing, voice recovery, and promise-to-pay tracking are documented as other Track 03 directions and are **not** in this MVP. See [Other Track 03 directions](#other-track-03-directions).
+That is the track bar: detect, choose an intervention, execute a bounded workflow, measure money across a batch, escalate or stop compliantly, and keep an audit trail. Checkout drop-off, failed subscriptions, B2B invoices, mandate sequencing, generated voice recovery, and promise-to-pay / udhaar tracking are official Track 03 directions planned as [`PLAN.md`](./PLAN.md) Steps 17–22 after the failed-payment loop is proven. See [Other Track 03 directions](#other-track-03-directions).
 
 ## Why this project exists
 
@@ -42,20 +42,20 @@ RecoveryOS intentionally selects one of Razorpay's example directions and comple
 
 > **Payment degradation → root cause → recovery action**
 
-Checkout abandonment, failed subscriptions, B2B receivables, mandate sequencing, voice recovery, and promise-to-pay tracking remain valid future directions, but they are not being added to this MVP. The submission is optimized for the track's higher bar: detect revenue at risk, determine the right intervention, execute a bounded workflow, and prove measured recovery with compliant escalation, stopping rules, and an audit trail.
+Checkout abandonment, failed subscriptions, B2B receivables, mandate sequencing, generated voice recovery, and promise-to-pay / udhaar tracking are planned as Steps 17–22 after the failed-payment loop is proven. The current submission is optimized for the track's higher bar: detect revenue at risk, determine the right intervention, execute a bounded workflow, and prove measured recovery with compliant escalation, stopping rules, and an audit trail.
 
 ### Other Track 03 directions
 
-These official examples stay out of the first version. They are recorded here so the submission is honest about scope.
+These official examples are sequenced in [`PLAN.md`](./PLAN.md) after Step 16. They are not in the current failed-payment MVP.
 
-| Official example             | What it would recover                   | Why it is deferred                                    |
-| ---------------------------- | --------------------------------------- | ----------------------------------------------------- |
-| Checkout drop-off recovery   | Orders created but never paid           | Different ingest path than `payment.failed`           |
-| Failed-subscription recovery | Recurring charges that pend or halt     | Separate Razorpay subscription events and retry rules |
-| B2B receivables chaser       | Overdue invoices / unpaid payment links | Invoice AR, not a one-time checkout failure           |
-| Mandate retry sequencer      | e-mandate / auto-debit failures         | Mandate APIs and bank retry calendars                 |
-| Hinglish voice recovery      | Spoken outreach after a failure         | Real customer contact is out of scope                 |
-| Promise-to-pay tracker       | A customer commitment to pay later      | A WAIT flavour, not a second product                  |
+| Official example             | Planned RecoveryOS treatment                                                                    | Plan step |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- | --------: |
+| Checkout drop-off recovery   | Merchant selects unpaid checkouts and sends a policy-gated recovery email with a Payment Link   |        17 |
+| Failed-subscription recovery | Same select-and-email pattern for pending or halted recurring charges                           |        18 |
+| B2B receivables chaser       | Overdue invoices raise a human-in-the-loop alert before any customer outreach                   |        19 |
+| Mandate retry sequencer      | Sequenced retries plus selected email and human alert when a mandate is unsafe to debit again   |        20 |
+| Hinglish voice recovery      | OpenAI-generated recovery call the customer would receive; merchant can play it in the product  |        21 |
+| Promise-to-pay tracker       | Udhaar / credit-now-pay-later due dates, Hindi reminder, and a generated voice recovery message |        22 |
 
 The closest overlap already in RecoveryOS is a **silent Test Mode Payment Link** after a failed payment, plus **WAIT** when an immediate retry is the wrong move. Those are still payment-degradation mechanics, not new verticals.
 
@@ -75,6 +75,7 @@ The remaining delivery order is intentionally sequential:
 3. **Step 14:** let AI propose, let policy decide, execute one bounded Payment Link, and verify payment;
 4. **Step 15:** freeze and reconcile the batch-level incremental-recovery evidence; and
 5. **Step 16:** run, record, and harden the final judge walkthrough.
+6. **Steps 17–22:** expand the remaining Track 03 directions (drop-off email, subscriptions, B2B alerts, mandates, generated voice, udhaar / promise-to-pay).
 
 ## What the demo includes
 

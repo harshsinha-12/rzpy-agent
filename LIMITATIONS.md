@@ -8,7 +8,7 @@ This document records demo and product limits that are intentional or not yet in
 - Reminders and alternative-method outreach are recorded as `SIMULATED`. They never send SMS, email, or WhatsApp.
 - Payment Links are silent Test Mode links. Customer notifications from Razorpay stay disabled.
 - Simulated recovered amounts are labelled `SIMULATED` and must not be presented as real merchant revenue.
-- The first version recovers failed one-time payments only. Checkout drop-off, failed subscriptions, B2B receivables, mandate retry sequencing, Hinglish voice recovery, promise-to-pay tracking, merchant chat, and multi-merchant authentication are out of scope.
+- The first version recovers failed one-time payments only. Checkout drop-off, failed subscriptions, B2B receivables, mandate retry sequencing, generated voice recovery, promise-to-pay / udhaar tracking, merchant chat, and multi-merchant authentication are planned after that loop; see `PLAN.md` Steps 17–22.
 - The RecoveryOS simulator uses a deterministic, policy-controlled strategy over visible payment facts; it does not make 250–500 live OpenAI calls. Hidden probabilities remain evaluator-only so runs stay reproducible and do not leak outcome knowledge into strategy decisions.
 
 ## Reliability and security
