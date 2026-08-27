@@ -1,15 +1,15 @@
 # Project Status
 
-Last updated: 2026-08-21
+Last updated: 2026-08-27
 
 ## Current snapshot
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Step 12 is in progress. Railway PostgreSQL is migrated and seeded, Redis and the worker are online, and the API container deploys but its strict dependency health check is preventing network activation.
-- **Application code:** The API now separates `/health/live` process liveness from strict `/health` PostgreSQL/Redis readiness, while continuing to give Railway's injected `PORT` precedence.
-- **Runtime services:** Railway PostgreSQL, Redis, and worker are online. The Railway API is not yet healthy; local services are unchanged.
-- **Current blocker:** Hosted PostgreSQL and Redis credentials exposed during setup must be rotated. The API must deploy the liveness route and Railway must use `/health/live` as its deployment health-check path.
-- **Exact next action:** Push the liveness endpoint, set the Railway API health-check path to `/health/live`, deploy the latest commit, then call `/health` to inspect dependency readiness separately.
+- **State:** Step 12 is in progress. Railway will host only the API and worker; BullMQ will use external Redis Cloud, and the managed PostgreSQL provider is still pending.
+- **Application code:** API and worker configuration now accept either a canonical `REDIS_URL` or separate Redis host, port, username, password, and TLS variables. The OpenAI credential remains worker-only.
+- **Runtime services:** No current hosted API/worker/data-store deployment is recorded as verified. Previous Railway-managed PostgreSQL and Redis state is no longer part of the target architecture.
+- **Current blocker:** A fresh external `DATABASE_URL` is still required in both Railway services. Rotated Redis and OpenAI values must be entered directly into Railway, and Redis TLS must match the provider connection wizard.
+- **Exact next action:** Configure fresh Redis credentials on both Railway services, configure the fresh OpenAI key on the worker only, then add the external `DATABASE_URL` to both services and redeploy API/worker.
 
 ## Step overview
 
@@ -42,14 +42,16 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 
 ## Credentials status
 
-| Credential                      | Needed in step | Status                         |
-| ------------------------------- | -------------: | ------------------------------ |
-| Local PostgreSQL URL            |              1 | Configured with Docker default |
-| Local Redis URL                 |              1 | Configured on host port 6380   |
-| Razorpay Test Key ID and Secret |              5 | Configured and authenticated   |
-| Razorpay webhook secret         |              5 | Not created                    |
-| OpenAI API key                  |              7 | Configured locally             |
-| Deployment credentials          |             12 | Vercel/Railway not created yet |
+| Credential                      | Needed in step | Status                                                   |
+| ------------------------------- | -------------: | -------------------------------------------------------- |
+| Local PostgreSQL URL            |              1 | Configured with Docker default                           |
+| Local Redis URL                 |              1 | Configured on host port 6380                             |
+| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                             |
+| Razorpay webhook secret         |              5 | Not created                                              |
+| OpenAI API key                  |              7 | Rotated; fresh value pending in Railway worker           |
+| Redis Cloud credentials         |             12 | Provider selected; fresh values pending in both services |
+| External PostgreSQL URL         |             12 | Provider and connection URL pending                      |
+| Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -1094,6 +1096,54 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Deploy the liveness change, verify `/health/live` returns 200, then inspect `/health` and fix whichever dependency remains degraded.
+
+### 2026-08-27 — External Redis and split hosting configuration
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Stop using Railway-managed PostgreSQL and Redis, keep only the API and worker on Railway, support Redis Cloud credentials, and keep OpenAI configuration scoped correctly while PostgreSQL remains pending.
+
+**Completed:**
+
+- Added one shared, pure Redis connection resolver that accepts either `REDIS_URL` or component variables and percent-encodes credentials.
+- Made a configured `REDIS_URL` take precedence and added explicit TLS selection through `REDIS_TLS`.
+- Updated API and worker environment parsing to produce the same canonical `REDIS_URL` for existing BullMQ and health-check code.
+- Kept `OPENAI_API_KEY` in the worker configuration only.
+- Updated deployment, architecture, limitations, plan, environment, and project-structure documentation for Railway compute plus externally managed Redis and PostgreSQL.
+- Recorded D-038, which supersedes D-034 only for data-store placement.
+- Did not store, print, or test any supplied credential value; the user reported those values were rotated.
+
+**Files changed:**
+
+- `.env.example`
+- `README.md`, `ARCHITECTURE.md`, `LIMITATIONS.md`, `PLAN.md`, `DECISIONS.md`, `PROJECT_STRUCTURE.md`, and `STATUS.md`
+- `packages/config/package.json`, `packages/config/tsconfig.json`, `packages/config/tsconfig.build.json`, and `packages/config/src/*`
+- `apps/api/package.json` and `apps/api/src/config/env.ts`
+- `apps/worker/package.json` and `apps/worker/src/config/env.ts`
+- `pnpm-lock.yaml`
+
+**Validation:**
+
+- `pnpm install --frozen-lockfile` passed after refreshing workspace dependency links.
+- `pnpm --filter @recoveryos/config lint` passed.
+- `pnpm --filter @recoveryos/config typecheck` passed.
+- `pnpm --filter @recoveryos/config test` passed: 1 file and 5 tests.
+- `pnpm build:packages` passed, including Prisma client generation.
+- API lint, typecheck, and production build passed.
+- Worker lint, typecheck, and production build passed.
+- Repository formatting and diff checks passed.
+
+**Blockers:**
+
+- The external managed PostgreSQL provider and `DATABASE_URL` are still pending.
+- Fresh Redis and OpenAI values must be configured directly in Railway rather than shared in chat or committed.
+- Live Redis connectivity and hosted runtime readiness cannot be verified until those fresh provider values are installed.
+
+**Next action:**
+
+- Enter the fresh secrets and external `DATABASE_URL` directly in both applicable Railway services and redeploy using `/health/live` for API liveness and `/health` for dependency readiness.
 
 ## Session entry template
 

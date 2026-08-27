@@ -144,6 +144,16 @@ The tree below is the intended direction. Individual entries are created only in
 │   │       └── schemas.ts
 │   ├── test-utils/
 │   └── config/
+│       ├── src/
+│       │   ├── index.ts
+│       │   ├── redis-url.ts
+│       │   └── redis-url.test.ts
+│       ├── tsconfig/
+│       │   ├── base.json
+│       │   ├── next.json
+│       │   └── node.json
+│       ├── tsconfig.build.json
+│       └── tsconfig.json
 ├── AGENTS.md
 ├── ARCHITECTURE.md
 ├── DECISIONS.md
@@ -221,7 +231,7 @@ Create `utils.ts` only when there is actual reusable, pure behavior.
 - Only an app's `config/env.ts` may read `process.env` directly.
 - Validate environment variables once with Zod and export a typed immutable configuration object.
 - Keep runtime configuration separate from constants and business policy.
-- Shared build configuration belongs in `packages/config`.
+- Shared build configuration and pure, cross-runtime environment assembly belong in `packages/config`; only each app's `config/env.ts` reads `process.env`.
 - Merchant recovery policy belongs in the database/domain layer, not environment variables.
 - Secrets must never be exposed through `NEXT_PUBLIC_*` variables.
 

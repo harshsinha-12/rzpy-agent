@@ -143,6 +143,9 @@ importers:
       '@fastify/rate-limit':
         specifier: 'catalog:'
         version: 10.3.0
+      '@recoveryos/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@recoveryos/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -168,9 +171,6 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
-      '@recoveryos/config':
-        specifier: workspace:*
-        version: link:../../packages/config
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.1
@@ -235,6 +235,9 @@ importers:
       '@recoveryos/agents':
         specifier: workspace:*
         version: link:../../packages/agents
+      '@recoveryos/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@recoveryos/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -257,9 +260,6 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
-      '@recoveryos/config':
-        specifier: workspace:*
-        version: link:../../packages/config
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.1
@@ -298,7 +298,20 @@ importers:
         specifier: 'catalog:'
         version: 4.1.11(@types/node@22.20.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
-  packages/config: {}
+  packages/config:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@types/node@22.20.1)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
 
   packages/database:
     dependencies:

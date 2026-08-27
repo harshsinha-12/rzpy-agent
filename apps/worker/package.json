@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@recoveryos/agents": "workspace:*",
+    "@recoveryos/config": "workspace:*",
     "@recoveryos/database": "workspace:*",
     "@recoveryos/domain": "workspace:*",
     "@recoveryos/razorpay": "workspace:*",
@@ -23,7 +24,6 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@recoveryos/config": "workspace:*",
     "@types/node": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

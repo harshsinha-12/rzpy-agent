@@ -96,13 +96,13 @@ This is the project's cron-like behavior. There is no external cron service or d
 
 ## Hosting split
 
-| Runtime         | Platform | Role                                               |
-| --------------- | -------- | -------------------------------------------------- |
-| Next.js web     | Vercel   | Dashboard, Reported Issues, checkout, and About    |
-| Fastify API     | Railway  | Product APIs and Razorpay webhook ingestion        |
-| Recovery worker | Railway  | Five BullMQ consumers and 60-second reconciliation |
-| PostgreSQL      | Railway  | Durable source of truth                            |
-| Redis           | Railway  | Queue, retry, and scheduler state                  |
+| Runtime         | Platform         | Role                                                |
+| --------------- | ---------------- | --------------------------------------------------- |
+| Next.js web     | Vercel           | Dashboard, Reported Issues, checkout, and About     |
+| Fastify API     | Railway          | Product APIs and Razorpay webhook ingestion         |
+| Recovery worker | Railway          | Five BullMQ consumers and 60-second reconciliation  |
+| PostgreSQL      | Managed provider | Durable source of truth; provider selection pending |
+| Redis           | Redis Cloud      | Queue, retry, and scheduler state                   |
 
 Vercel cannot run the API or worker. Those processes must stay online so delayed jobs and webhook acknowledgements survive.
 

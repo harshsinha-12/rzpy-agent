@@ -233,19 +233,19 @@ pnpm infra:down
 
 RecoveryOS is three runtimes plus two data stores. Only the Next.js app belongs on Vercel.
 
-| Piece         | Where it runs | Why                                                                               |
-| ------------- | ------------- | --------------------------------------------------------------------------------- |
-| `apps/web`    | **Vercel**    | Serverless Next.js hosting                                                        |
-| `apps/api`    | **Railway**   | Long-running Fastify process, including `POST /webhooks/razorpay`                 |
-| `apps/worker` | **Railway**   | BullMQ must stay connected to Redis for delayed jobs and 60-second reconciliation |
-| PostgreSQL    | **Railway**   | Durable source of truth                                                           |
-| Redis         | **Railway**   | Queue, retry, and scheduler state                                                 |
+| Piece         | Where it runs        | Why                                                                               |
+| ------------- | -------------------- | --------------------------------------------------------------------------------- |
+| `apps/web`    | **Vercel**           | Serverless Next.js hosting                                                        |
+| `apps/api`    | **Railway**          | Long-running Fastify process, including `POST /webhooks/razorpay`                 |
+| `apps/worker` | **Railway**          | BullMQ must stay connected to Redis for delayed jobs and 60-second reconciliation |
+| PostgreSQL    | **Managed provider** | Durable source of truth; provider selection is pending                            |
+| Redis         | **Redis Cloud**      | Externally managed queue, retry, and scheduler state                              |
 
 Do not try to run the API or worker as Vercel serverless functions. They are persistent Node processes. Render can replace Railway if you prefer; the same split still applies.
 
-Tonight you can publish the web app. Dashboard and Reported Issues will show the existing API-unavailable error until Railway is live. `/about` is static and will work immediately. Tomorrow: PostgreSQL, Redis, API, worker, then the Razorpay webhook URL.
+The web app can be published independently. Dashboard and Reported Issues show the existing API-unavailable state until the Railway API is live; `/about` is static and works without the backend.
 
-### Tonight — Vercel web app
+### Vercel web app
 
 1. Push the current `main` branch to GitHub (`https://github.com/harshsinha-12/rzpy-agent`).
 2. Open [Vercel](https://vercel.com), import that repository, and create a Next.js project.
@@ -254,44 +254,64 @@ Tonight you can publish the web app. Dashboard and Reported Issues will show the
 5. Confirm these commands (also stored in `apps/web/vercel.json`):
    - Install: `cd ../.. && HUSKY=0 pnpm install --frozen-lockfile`
    - Build: `cd ../.. && pnpm --filter @recoveryos/domain build && pnpm --filter @recoveryos/web build`
-6. Add these Vercel environment variables for Production. You can leave the API URLs pointing at localhost for tonight; change them after Railway is up.
+6. Add these Vercel environment variables for Production. During frontend-only setup, the API URLs may remain on localhost; replace them when Railway is live.
 
-| Variable                        | Tonight                                                     | After Railway                                                           |
+| Variable                        | Before backend                                              | After backend                                                           |
 | ------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
 | `APP_BASE_URL`                  | Optional. Vercel preview/production URLs are used if unset. | Your production Vercel URL, for example `https://recoveryos.vercel.app` |
 | `API_BASE_URL`                  | `http://localhost:4000`                                     | Public Railway API URL, no trailing slash                               |
 | `NEXT_PUBLIC_API_URL`           | `http://localhost:4000`                                     | Same Railway API URL                                                    |
 | `NEXT_PUBLIC_WORKER_HEALTH_URL` | `http://localhost:4001`                                     | Public Railway worker URL                                               |
 
-Do **not** put Razorpay secrets, the webhook secret, `DATABASE_URL`, `REDIS_URL`, or `OPENAI_API_KEY` on Vercel. Those belong on Railway.
+Do **not** put Razorpay secrets, the webhook secret, `DATABASE_URL`, Redis credentials, or `OPENAI_API_KEY` on Vercel. Those belong only in the Railway API/worker secret stores even though PostgreSQL and Redis are managed elsewhere.
 
-7. Deploy. After it succeeds, open `/about`. `/` and `/recoveries` will say the API is unavailable until tomorrow. Copy the Vercel URL; the Railway API will need it as `APP_BASE_URL` for CORS.
+7. Deploy. After it succeeds, open `/about`. `/` and `/recoveries` will say the API is unavailable until the backend is deployed. Copy the Vercel URL; the Railway API needs it as `APP_BASE_URL` for CORS.
 
-### Tomorrow — Railway database, API, worker, webhook
+### Railway API and worker with external data services
 
-Create one Railway project with four services: PostgreSQL, Redis, API, and worker.
+Railway hosts only the Fastify API and BullMQ worker. Redis Cloud provides Redis, and a separate managed PostgreSQL provider will provide the durable database.
 
-**Postgres and Redis**
+**Redis Cloud**
 
-1. Add Railway **PostgreSQL** and **Redis** plugins.
-2. Reference their private-network variables from the API and worker services as `${{Postgres.DATABASE_URL}}` and `${{Redis.REDIS_URL}}`. Do not paste either credential into source control, documentation, chat, or build arguments.
-3. In the API service, set this one-time Railway **Pre-deploy Command** for the first successful deployment:
+Configure the same Redis connection on both Railway services using one of these forms:
+
+1. Preferred: one canonical `REDIS_URL` using the scheme shown by the Redis Cloud connection wizard:
+
+```text
+redis://<username>:<percent-encoded-password>@<host>:<port>
+```
+
+Use `rediss://` instead of `redis://` only when TLS is enabled for that Redis Cloud database.
+
+2. Alternatively, set the component variables below. RecoveryOS constructs the URL at startup and safely percent-encodes the credentials:
+
+| Variable         | Value                                                                    |
+| ---------------- | ------------------------------------------------------------------------ |
+| `REDIS_HOST`     | Redis Cloud public endpoint hostname                                     |
+| `REDIS_PORT`     | Exact provider-assigned database port; do not substitute a standard port |
+| `REDIS_USERNAME` | Redis ACL username, normally `default`                                   |
+| `REDIS_PASSWORD` | Redis Cloud data-access password                                         |
+| `REDIS_TLS`      | `true` only when the connection wizard specifies TLS; otherwise `false`  |
+
+If `REDIS_URL` and the component variables are both configured, `REDIS_URL` takes precedence. Never put either form in Git, screenshots, logs, documentation, or chat.
+
+**Managed PostgreSQL**
+
+After selecting the provider, put its Prisma-compatible PostgreSQL connection string in `DATABASE_URL` on both Railway services. Then set this one-time API **Pre-deploy Command**:
 
 ```bash
 pnpm db:setup
 ```
 
-Railway runs the command inside its private network with the API service variables available. It generates the Prisma client, applies migrations, and loads the deterministic demo seed without exposing PostgreSQL publicly.
+That generates the Prisma client, applies migrations, and loads the deterministic demo seed.
 
-4. After the first seed succeeds, replace the API pre-deploy command with:
+After the first seed succeeds, replace the API pre-deploy command with:
 
 ```bash
 pnpm db:migrate
 ```
 
 This applies future migrations without resetting the deterministic demo merchant on every API redeploy. Run `pnpm db:seed` from an intentional Railway one-off/pre-deploy run only when you want to reset the demo dataset.
-
-Do not run a `postgres.railway.internal` connection string from your laptop. The hostname is available only inside Railway's private network. If laptop access is genuinely needed, use the temporary public TCP connection details displayed by Railway and rotate or disable them afterward; the private pre-deploy path is preferred.
 
 **API service**
 
@@ -303,9 +323,9 @@ Do not run a `postgres.railway.internal` connection string from your laptop. The
 | Variable                        | Value                                         |
 | ------------------------------- | --------------------------------------------- |
 | `NODE_ENV`                      | `production`                                  |
-| `APP_BASE_URL`                  | The Vercel URL from tonight                   |
-| `DATABASE_URL`                  | Railway Postgres URL                          |
-| `REDIS_URL`                     | Railway Redis URL                             |
+| `APP_BASE_URL`                  | The production Vercel URL                     |
+| `DATABASE_URL`                  | External managed PostgreSQL URL               |
+| `REDIS_URL` or `REDIS_*`        | External Redis Cloud connection               |
 | `RAZORPAY_TEST_MODE_API_KEY`    | Test Mode Key ID                              |
 | `RAZORPAY_TEST_MODE_SECRET_KEY` | Test Mode Key Secret                          |
 | `RAZORPAY_WEBHOOK_SECRET`       | Leave empty until the Razorpay webhook exists |
@@ -321,16 +341,16 @@ If a deployment builds successfully but the `/health` check reports `service una
 2. Health check path: `/health`.
 3. Variables:
 
-| Variable                        | Value                     |
-| ------------------------------- | ------------------------- |
-| `NODE_ENV`                      | `production`              |
-| `DATABASE_URL`                  | Same Postgres URL         |
-| `REDIS_URL`                     | Same Redis URL            |
-| `OPENAI_API_KEY`                | OpenAI key                |
-| `OPENAI_MODEL`                  | `gpt-5.6-terra`           |
-| `RAZORPAY_TEST_MODE_API_KEY`    | Same Test Mode Key ID     |
-| `RAZORPAY_TEST_MODE_SECRET_KEY` | Same Test Mode Key Secret |
-| `WORKER_HEALTH_HOST`            | `0.0.0.0`                 |
+| Variable                        | Value                        |
+| ------------------------------- | ---------------------------- |
+| `NODE_ENV`                      | `production`                 |
+| `DATABASE_URL`                  | Same external PostgreSQL URL |
+| `REDIS_URL` or `REDIS_*`        | Same Redis Cloud connection  |
+| `OPENAI_API_KEY`                | OpenAI key                   |
+| `OPENAI_MODEL`                  | `gpt-5.6-terra`              |
+| `RAZORPAY_TEST_MODE_API_KEY`    | Same Test Mode Key ID        |
+| `RAZORPAY_TEST_MODE_SECRET_KEY` | Same Test Mode Key Secret    |
+| `WORKER_HEALTH_HOST`            | `0.0.0.0`                    |
 
 Do not set `WORKER_HEALTH_PORT`. The worker health server also uses Railway's `PORT`.
 
@@ -358,19 +378,24 @@ Then update the three Vercel API/worker URLs and redeploy the web app.
 
 Copy [`.env.example`](./.env.example) to an untracked `.env` file. Never place credential values in documentation, screenshots, chat, fixtures, or source control.
 
-| Variable                        | Purpose                                     | Requirement                            |
-| ------------------------------- | ------------------------------------------- | -------------------------------------- |
-| `DATABASE_URL`                  | Prisma connection to PostgreSQL             | Required                               |
-| `REDIS_URL`                     | BullMQ and worker connection to Redis       | Required                               |
-| `NEXT_PUBLIC_API_URL`           | Browser-visible Fastify base URL            | Required by web                        |
-| `NEXT_PUBLIC_WORKER_HEALTH_URL` | Browser-visible worker health URL           | Required by web health link            |
-| `RAZORPAY_TEST_MODE_API_KEY`    | Razorpay Test Mode Key ID                   | Required for Test Mode checkout/tools  |
-| `RAZORPAY_TEST_MODE_SECRET_KEY` | Razorpay Test Mode Key Secret               | Required for Test Mode checkout/tools  |
-| `RAZORPAY_WEBHOOK_SECRET`       | Separate Razorpay webhook signing secret    | Required only for signed live delivery |
-| `OPENAI_API_KEY`                | OpenAI Responses API authentication         | Required for live AI proposals         |
-| `OPENAI_MODEL`                  | Proposal model; defaults to `gpt-5.6-terra` | Optional override                      |
-| `DEMO_SEED`                     | Reproducible database seed                  | Optional                               |
-| `DEFAULT_DATA_SOURCE`           | Default record label, normally `SIMULATED`  | Optional                               |
+| Variable                        | Purpose                                                      | Requirement                                   |
+| ------------------------------- | ------------------------------------------------------------ | --------------------------------------------- |
+| `DATABASE_URL`                  | Prisma connection to PostgreSQL                              | Required                                      |
+| `REDIS_URL`                     | Canonical Redis connection; takes precedence over components | Required unless `REDIS_*` components are used |
+| `REDIS_HOST`                    | Managed Redis hostname                                       | Required only with component configuration    |
+| `REDIS_PORT`                    | Managed Redis connection port                                | Required only with component configuration    |
+| `REDIS_USERNAME`                | Redis ACL username, normally `default`                       | Optional; defaults to `default`               |
+| `REDIS_PASSWORD`                | Managed Redis data-access password                           | Required with `REDIS_HOST`                    |
+| `REDIS_TLS`                     | Selects `rediss://` when set to `true`                       | Optional; defaults to `false`                 |
+| `NEXT_PUBLIC_API_URL`           | Browser-visible Fastify base URL                             | Required by web                               |
+| `NEXT_PUBLIC_WORKER_HEALTH_URL` | Browser-visible worker health URL                            | Required by web health link                   |
+| `RAZORPAY_TEST_MODE_API_KEY`    | Razorpay Test Mode Key ID                                    | Required for Test Mode checkout/tools         |
+| `RAZORPAY_TEST_MODE_SECRET_KEY` | Razorpay Test Mode Key Secret                                | Required for Test Mode checkout/tools         |
+| `RAZORPAY_WEBHOOK_SECRET`       | Separate Razorpay webhook signing secret                     | Required only for signed live delivery        |
+| `OPENAI_API_KEY`                | Worker-only OpenAI Responses API authentication              | Required for live AI proposals                |
+| `OPENAI_MODEL`                  | Proposal model; defaults to `gpt-5.6-terra`                  | Optional override                             |
+| `DEMO_SEED`                     | Reproducible database seed                                   | Optional                                      |
+| `DEFAULT_DATA_SOURCE`           | Default record label, normally `SIMULATED`                   | Optional                                      |
 
 The credential names above are intentional. Legacy `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` variables are not used.
 
@@ -467,7 +492,7 @@ deploy/
 
 packages/
   agents/           OpenAI proposal agent, prompt, schemas, and read-only tools
-  config/           Shared TypeScript and build configuration
+  config/           Shared TypeScript/build config and Redis environment assembly
   database/         Prisma client, schema, migrations, and deterministic seed
   domain/           Shared contracts, queue names, constants, and redaction
   razorpay/         Test Mode client, schemas, webhook verification, and mapping

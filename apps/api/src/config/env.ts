@@ -1,5 +1,6 @@
 import { loadEnvFile } from "node:process";
 
+import { resolveRedisUrl } from "@recoveryos/config";
 import { z } from "zod";
 
 try {
@@ -18,6 +19,16 @@ const optionalPortSchema = z.preprocess((value) => {
   return value;
 }, z.coerce.number().int().positive().optional());
 
+const optionalStringSchema = z.preprocess(
+  (value) => (value === undefined || value === "" ? undefined : value),
+  z.string().min(1).optional(),
+);
+
+const optionalUrlSchema = z.preprocess(
+  (value) => (value === undefined || value === "" ? undefined : value),
+  z.string().url().optional(),
+);
+
 const envSchema = z.object({
   API_HOST: z.string().default("0.0.0.0"),
   API_PORT: optionalPortSchema,
@@ -33,13 +44,23 @@ const envSchema = z.object({
   RAZORPAY_TEST_MODE_API_KEY: z.string().default(""),
   RAZORPAY_TEST_MODE_SECRET_KEY: z.string().default(""),
   RAZORPAY_WEBHOOK_SECRET: z.string().default(""),
-  REDIS_URL: z.string().url().default("redis://localhost:6380"),
+  REDIS_HOST: optionalStringSchema,
+  REDIS_PASSWORD: optionalStringSchema,
+  REDIS_PORT: optionalPortSchema,
+  REDIS_TLS: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+  REDIS_URL: optionalUrlSchema,
+  REDIS_USERNAME: optionalStringSchema,
 });
 
 const parsed = envSchema.parse(process.env);
+const redisUrl = resolveRedisUrl(parsed);
 
 export const env = Object.freeze({
   ...parsed,
+  REDIS_URL: redisUrl,
   // Hosting platforms such as Railway route traffic and health checks to PORT.
   // Keep API_PORT as the local override only when no platform port is present.
   listenPort: parsed.PORT ?? parsed.API_PORT ?? 4000,
