@@ -73,6 +73,18 @@ Policy violations             0
 
 Since Razorpay Test Mode does not move real money, these figures must be explicitly presented as **test-mode/simulated recovery results**, not real merchant revenue. Razorpay's test environment is specifically designed to simulate successful and failed payment outcomes.
 
+### Confirmed Razorpay challenge contract — 2026-08-27
+
+Razorpay's AI Revenue Recovery brief requires more than detecting a loss. The submission must show that an agent finds revenue at risk, determines an appropriate intervention, executes a bounded recovery workflow, and measures recovered money across a batch with compliant escalation, stopping rules, and an audit trail.
+
+RecoveryOS will satisfy that contract through the focused direction already selected in this document:
+
+```text
+Payment degradation → root cause → recovery action
+```
+
+The remaining acceptance sequence is defined in `PLAN.md` Steps 12–16: healthy hosted runtimes, a signed Razorpay Test Mode failure webhook, one policy-gated AI recovery paid in Test Mode, frozen batch-level uplift evidence, and a repeatable judge demo. The other example directions remain deferred until this loop is proven end to end.
+
 ---
 
 # 2. The Problem

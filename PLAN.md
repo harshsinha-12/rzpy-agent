@@ -304,20 +304,20 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-## Step 12 — Deployment and hackathon demo package
+## Step 12 — Hosted runtime foundation
 
 **Status:** In progress
 
-**Goal:** Produce a reliable, judge-ready deployed demonstration.
+**Goal:** Establish healthy public runtimes and managed infrastructure before sending real Test Mode events through the system.
 
 **Deliverables:**
 
 - Frontend deployment on Vercel
 - Long-running API and worker services on Railway
 - Aiven PostgreSQL and Redis Cloud connected to both Railway runtimes
-- Public HTTPS webhook endpoint configured in Razorpay Test Mode
+- Redis Cloud configured with `no eviction` for reliable BullMQ state
+- Public HTTPS domains, production CORS, and service-specific environment variables
 - Production-like seed command and demo reset procedure
-- Demo script, architecture explanation, backup recording, and failure fallback
 - Public About page explaining the product, integrations, safety boundaries, and worker scheduling model
 - Repository-level architecture document with system and queue Mermaid diagrams
 - Final human setup, run, test, configuration, and verification guide
@@ -325,10 +325,117 @@ This is the binding implementation order for the project. We will complete, veri
 **Acceptance gate:**
 
 - Public pages load expected content.
-- A Razorpay Test Mode event reaches the deployed application.
-- The worker processes delayed jobs after API requests finish.
+- API `/health/live`, API `/health`, and worker `/health` succeed publicly.
+- The worker remains connected to Redis and the repeatable reconciliation scheduler is registered.
 - The full demo can be reset and repeated predictably.
 - No secrets are present in Git history or frontend bundles.
+
+---
+
+## Step 13 — Razorpay Test Mode webhook proof
+
+**Status:** Not started
+
+**Goal:** Close the track's detection requirement by proving that an actual failed Test Mode payment becomes an idempotent RecoveryOS case.
+
+**Deliverables:**
+
+- Razorpay Test Mode webhook targeting the public Railway API at `POST /webhooks/razorpay`
+- A new webhook signing secret stored only as `RAZORPAY_WEBHOOK_SECRET` on the API service
+- Subscriptions for `payment.failed`, `payment.authorized`, `payment.captured`, and `payment_link.paid`
+- One deliberately failed Test Mode checkout using Razorpay's documented failure method
+- Captured webhook-delivery evidence without exposing payload secrets or payment identifiers
+- A `RAZORPAY_TEST_MODE` row in Reported Issues with normalized failure facts
+- Duplicate-delivery verification against the same provider event ID
+
+**Acceptance gate:**
+
+- Razorpay reports a successful HTTP delivery to the public HTTPS endpoint.
+- The signature-valid raw event is retained once and acknowledged quickly.
+- One normalized recovery case is created and queued exactly once.
+- Replaying the event does not create a duplicate case, action, or job.
+- The Test Mode case is visible in the deployed table and detail timeline.
+- Step 5's pending live acceptance check can be marked complete after explicit approval.
+
+---
+
+## Step 14 — Bounded AI recovery and paid Test Mode outcome
+
+**Status:** Not started
+
+**Goal:** Prove the complete detect-to-recover loop on one real Test Mode case while deterministic policy retains execution authority.
+
+**Deliverables:**
+
+- Worker-side GPT-5.6 Terra proposal generated from read-only normalized case facts
+- Stored diagnosis evidence, one schema-valid AI proposal, and deterministic policy decision
+- Payment-state re-check immediately before execution
+- One approved, silent, action-bound Razorpay Test Mode Payment Link
+- Successful Test Mode payment of that recovery link
+- `payment_link.paid` or provider-state verification updating the case and dashboard
+- Complete audit timeline covering detection, diagnosis, proposal, guard, execution, verification, and outcome
+- A contrasting policy-stop or escalation case showing that unsafe customer intervention is blocked
+
+**Acceptance gate:**
+
+- The LLM has no direct Razorpay, database-write, queue, or messaging access.
+- Policy can approve, replace, delay, escalate, or reject the AI proposal independently.
+- An already captured payment and a duplicate job cannot create another Payment Link.
+- The paid Test Mode link changes the case to recovered and updates Test Mode metrics.
+- The audit view explains why the action was proposed, who authorized it, what executed, and what happened.
+- Step 9's pending paid-link acceptance check can be marked complete after explicit approval.
+
+---
+
+## Step 15 — Measured batch recovery evidence
+
+**Status:** Not started
+
+**Goal:** Meet the Razorpay track bar by presenting auditable, batch-level recovery value rather than only a single successful case.
+
+**Deliverables:**
+
+- A frozen, reproducible 250–500-payment simulation run for the submitted demo
+- Side-by-side no-intervention, naive-retry, and RecoveryOS results over identical payment inputs and outcome rolls
+- Revenue at risk, recovered revenue, incremental revenue, recovery rate, attempts, false interventions, policy stops, escalations, and customer-contact metrics
+- Stored per-payment and per-strategy outcomes that reconcile to every aggregate
+- Explicit `SIMULATED` labelling and copy that separates batch estimates from Test Mode payment proof
+- A judge-facing challenge matrix covering detection, diagnosis, bounded execution, compliant escalation, stopping rules, audit trail, and measured recovery
+
+**Acceptance gate:**
+
+- Re-running the frozen seed reproduces the same inputs and results.
+- Aggregate rupee and count metrics reconcile exactly with stored outcomes.
+- RecoveryOS is compared with a named baseline; no unsupported real-revenue claim is made.
+- At least one policy stop, escalation, and prevented false intervention is visible in the evidence.
+- Dashboard, About page, README, and spoken demo use the same verified numbers and labels.
+
+---
+
+## Step 16 — Final judge demo and submission hardening
+
+**Status:** Not started
+
+**Goal:** Package the verified live loop and measured batch evidence into a repeatable, failure-tolerant submission.
+
+**Deliverables:**
+
+- Final demo script beginning with revenue at risk and ending with incremental recovery
+- Live sequence: failed checkout, case creation, diagnosis, AI proposal, policy decision, bounded execution, paid outcome, and updated dashboard
+- Graceful Razorpay 5xx sequence showing bounded retry, backoff, audit visibility, and zero duplicate execution
+- Reset checklist, known-good seed, backup screenshots, and backup recording
+- Final architecture explanation and explicit AI-versus-policy responsibility statement
+- Secret scan, production build, complete test suite, public-route smoke test, and repository cleanup
+- Submission copy mapped directly to Razorpay's AI Revenue Recovery problem statement and judging bar
+
+**Acceptance gate:**
+
+- The complete demo can be repeated from the documented reset state.
+- Live Test Mode evidence and simulated batch evidence are clearly distinguished.
+- Compliant escalation, stopping rules, and the full audit trail are demonstrated rather than merely described.
+- Public web, API, worker, database, Redis, OpenAI, and Razorpay integrations remain healthy for the recorded walkthrough.
+- All relevant validations pass and no secrets appear in Git, logs, screenshots, or frontend bundles.
+- The user explicitly approves the final submission package.
 
 ## Deferred work
 

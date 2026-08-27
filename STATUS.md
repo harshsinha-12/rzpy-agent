@@ -4,11 +4,11 @@ Last updated: 2026-08-27
 
 ## Current snapshot
 
-- **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Railway still needs the updated code and service variables.
+- **Current step:** Step 12 — Hosted runtime foundation
+- **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Railway still needs the updated code and service variables. Steps 13–16 now define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates.
 - **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free.
 - **Runtime services:** Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud is reachable with six queue namespaces, one delayed reconciliation job, and one scheduler. The bootstrap worker was stopped and port 4001 is closed.
-- **Local runtime:** The Next.js frontend is running on port 3000 and the Fastify API is running on port 4000. API liveness, PostgreSQL/Redis readiness, and the Reported Issues route were verified successfully on 2026-08-27.
+- **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
 - **Current blocker:** Redis Cloud reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Hosted API/worker deployment and public readiness remain unverified.
 - **Exact next action:** Change Redis Cloud's Data eviction policy to `no eviction`, deploy the updated API/worker code and fresh variables to Railway, then verify API `/health/live`, API `/health`, and worker `/health`.
 
@@ -28,7 +28,11 @@ Last updated: 2026-08-27
 |    9 | Recovery execution tools                         | Awaiting approval |
 |   10 | Simulator and evaluation harness                 | Complete          |
 |   11 | Reliability, security, and end-to-end validation | Complete          |
-|   12 | Deployment and hackathon demo package            | In progress       |
+|   12 | Hosted runtime foundation                        | In progress       |
+|   13 | Razorpay Test Mode webhook proof                 | Not started       |
+|   14 | Bounded AI recovery and paid Test Mode outcome   | Not started       |
+|   15 | Measured batch recovery evidence                 | Not started       |
+|   16 | Final judge demo and submission hardening        | Not started       |
 
 ## Available local tooling observed
 
@@ -48,8 +52,8 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 | Local PostgreSQL URL            |              1 | Configured with Docker default                           |
 | Local Redis URL                 |              1 | Configured on host port 6380                             |
 | Razorpay Test Key ID and Secret |              5 | Configured and authenticated                             |
-| Razorpay webhook secret         |              5 | Not created                                              |
-| OpenAI API key                  |              7 | Rotated; fresh value pending in Railway worker           |
+| Razorpay webhook secret         |          5, 13 | Not created                                              |
+| OpenAI API key                  |          7, 14 | Rotated; fresh value pending in Railway worker           |
 | Redis Cloud credentials         |             12 | Connected; BullMQ initialized; eviction policy pending   |
 | Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified          |
 | Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified |
@@ -1319,6 +1323,77 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Continue local use at `http://localhost:3000`; start `pnpm dev:worker` only when testing queued recovery jobs, then resume Railway deployment verification when ready.
+
+### 2026-08-27 — Local servers stopped
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Stop all running RecoveryOS servers.
+
+**Completed:**
+
+- Stopped the Next.js frontend and Fastify API cleanly with `SIGINT`.
+- Left the external Aiven PostgreSQL and Redis Cloud services unchanged.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- Confirmed ports 3000, 4000, and 4001 are closed with no listening processes.
+
+**Blockers:**
+
+- None.
+
+**Next action:**
+
+- Restart the complete local application with `pnpm dev` when needed.
+
+### 2026-08-27 — Razorpay challenge acceptance roadmap added
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Convert Razorpay's AI Revenue Recovery brief and judging bar into further project steps beginning with webhook setup.
+
+**Completed:**
+
+- Confirmed that RecoveryOS remains focused on the `payment degradation → root cause → recovery action` direction.
+- Reframed Step 12 as the hosted runtime prerequisite so it can complete before external webhook work begins.
+- Added Step 13 for signed Razorpay Test Mode webhook delivery and idempotent failed-payment ingestion.
+- Added Step 14 for one deployed GPT-5.6 Terra proposal, deterministic policy decision, bounded Payment Link execution, paid Test Mode outcome, and complete audit evidence.
+- Added Step 15 for a frozen and reconciled 250–500-payment comparison proving measured incremental recovery, stopping rules, escalation, and false-intervention prevention.
+- Added Step 16 for the final judge walkthrough, graceful Razorpay failure proof, reset/backup assets, public smoke checks, validation suite, and secret scan.
+- Added a README challenge matrix and recorded the durable scope and delivery decision as D-043.
+- Did not configure a webhook, start a later step, or broaden the MVP into checkout abandonment, subscriptions, receivables, mandates, or voice recovery.
+
+**Files changed:**
+
+- `PLAN.md`
+- `README.md`
+- `idea.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Reconciled the new roadmap against the implemented webhook, AI/policy, BullMQ, Payment Link, simulator, and audit capabilities.
+- Confirmed only Step 12 remains marked `In progress`; Steps 13–16 are `Not started` and remain approval-gated.
+- Documentation formatting and repository diff checks passed.
+
+**Blockers:**
+
+- Step 12 still requires Redis Cloud `no eviction` plus healthy public Railway API and worker deployment.
+- Step 13 will require the public API URL and a newly created Razorpay webhook signing secret.
+
+**Next action:**
+
+- Complete Step 12 only: change Redis eviction policy, deploy the API and worker with clean variables, and verify all three public health endpoints before requesting approval to begin Step 13.
 
 ## Session entry template
 

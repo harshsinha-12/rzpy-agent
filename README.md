@@ -8,7 +8,7 @@ The central rule is simple:
 
 The project combines a merchant-facing recovery dashboard with Razorpay Test Mode, an OpenAI-powered proposal agent, deterministic safeguards, persistent BullMQ workflows, and an auditable simulator. Every record is visibly labelled `SIMULATED` or `RAZORPAY_TEST_MODE`; neither represents live merchant revenue.
 
-> **Project status:** Steps 0–4, 6–8, and 10–11 are complete. Step 12's judge-ready demo package is in progress. Step 9 still needs one live paid Payment Link acceptance check, while Step 5's live webhook needs a public HTTPS URL and a separate signing secret. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
+> **Project status:** Steps 0–4, 6–8, and 10–11 are complete. Step 12's hosted runtime foundation is in progress. Steps 13–16 now define the remaining Razorpay webhook, bounded Test Mode recovery, measured batch proof, and final judge-demo gates. Step 5's live webhook and Step 9's paid-link checks close inside those later acceptance steps. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
 
 ## Why this project exists
 
@@ -21,6 +21,31 @@ This gives a merchant three things that a blind retry does not:
 - a reasoned decision for each failed payment;
 - a controlled, idempotent recovery workflow; and
 - a measurable, auditable view of what was recovered and why.
+
+## Razorpay challenge alignment
+
+RecoveryOS intentionally selects one of Razorpay's example directions and completes it deeply:
+
+> **Payment degradation → root cause → recovery action**
+
+Checkout abandonment, failed subscriptions, B2B receivables, mandate sequencing, voice recovery, and promise-to-pay tracking remain valid future directions, but they are not being added to this MVP. The submission is optimized for the track's higher bar: detect revenue at risk, determine the right intervention, execute a bounded workflow, and prove measured recovery with compliant escalation, stopping rules, and an audit trail.
+
+| Razorpay requirement          | RecoveryOS evidence                                                                    | Remaining live gate                             |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Detect revenue at risk        | Signed Test Mode webhook ingestion and durable recovery cases                          | Step 13 live failed-payment delivery            |
+| Determine the intervention    | Deterministic diagnosis plus one structured GPT-5.6 Terra proposal                     | Step 14 deployed proposal evidence              |
+| Execute a bounded workflow    | Policy approval, BullMQ delays/retries, payment-state recheck, silent Payment Link     | Step 14 paid Test Mode outcome                  |
+| Measure money across a batch  | Reproducible 250–500-payment comparison against no-intervention and naive-retry        | Step 15 frozen and reconciled submission run    |
+| Escalate and stop compliantly | Consent, attempt, cooldown, merchant-error, duplicate, and captured-payment safeguards | Steps 14–16 visible blocked/escalated cases     |
+| Preserve an audit trail       | Raw webhook retention plus normalized proposal, policy, execution, and outcome events  | Steps 13–16 public case timeline and demo proof |
+
+The remaining delivery order is intentionally sequential:
+
+1. **Step 12:** make Vercel, Railway, Aiven, and Redis Cloud healthy and repeatable;
+2. **Step 13:** configure the signed Razorpay webhook and ingest one failed Test Mode payment;
+3. **Step 14:** let AI propose, let policy decide, execute one bounded Payment Link, and verify payment;
+4. **Step 15:** freeze and reconcile the batch-level incremental-recovery evidence; and
+5. **Step 16:** run, record, and harden the final judge walkthrough.
 
 ## What the demo includes
 
@@ -560,8 +585,11 @@ At present:
 
 - the dashboard, Reported Issues, case detail, Razorpay ingestion path, diagnosis, AI proposal, policy engine, queues, execution tools, simulator, reliability controls, About page, and architecture documentation are implemented;
 - Razorpay Test Mode API credentials and the OpenAI key are configured locally;
-- a public signed webhook endpoint still needs deployment configuration and `RAZORPAY_WEBHOOK_SECRET`;
-- one Payment Link still needs to be paid in Test Mode to complete the live Step 9 acceptance gate; and
+- Step 12 must finish healthy public API and worker deployment against Aiven and Redis Cloud;
+- Step 13 must configure the public signed webhook and ingest one deliberate Test Mode failure;
+- Step 14 must complete one policy-approved and paid Test Mode Payment Link recovery;
+- Step 15 must freeze the reconciled batch comparison used in the submission;
+- Step 16 must complete the repeatable judge demo, graceful-failure proof, and final secret/public-route checks; and
 - reminders and alternative-method outreach remain simulated and never send real customer messages.
 
 Known constraints are documented rather than hidden. Read [`LIMITATIONS.md`](./LIMITATIONS.md) before presenting the project as production-ready.
