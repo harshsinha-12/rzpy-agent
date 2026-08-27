@@ -8,6 +8,7 @@ Last updated: 2026-08-27
 - **State:** Step 12 is in progress. Aiven is migrated and deterministically seeded; Redis Cloud contains the BullMQ queues and reconciliation scheduler. Railway still needs the updated code and service variables.
 - **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free.
 - **Runtime services:** Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud is reachable with six queue namespaces, one delayed reconciliation job, and one scheduler. The bootstrap worker was stopped and port 4001 is closed.
+- **Local runtime:** The Next.js frontend is running on port 3000 and the Fastify API is running on port 4000. API liveness, PostgreSQL/Redis readiness, and the Reported Issues route were verified successfully on 2026-08-27.
 - **Current blocker:** Redis Cloud reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Hosted API/worker deployment and public readiness remain unverified.
 - **Exact next action:** Change Redis Cloud's Data eviction policy to `no eviction`, deploy the updated API/worker code and fresh variables to Railway, then verify API `/health/live`, API `/health`, and worker `/health`.
 
@@ -1281,6 +1282,43 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Change the Redis Cloud eviction policy, deploy both Railway services, and verify public liveness/readiness before configuring the Razorpay webhook.
+
+### 2026-08-27 — Local frontend and API restored
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Fix the localhost connection refusal affecting the RecoveryOS frontend and recovery pages.
+
+**Completed:**
+
+- Confirmed the frontend was configured to call `http://localhost:4000` and that neither required local runtime was reliably reachable.
+- Started the Fastify API with the existing external Aiven PostgreSQL and Redis Cloud configuration.
+- Started the Next.js frontend on port 3000.
+- Confirmed no Docker service was required for this external-provider configuration.
+- Made no application-code or environment changes.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- `GET http://localhost:4000/health/live` returned HTTP 200.
+- `GET http://localhost:4000/health` returned HTTP 200 with PostgreSQL and Redis both `up`.
+- `GET http://localhost:4000/recovery/cases?page=1&pageSize=1` returned HTTP 200.
+- `GET http://localhost:3000/recoveries` returned HTTP 200.
+- Ports 3000 and 4000 both have active Node.js listeners.
+
+**Blockers:**
+
+- Redis Cloud still needs the `no eviction` policy before production-like BullMQ deployment.
+- The local worker is not running; start it separately when background recovery processing is required.
+
+**Next action:**
+
+- Continue local use at `http://localhost:3000`; start `pnpm dev:worker` only when testing queued recovery jobs, then resume Railway deployment verification when ready.
 
 ## Session entry template
 
