@@ -96,15 +96,17 @@ This is the project's cron-like behavior. There is no external cron service or d
 
 ## Hosting split
 
-| Runtime         | Platform         | Role                                                |
-| --------------- | ---------------- | --------------------------------------------------- |
-| Next.js web     | Vercel           | Dashboard, Reported Issues, checkout, and About     |
-| Fastify API     | Railway          | Product APIs and Razorpay webhook ingestion         |
-| Recovery worker | Railway          | Five BullMQ consumers and 60-second reconciliation  |
-| PostgreSQL      | Managed provider | Durable source of truth; provider selection pending |
-| Redis           | Redis Cloud      | Queue, retry, and scheduler state                   |
+| Runtime         | Platform    | Role                                               |
+| --------------- | ----------- | -------------------------------------------------- |
+| Next.js web     | Vercel      | Dashboard, Reported Issues, checkout, and About    |
+| Fastify API     | Railway     | Product APIs and Razorpay webhook ingestion        |
+| Recovery worker | Railway     | Five BullMQ consumers and 60-second reconciliation |
+| PostgreSQL      | Aiven       | TLS-protected durable source of truth              |
+| Redis           | Redis Cloud | Queue, retry, and scheduler state                  |
 
 Vercel cannot run the API or worker. Those processes must stay online so delayed jobs and webhook acknowledgements survive.
+
+Both Railway runtimes use the rotated Aiven service URI with `sslmode=require`. Prisma's `pg` pool defaults to three connections per runtime and each readiness checker uses a separate one-connection pool. One API replica plus one worker replica therefore reserve at most eight PostgreSQL connections during normal operation, leaving headroom within the current 20-connection service limit.
 
 ## Integrated components
 

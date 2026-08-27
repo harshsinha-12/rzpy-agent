@@ -1,7 +1,19 @@
 import { Pool } from "pg";
 
-export function createDatabasePool(connectionString: string): Pool {
-  return new Pool({ connectionString });
+export const DEFAULT_DATABASE_HEALTH_POOL_MAX = 1;
+
+export interface DatabasePoolOptions {
+  max?: number;
+}
+
+export function createDatabasePool(
+  connectionString: string,
+  options: DatabasePoolOptions = {},
+): Pool {
+  return new Pool({
+    connectionString,
+    max: options.max ?? DEFAULT_DATABASE_HEALTH_POOL_MAX,
+  });
 }
 
 export async function checkDatabaseConnection(pool: Pool): Promise<void> {

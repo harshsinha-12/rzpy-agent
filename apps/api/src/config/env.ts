@@ -38,6 +38,7 @@ const envSchema = z.object({
     .string()
     .url()
     .default("postgresql://recoveryos:recoveryos@localhost:5432/recoveryos"),
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(10).default(3),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),

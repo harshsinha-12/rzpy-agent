@@ -78,7 +78,8 @@ export async function buildApp(
     !options.razorpayWebhookService ||
     !options.simulatorService;
   const database = needsDatabase
-    ? (options.database ?? createPrismaClient(env.DATABASE_URL))
+    ? (options.database ??
+      createPrismaClient(env.DATABASE_URL, { max: env.DATABASE_POOL_MAX }))
     : null;
   const ownsDatabase = database !== null && !options.database;
   const analyticsService =

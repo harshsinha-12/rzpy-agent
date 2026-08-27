@@ -18,7 +18,8 @@ This document records demo and product limits that are intentional or not yet in
 - A Razorpay 5xx during Payment Link creation retries with the same action-bound reference. If Razorpay created a link and then timed out, the next attempt looks up that reference instead of creating a second link.
 - OpenAI failures fall back to the diagnosis engine's deterministic action. The model never executes a payment or message.
 - Worker jobs survive process restarts because BullMQ stores them in Redis. PostgreSQL remains the durable source of truth for cases, actions, and audit events.
-- The Next.js frontend deploys to Vercel, while the Fastify API and BullMQ worker run on Railway. Redis is externally managed by Redis Cloud, and the managed PostgreSQL provider is still pending. Vercel cannot host the persistent API or worker processes.
+- The Next.js frontend deploys to Vercel, while the Fastify API and BullMQ worker run on Railway. Redis is externally managed by Redis Cloud, and PostgreSQL is externally managed by Aiven with `sslmode=require`. Vercel cannot host the persistent API or worker processes.
+- The current Aiven plan allows 20 PostgreSQL connections. One API and one worker replica are budgeted for at most eight normal runtime connections; scaling replicas requires recalculating `DATABASE_POOL_MAX` and preserving migration headroom.
 
 ## Credentials and operations
 

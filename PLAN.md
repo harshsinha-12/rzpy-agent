@@ -314,7 +314,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 - Frontend deployment on Vercel
 - Long-running API and worker services on Railway
-- External managed PostgreSQL and Redis Cloud connected to both Railway runtimes
+- Aiven PostgreSQL and Redis Cloud connected to both Railway runtimes
 - Public HTTPS webhook endpoint configured in Razorpay Test Mode
 - Production-like seed command and demo reset procedure
 - Demo script, architecture explanation, backup recording, and failure fallback

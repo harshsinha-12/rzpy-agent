@@ -28,7 +28,9 @@ import { createRecoveryActionExecutor } from "./tools/recovery-action-executor.j
 import { createRuntimeRecoveryExecutionTools } from "./tools/runtime-recovery-tools.js";
 
 const database = createDatabasePool(env.DATABASE_URL);
-const prisma = createPrismaClient(env.DATABASE_URL);
+const prisma = createPrismaClient(env.DATABASE_URL, {
+  max: env.DATABASE_POOL_MAX,
+});
 const redis = new Redis(env.REDIS_URL, {
   lazyConnect: true,
   maxRetriesPerRequest: 1,

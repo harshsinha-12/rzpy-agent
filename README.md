@@ -233,13 +233,13 @@ pnpm infra:down
 
 RecoveryOS is three runtimes plus two data stores. Only the Next.js app belongs on Vercel.
 
-| Piece         | Where it runs        | Why                                                                               |
-| ------------- | -------------------- | --------------------------------------------------------------------------------- |
-| `apps/web`    | **Vercel**           | Serverless Next.js hosting                                                        |
-| `apps/api`    | **Railway**          | Long-running Fastify process, including `POST /webhooks/razorpay`                 |
-| `apps/worker` | **Railway**          | BullMQ must stay connected to Redis for delayed jobs and 60-second reconciliation |
-| PostgreSQL    | **Managed provider** | Durable source of truth; provider selection is pending                            |
-| Redis         | **Redis Cloud**      | Externally managed queue, retry, and scheduler state                              |
+| Piece         | Where it runs   | Why                                                                               |
+| ------------- | --------------- | --------------------------------------------------------------------------------- |
+| `apps/web`    | **Vercel**      | Serverless Next.js hosting                                                        |
+| `apps/api`    | **Railway**     | Long-running Fastify process, including `POST /webhooks/razorpay`                 |
+| `apps/worker` | **Railway**     | BullMQ must stay connected to Redis for delayed jobs and 60-second reconciliation |
+| PostgreSQL    | **Aiven**       | TLS-protected durable source of truth                                             |
+| Redis         | **Redis Cloud** | Externally managed queue, retry, and scheduler state                              |
 
 Do not try to run the API or worker as Vercel serverless functions. They are persistent Node processes. Render can replace Railway if you prefer; the same split still applies.
 
@@ -269,7 +269,7 @@ Do **not** put Razorpay secrets, the webhook secret, `DATABASE_URL`, Redis crede
 
 ### Railway API and worker with external data services
 
-Railway hosts only the Fastify API and BullMQ worker. Redis Cloud provides Redis, and a separate managed PostgreSQL provider will provide the durable database.
+Railway hosts only the Fastify API and BullMQ worker. Redis Cloud provides Redis, and Aiven provides the managed PostgreSQL database.
 
 **Redis Cloud**
 
@@ -295,9 +295,17 @@ Use `rediss://` instead of `redis://` only when TLS is enabled for that Redis Cl
 
 If `REDIS_URL` and the component variables are both configured, `REDIS_URL` takes precedence. Never put either form in Git, screenshots, logs, documentation, or chat.
 
-**Managed PostgreSQL**
+**Aiven PostgreSQL**
 
-After selecting the provider, put its Prisma-compatible PostgreSQL connection string in `DATABASE_URL` on both Railway services. Then set this one-time API **Pre-deploy Command**:
+Copy the newly rotated Aiven service URI directly into `DATABASE_URL` on both Railway services. It must retain the provider-assigned host, port, database, and `sslmode=require` query parameter:
+
+```text
+postgresql://<user>:<percent-encoded-password>@<host>:<provider-port>/<database>?sslmode=require
+```
+
+Do not construct the production value in source code or documentation. If a password contains reserved URL characters, use Aiven's generated service URI or percent-encode the password. Set `DATABASE_POOL_MAX=3` on both services. With one API replica and one worker replica, each runtime can use at most three Prisma connections plus one health-check connection, reserving more than half of the stated 20-connection plan for migrations, rolling deploys, and administrative access.
+
+Then set this one-time API **Pre-deploy Command**:
 
 ```bash
 pnpm db:setup
@@ -324,7 +332,8 @@ This applies future migrations without resetting the deterministic demo merchant
 | ------------------------------- | --------------------------------------------- |
 | `NODE_ENV`                      | `production`                                  |
 | `APP_BASE_URL`                  | The production Vercel URL                     |
-| `DATABASE_URL`                  | External managed PostgreSQL URL               |
+| `DATABASE_URL`                  | Rotated Aiven URI including `sslmode=require` |
+| `DATABASE_POOL_MAX`             | `3`                                           |
 | `REDIS_URL` or `REDIS_*`        | External Redis Cloud connection               |
 | `RAZORPAY_TEST_MODE_API_KEY`    | Test Mode Key ID                              |
 | `RAZORPAY_TEST_MODE_SECRET_KEY` | Test Mode Key Secret                          |
@@ -341,16 +350,17 @@ If a deployment builds successfully but the `/health` check reports `service una
 2. Health check path: `/health`.
 3. Variables:
 
-| Variable                        | Value                        |
-| ------------------------------- | ---------------------------- |
-| `NODE_ENV`                      | `production`                 |
-| `DATABASE_URL`                  | Same external PostgreSQL URL |
-| `REDIS_URL` or `REDIS_*`        | Same Redis Cloud connection  |
-| `OPENAI_API_KEY`                | OpenAI key                   |
-| `OPENAI_MODEL`                  | `gpt-5.6-terra`              |
-| `RAZORPAY_TEST_MODE_API_KEY`    | Same Test Mode Key ID        |
-| `RAZORPAY_TEST_MODE_SECRET_KEY` | Same Test Mode Key Secret    |
-| `WORKER_HEALTH_HOST`            | `0.0.0.0`                    |
+| Variable                        | Value                       |
+| ------------------------------- | --------------------------- |
+| `NODE_ENV`                      | `production`                |
+| `DATABASE_URL`                  | Same rotated Aiven URI      |
+| `DATABASE_POOL_MAX`             | `3`                         |
+| `REDIS_URL` or `REDIS_*`        | Same Redis Cloud connection |
+| `OPENAI_API_KEY`                | OpenAI key                  |
+| `OPENAI_MODEL`                  | `gpt-5.6-terra`             |
+| `RAZORPAY_TEST_MODE_API_KEY`    | Same Test Mode Key ID       |
+| `RAZORPAY_TEST_MODE_SECRET_KEY` | Same Test Mode Key Secret   |
+| `WORKER_HEALTH_HOST`            | `0.0.0.0`                   |
 
 Do not set `WORKER_HEALTH_PORT`. The worker health server also uses Railway's `PORT`.
 
@@ -381,6 +391,7 @@ Copy [`.env.example`](./.env.example) to an untracked `.env` file. Never place c
 | Variable                        | Purpose                                                      | Requirement                                   |
 | ------------------------------- | ------------------------------------------------------------ | --------------------------------------------- |
 | `DATABASE_URL`                  | Prisma connection to PostgreSQL                              | Required                                      |
+| `DATABASE_POOL_MAX`             | Maximum Prisma `pg` connections per runtime                  | Optional; defaults to `3`                     |
 | `REDIS_URL`                     | Canonical Redis connection; takes precedence over components | Required unless `REDIS_*` components are used |
 | `REDIS_HOST`                    | Managed Redis hostname                                       | Required only with component configuration    |
 | `REDIS_PORT`                    | Managed Redis connection port                                | Required only with component configuration    |

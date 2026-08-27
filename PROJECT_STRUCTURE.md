@@ -117,7 +117,9 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   │   ├── migrations/
 │   │   │   └── seed.ts
 │   │   └── src/
-│   │       └── client.ts
+│   │       ├── client.ts
+│   │       ├── client.test.ts
+│   │       └── prisma.ts
 │   ├── domain/
 │   │   └── src/
 │   │       ├── recovery/

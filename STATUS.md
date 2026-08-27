@@ -5,11 +5,11 @@ Last updated: 2026-08-27
 ## Current snapshot
 
 - **Current step:** Step 12 — Deployment and hackathon demo package
-- **State:** Step 12 is in progress. Railway will host only the API and worker; BullMQ will use external Redis Cloud, and the managed PostgreSQL provider is still pending.
-- **Application code:** API and worker configuration now accept either a canonical `REDIS_URL` or separate Redis host, port, username, password, and TLS variables. The OpenAI credential remains worker-only.
+- **State:** Step 12 is in progress. Railway will host only the API and worker; BullMQ will use external Redis Cloud, and Aiven will provide PostgreSQL over required TLS.
+- **Application code:** API and worker configuration accept either a canonical `REDIS_URL` or separate Redis component variables. Aiven runtime pools are bounded through `DATABASE_POOL_MAX`, while health checks use one PostgreSQL connection and the OpenAI credential remains worker-only.
 - **Runtime services:** No current hosted API/worker/data-store deployment is recorded as verified. Previous Railway-managed PostgreSQL and Redis state is no longer part of the target architecture.
-- **Current blocker:** A fresh external `DATABASE_URL` is still required in both Railway services. Rotated Redis and OpenAI values must be entered directly into Railway, and Redis TLS must match the provider connection wizard.
-- **Exact next action:** Configure fresh Redis credentials on both Railway services, configure the fresh OpenAI key on the worker only, then add the external `DATABASE_URL` to both services and redeploy API/worker.
+- **Current blocker:** Fresh Aiven, Redis, and OpenAI values must be entered directly into Railway. Live connectivity, migrations, seed data, and hosted readiness have not yet been verified.
+- **Exact next action:** Set the rotated Aiven URI plus `DATABASE_POOL_MAX=3` on both Railway services, configure Redis on both and OpenAI on the worker, run the API's one-time `pnpm db:setup`, then redeploy and verify readiness.
 
 ## Step overview
 
@@ -42,16 +42,16 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 
 ## Credentials status
 
-| Credential                      | Needed in step | Status                                                   |
-| ------------------------------- | -------------: | -------------------------------------------------------- |
-| Local PostgreSQL URL            |              1 | Configured with Docker default                           |
-| Local Redis URL                 |              1 | Configured on host port 6380                             |
-| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                             |
-| Razorpay webhook secret         |              5 | Not created                                              |
-| OpenAI API key                  |              7 | Rotated; fresh value pending in Railway worker           |
-| Redis Cloud credentials         |             12 | Provider selected; fresh values pending in both services |
-| External PostgreSQL URL         |             12 | Provider and connection URL pending                      |
-| Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified |
+| Credential                      | Needed in step | Status                                                    |
+| ------------------------------- | -------------: | --------------------------------------------------------- |
+| Local PostgreSQL URL            |              1 | Configured with Docker default                            |
+| Local Redis URL                 |              1 | Configured on host port 6380                              |
+| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                              |
+| Razorpay webhook secret         |              5 | Not created                                               |
+| OpenAI API key                  |              7 | Rotated; fresh value pending in Railway worker            |
+| Redis Cloud credentials         |             12 | Provider selected; fresh values pending in both services  |
+| Aiven PostgreSQL URL            |             12 | Provider selected; rotated value pending in both services |
+| Deployment credentials          |             12 | Vercel/Railway deployment setup exists but is unverified  |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -1144,6 +1144,51 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Enter the fresh secrets and external `DATABASE_URL` directly in both applicable Railway services and redeploy using `/health/live` for API liveness and `/health` for dependency readiness.
+
+### 2026-08-27 — Aiven PostgreSQL and connection budgeting
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Update the external PostgreSQL deployment for the selected Aiven service after the disclosed credentials were rotated.
+
+**Completed:**
+
+- Confirmed that the existing Prisma 7 `@prisma/adapter-pg` and direct `pg` clients accept a PostgreSQL service URI containing `sslmode=require`.
+- Selected Aiven as the Step 12 PostgreSQL provider without storing its service hostname, port, username, password, certificate, or complete URI.
+- Added `DATABASE_POOL_MAX`, defaulting to three Prisma connections per API/worker runtime.
+- Limited each independent PostgreSQL health-check pool to one connection.
+- Budgeted one API plus one worker replica for at most eight normal runtime connections against the stated 20-connection service limit.
+- Updated deployment, architecture, limitations, plan, environment, and decision documentation for Aiven TLS and connection budgeting.
+- Recorded D-039.
+
+**Files changed:**
+
+- `.env.example`
+- `README.md`, `ARCHITECTURE.md`, `LIMITATIONS.md`, `PLAN.md`, `DECISIONS.md`, and `STATUS.md`
+- `packages/database/src/client.ts`, `client.test.ts`, `prisma.ts`, and `index.ts`
+- `apps/api/src/config/env.ts` and `app.ts`
+- `apps/worker/src/config/env.ts` and `worker.ts`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/database lint` passed.
+- Focused database pool tests passed: 1 file and 2 tests.
+- Database typecheck and production build passed, including Prisma 7.9.1 client generation.
+- API lint, typecheck, and production build passed.
+- Worker lint, typecheck, and production build passed.
+- The exact transitive production build graphs used by both Railway Dockerfiles passed: `pnpm --filter @recoveryos/api... build` and `pnpm --filter @recoveryos/worker... build`.
+- Repository formatting and diff checks passed.
+
+**Blockers:**
+
+- The newly rotated Aiven URI must be entered directly as `DATABASE_URL` in both Railway services.
+- Live Aiven migrations, seed, and readiness were not attempted with the disclosed credential.
+
+**Next action:**
+
+- Set the rotated provider values directly in Railway, run `pnpm db:setup` once, redeploy both runtimes, and check API `/health/live`, API `/health`, and worker `/health`.
 
 ## Session entry template
 
