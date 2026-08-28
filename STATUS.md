@@ -5,12 +5,12 @@ Last updated: 2026-08-28
 ## Current snapshot
 
 - **Current step:** Step 13 — Razorpay Test Mode webhook proof
-- **State:** Step 12 is complete after explicit approval and current hosted verification. Step 13 is in progress: the Railway API has an active webhook secret, the signed-ingestion path is deployed, and both the public UI and API use Razorpay's ₹1 minimum. The deployed checkout failure was traced to a browser bundle calling localhost; a validated same-origin order proxy is ready to deploy.
+- **State:** Step 12 is complete after explicit approval and current hosted verification. Step 13 is in progress: the deployed same-origin checkout created a ₹1 Razorpay Test Mode card attempt, its signed `payment.failed` webhook created exactly one normalized case, and the diagnosis/policy audit completed. Razorpay delivery-history evidence and duplicate replay verification remain.
 - **Application code:** `NEXT_PUBLIC_WORKER_HEALTH_URL` is the full worker readiness URL, including `/health`; the header Worker link uses that href and falls back if the hostname is truncated. The Test Mode demo amount is a shared domain constant set to 100 paise and used by both order creation and the visible checkout label. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Deploy the same-origin checkout proxy, then a user must complete the interactive Razorpay Test Mode Checkout using UPI ID `failure@razorpay`; Razorpay Dashboard delivery history and the four active-event selections also require dashboard confirmation.
-- **Exact next action:** Push and deploy the proxy, verify the public web route no longer requests localhost, then complete the ₹1 failure and verify successful webhook delivery, one normalized Test Mode case, and duplicate replay behavior.
+- **Current blocker:** Razorpay Dashboard delivery history and the four active-event selections require dashboard confirmation; the same successful provider event must be replayed once to finish the idempotency acceptance check.
+- **Exact next action:** In Razorpay Test Mode webhook delivery history, confirm the failed-payment delivery returned HTTP 2xx, capture redacted evidence, replay that same delivery once, then verify the Test Mode case count remains one with no duplicate action or audit sequence.
 
 ## Step overview
 
@@ -1769,6 +1769,16 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Push the proxy, wait for Vercel, verify the deployed same-origin route, then retry the ₹1 Test Mode UPI failure with `failure@razorpay`.
+
+**Post-deployment evidence:**
+
+- The public checkout opened Razorpay Checkout for ₹1 through the new same-origin route, proving the localhost request was removed.
+- A deliberate Test Mode card attempt failed with Razorpay's `payment_cancelled` reason and populated `RC-TM-NtVv7awsaq` in the deployed product.
+- The public API reports exactly one `RAZORPAY_TEST_MODE` case with 100 paise at risk, `FAILED` payment status, and `CARD` method.
+- The case contains four ordered audit events: `payment.failed.received`, `diagnosis.completed`, `agent.proposal.created`, and `policy.denied`.
+- The single proposed `ALTERNATIVE_METHOD` action was policy-denied and skipped; no automated financial or messaging action executed.
+- API and worker health both remained healthy after ingestion.
+- Razorpay delivery-history HTTP status and replay of the same provider event remain pending.
 
 ## Session entry template
 
