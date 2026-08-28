@@ -306,7 +306,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 12 — Hosted runtime foundation
 
-**Status:** In progress
+**Status:** Complete
 
 **Goal:** Establish healthy public runtimes and managed infrastructure before sending real Test Mode events through the system.
 
@@ -334,7 +334,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 13 — Razorpay Test Mode webhook proof
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Close the track's detection requirement by proving that an actual failed Test Mode payment becomes an idempotent RecoveryOS case.
 

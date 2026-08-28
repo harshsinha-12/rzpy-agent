@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { TEST_MODE_DEMO_AMOUNT_PAISE } from "@recoveryos/domain";
+
 import { publicApiUrl } from "@/config/env";
 import { formatMoney } from "@/lib/formatters";
 
@@ -91,7 +93,7 @@ export function CheckoutTrigger() {
       >
         {busy
           ? "Opening checkout…"
-          : `Fail a ${formatMoney(499900)} UPI payment`}
+          : `Fail a ${formatMoney(TEST_MODE_DEMO_AMOUNT_PAISE)} UPI payment`}
       </button>
       {error ? <p className={styles.error}>{error}</p> : null}
     </div>

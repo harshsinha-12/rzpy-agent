@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { PAISA_PER_RUPEE } from "@recoveryos/domain";
+import { TEST_MODE_DEMO_AMOUNT_PAISE } from "@recoveryos/domain";
 
 import { serviceUnavailableError } from "../../../lib/errors.js";
 import type { DemoCheckoutService, DemoRazorpayOrders } from "./types.js";
@@ -9,8 +9,6 @@ export const RAZORPAY_KEY_SETUP_URL =
   "https://dashboard.razorpay.com/app/websiteapp-settings/api-keys";
 export const RAZORPAY_WEBHOOK_SETUP_URL =
   "https://dashboard.razorpay.com/app/webhooks";
-
-const DEMO_AMOUNT_PAISE = 4999 * PAISA_PER_RUPEE;
 
 export function createDemoCheckoutService(options: {
   keyId: string;
@@ -26,7 +24,7 @@ export function createDemoCheckoutService(options: {
       }
 
       const order = await options.orders.createOrder({
-        amountPaise: DEMO_AMOUNT_PAISE,
+        amountPaise: TEST_MODE_DEMO_AMOUNT_PAISE,
         currency: "INR",
         notes: { source: "recoveryos_demo" },
         receipt: `recoveryos_${randomUUID().slice(0, 8)}`,

@@ -4,6 +4,7 @@ export {
   DEMO_MERCHANT_NAME,
   DEMO_MERCHANT_SLUG,
   PAISA_PER_RUPEE,
+  TEST_MODE_DEMO_AMOUNT_PAISE,
 } from "./constants.js";
 export type {
   DependencyHealth,
