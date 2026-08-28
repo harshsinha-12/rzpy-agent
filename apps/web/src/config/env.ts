@@ -15,7 +15,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_WORKER_HEALTH_URL: z
     .string()
     .url()
-    .default("http://localhost:4001"),
+    .default("https://recoveryosworker-production.up.railway.app/health"),
 });
 
 export const env = Object.freeze(envSchema.parse(process.env));

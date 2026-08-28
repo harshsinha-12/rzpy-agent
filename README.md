@@ -8,7 +8,7 @@ The central rule is simple:
 
 The project combines a merchant-facing recovery dashboard with Razorpay Test Mode, an OpenAI-powered proposal agent, deterministic safeguards, persistent BullMQ workflows, and an auditable simulator. Every record is visibly labelled `SIMULATED` or `RAZORPAY_TEST_MODE`; neither represents live merchant revenue.
 
-> **Project status:** Steps 0–4, 6–8, and 10–11 are complete. Step 12's hosted runtime foundation is in progress. Steps 13–16 now define the remaining Razorpay webhook, bounded Test Mode recovery, measured batch proof, and final judge-demo gates. Step 5's live webhook and Step 9's paid-link checks close inside those later acceptance steps. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
+> **Project status:** Steps 0–4, 6–8, and 10–12 are complete. Step 13's Razorpay Test Mode webhook proof is in progress. Steps 14–16 define the remaining bounded Test Mode recovery, measured batch proof, and final judge-demo gates. Step 5's live webhook and Step 9's paid-link checks close inside those later acceptance steps. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
 
 ## What we are doing
 
@@ -326,21 +326,23 @@ The web app can be published independently. Dashboard and Reported Issues show t
    - Build: `cd ../.. && pnpm --filter @recoveryos/domain build && pnpm --filter @recoveryos/web build`
 6. Add these Vercel environment variables for Production. During frontend-only setup, the API URLs may remain on localhost; replace them when Railway is live.
 
-| Variable                        | Production value                                     |
-| ------------------------------- | ---------------------------------------------------- |
-| `APP_BASE_URL`                  | `https://rzpy-agent-web.vercel.app`                  |
-| `API_BASE_URL`                  | `https://recoveryosapi-production.up.railway.app`    |
-| `NEXT_PUBLIC_API_URL`           | `https://recoveryosapi-production.up.railway.app`    |
-| `NEXT_PUBLIC_WORKER_HEALTH_URL` | `https://recoveryosworker-production.up.railway.app` |
+| Variable                        | Production value                                            |
+| ------------------------------- | ----------------------------------------------------------- |
+| `APP_BASE_URL`                  | `https://rzpy-agent-web.vercel.app`                         |
+| `API_BASE_URL`                  | `https://recoveryosapi-production.up.railway.app`           |
+| `NEXT_PUBLIC_API_URL`           | `https://recoveryosapi-production.up.railway.app`           |
+| `NEXT_PUBLIC_WORKER_HEALTH_URL` | `https://recoveryosworker-production.up.railway.app/health` |
 
-Copy these values into Vercel Production environment variables, with no trailing slashes:
+Copy these values into Vercel Production environment variables. Do not add a trailing slash on the origin URLs. `NEXT_PUBLIC_WORKER_HEALTH_URL` is the full worker readiness URL, including `/health`:
 
 ```dotenv
 APP_BASE_URL=https://rzpy-agent-web.vercel.app
 API_BASE_URL=https://recoveryosapi-production.up.railway.app
 NEXT_PUBLIC_API_URL=https://recoveryosapi-production.up.railway.app
-NEXT_PUBLIC_WORKER_HEALTH_URL=https://recoveryosworker-production.up.railway.app
+NEXT_PUBLIC_WORKER_HEALTH_URL=https://recoveryosworker-production.up.railway.app/health
 ```
+
+The header Worker link uses that value as the href. Paste the complete hostname. If the value is truncated to something like `https://recoveryosworker-`, the app falls back to `https://recoveryosworker-production.up.railway.app/health`.
 
 Set `APP_BASE_URL=https://rzpy-agent-web.vercel.app` on the Railway API service as well. Do not include a trailing slash: browser `Origin` headers omit it, so an exact CORS allow-origin value with `/` can reject browser-side checkout requests.
 
@@ -485,7 +487,7 @@ Copy [`.env.example`](./.env.example) to an untracked `.env` file. Never place c
 | `REDIS_PASSWORD`                | Managed Redis data-access password                           | Required with `REDIS_HOST`                    |
 | `REDIS_TLS`                     | Selects `rediss://` when set to `true`                       | Optional; defaults to `false`                 |
 | `NEXT_PUBLIC_API_URL`           | Browser-visible Fastify base URL                             | Required by web                               |
-| `NEXT_PUBLIC_WORKER_HEALTH_URL` | Browser-visible worker health URL                            | Required by web health link                   |
+| `NEXT_PUBLIC_WORKER_HEALTH_URL` | Browser-visible worker readiness URL, including `/health`    | Required by web health link                   |
 | `RAZORPAY_TEST_MODE_API_KEY`    | Razorpay Test Mode Key ID                                    | Required for Test Mode checkout/tools         |
 | `RAZORPAY_TEST_MODE_SECRET_KEY` | Razorpay Test Mode Key Secret                                | Required for Test Mode checkout/tools         |
 | `RAZORPAY_WEBHOOK_SECRET`       | Separate Razorpay webhook signing secret                     | Required only for signed live delivery        |

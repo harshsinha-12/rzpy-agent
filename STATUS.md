@@ -4,13 +4,13 @@ Last updated: 2026-08-28
 
 ## Current snapshot
 
-- **Current step:** Step 12 — Hosted runtime foundation
-- **State:** Step 12 remains in progress after approval to advance because its final live verification exposed Redis Cloud client saturation. Production CORS is corrected, the public web routes load, and the Railway API has an active webhook secret, but Step 13 must not begin until API readiness is healthy again after the connection-sharing repair is deployed.
-- **Application code:** The worker now reuses one normal ioredis client across its five recovery queues and six BullMQ consumers, while retaining the blocking duplicates BullMQ requires and a separate fail-fast health client. Runtime PostgreSQL pools retain the Aiven TLS and connection-budget controls, and stable BullMQ job IDs remain colon-free.
-- **Runtime services:** Vercel `/`, `/recoveries`, and `/demo/checkout` returned HTTP 200. Railway API liveness returned `live`, production CORS returned the exact origin without a trailing slash, and an unsigned webhook request returned `INVALID_WEBHOOK_SIGNATURE`, proving the webhook secret is active. Redis Cloud rejected one additional diagnostic client with `ERR max number of clients reached`, temporarily degrading API readiness; after that client closed, both API and worker readiness returned healthy with PostgreSQL and Redis `up`. The lack of client headroom still requires the connection-sharing repair before a safe rolling deployment.
+- **Current step:** Step 13 — Razorpay Test Mode webhook proof
+- **State:** Step 12 is complete after explicit approval and current hosted verification. Step 13 is in progress: the Railway API has an active webhook secret, the signed-ingestion path is deployed, and the deliberate checkout is now configured in source for Razorpay's ₹1 minimum. The ₹1 change still needs deployment before the failed Test Mode transaction is run.
+- **Application code:** `NEXT_PUBLIC_WORKER_HEALTH_URL` is the full worker readiness URL, including `/health`; the header Worker link uses that href and falls back if the hostname is truncated. The Test Mode demo amount is a shared domain constant set to 100 paise and used by both order creation and the visible checkout label. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
+- **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Deploy the BullMQ connection-sharing repair and confirm API and worker readiness stay healthy within the Redis Cloud client limit. The user reports the Redis policy is now `no eviction`; direct CLI verification was prevented by the saturated client limit.
-- **Exact next action:** Deploy the worker repair, verify Redis `maxmemory_policy=noeviction` when a client slot is available, and repeat all three public health checks. Only then mark Step 12 complete and Step 13 in progress, change the checkout to ₹1, and trigger the signed Test Mode failure.
+- **Current blocker:** Deploy the ₹1 checkout change, then confirm the Razorpay Test Mode webhook itself is enabled with the four Step 13 events before triggering a deliberate failure.
+- **Exact next action:** Push the ₹1 change, wait for Railway and Vercel, confirm the deployed order amount is 100 paise, then complete a Test Mode UPI failure with `failure@razorpay` and verify one idempotent `RAZORPAY_TEST_MODE` case.
 
 ## Step overview
 
@@ -28,8 +28,8 @@ Last updated: 2026-08-28
 |    9 | Recovery execution tools                         | Awaiting approval |
 |   10 | Simulator and evaluation harness                 | Complete          |
 |   11 | Reliability, security, and end-to-end validation | Complete          |
-|   12 | Hosted runtime foundation                        | In progress       |
-|   13 | Razorpay Test Mode webhook proof                 | Not started       |
+|   12 | Hosted runtime foundation                        | Complete          |
+|   13 | Razorpay Test Mode webhook proof                 | In progress       |
 |   14 | Bounded AI recovery and paid Test Mode outcome   | Not started       |
 |   15 | Measured batch recovery evidence                 | Not started       |
 |   16 | Final judge demo and submission hardening        | Not started       |
@@ -53,16 +53,16 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 
 ## Credentials status
 
-| Credential                      | Needed in step | Status                                                        |
-| ------------------------------- | -------------: | ------------------------------------------------------------- |
-| Local PostgreSQL URL            |              1 | Configured with Docker default                                |
-| Local Redis URL                 |              1 | Configured on host port 6380                                  |
-| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                                  |
-| Razorpay webhook secret         |          5, 13 | Configured on Railway API; signature rejection verified       |
-| OpenAI API key                  |          7, 14 | Rotated; fresh value pending in Railway worker                |
-| Redis Cloud credentials         |             12 | Connected; user reports `no eviction`; client limit saturated |
-| Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified               |
-| Deployment credentials          |             12 | Vercel/CORS verified; Redis connection repair pending deploy  |
+| Credential                      | Needed in step | Status                                                  |
+| ------------------------------- | -------------: | ------------------------------------------------------- |
+| Local PostgreSQL URL            |              1 | Configured with Docker default                          |
+| Local Redis URL                 |              1 | Configured on host port 6380                            |
+| Razorpay Test Key ID and Secret |              5 | Configured and authenticated                            |
+| Razorpay webhook secret         |          5, 13 | Configured on Railway API; signature rejection verified |
+| OpenAI API key                  |          7, 14 | Rotated; fresh value pending in Railway worker          |
+| Redis Cloud credentials         |             12 | `noeviction` verified; 12 clients after worker repair   |
+| Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified         |
+| Deployment credentials          |             12 | Vercel, Railway, CORS, PostgreSQL, and Redis verified   |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -1611,7 +1611,6 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 
 - `apps/worker/src/worker.ts`
 - `apps/worker/src/queues/recovery-queues.ts`
-- `README.md`
 - `DECISIONS.md`
 - `STATUS.md`
 
@@ -1636,6 +1635,91 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Deploy the worker repair, verify stable public readiness and `maxmemory_policy=noeviction`, then mark Step 12 complete and Step 13 in progress before changing the deliberate checkout to ₹1.
+
+### 2026-08-28 — Worker health env is the full /health URL
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:**
+
+- Treat `NEXT_PUBLIC_WORKER_HEALTH_URL` as `https://recoveryosworker-production.up.railway.app/health`, not as a worker origin.
+
+**Completed:**
+
+- Defaulted the web env var to the full Railway worker readiness URL.
+- Resolved the header Worker href from that value, still adding `/health` when only an origin is supplied and falling back if the hostname is truncated.
+- Updated the README Vercel contract, `.env.example`, and tests to match.
+
+**Files changed:**
+
+- `apps/web/src/config/env.ts`
+- `apps/web/src/config/health-urls.ts`
+- `apps/web/src/config/health-urls.test.ts`
+- `apps/web/src/components/app-shell.test.tsx`
+- `.env.example`
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/web exec vitest run src/config/health-urls.test.ts src/components/app-shell.test.tsx` passed (5 tests).
+- Local `.env` already contains `NEXT_PUBLIC_WORKER_HEALTH_URL=https://recoveryosworker-production.up.railway.app/health`.
+
+**Blockers:**
+
+- The live Vercel Worker link still needs a redeploy to pick up this contract. Step 12 still also needs the worker Redis-connection repair deployed.
+
+**Next action:**
+
+- Set the Vercel Production value to the full `/health` URL if it is still an origin or truncated hostname, redeploy the web app, and confirm the header Worker link opens `https://recoveryosworker-production.up.railway.app/health`.
+
+### 2026-08-28 — Complete Step 12 and begin ₹1 webhook proof
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Verify the Redis fix and begin the next Razorpay integration steps with a ₹1 Test Mode payment.
+
+**Completed:**
+
+- Verified the deployed connection repair remained healthy through six API and worker readiness checks.
+- Verified Redis Cloud reports `maxmemory_policy=noeviction` and 12 connected clients.
+- Marked Step 12 complete after the user's explicit approval and current acceptance evidence.
+- Marked Step 13 in progress.
+- Added one shared `TEST_MODE_DEMO_AMOUNT_PAISE` domain constant set to 100 paise.
+- Used the shared amount for Razorpay order creation and the visible checkout label so both surfaces stay at ₹1.
+- Strengthened the demo checkout service test to assert the exact 100-paise provider request and response.
+
+**Files changed:**
+
+- `packages/domain/src/constants.ts`
+- `packages/domain/src/index.ts`
+- `apps/api/src/modules/demo/razorpay/service.ts`
+- `apps/api/src/modules/demo/razorpay/service.test.ts`
+- `apps/web/src/features/demo-checkout/components/checkout-trigger.tsx`
+- `PLAN.md`
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Redis `INFO` returned `maxmemory_policy=noeviction` and `connected_clients=12` without exposing credentials.
+- Domain lint, typecheck, and build passed.
+- API lint and typecheck passed after rebuilding the domain declarations.
+- Focused demo checkout service tests passed: 1 file and 2 tests.
+- Web lint, typecheck, and production build passed; `/demo/checkout` remains a built dynamic route.
+- The API transitive production build passed.
+
+**Blockers:**
+
+- The ₹1 source change must be pushed and deployed before creating the Test Mode order.
+- Razorpay Dashboard delivery history and active-event selection still require dashboard confirmation.
+- Completing the UPI failure requires the interactive Razorpay Checkout.
+
+**Next action:**
+
+- Deploy the ₹1 change, verify the deployed order amount is 100 paise, then run `failure@razorpay` and inspect webhook delivery plus the resulting Test Mode case.
 
 ## Session entry template
 

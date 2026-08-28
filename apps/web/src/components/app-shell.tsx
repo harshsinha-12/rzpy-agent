@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { publicApiUrl, publicWorkerHealthUrl } from "@/config/env";
+import { resolveWorkerHealthUrl } from "@/config/health-urls";
 
 import styles from "./app-shell.module.css";
 
 const apiLivenessUrl = new URL("/health/live", publicApiUrl).toString();
 const apiReadinessUrl = new URL("/health", publicApiUrl).toString();
-const workerHealthUrl = new URL("/health", publicWorkerHealthUrl).toString();
+const workerHealthUrl = resolveWorkerHealthUrl(publicWorkerHealthUrl);
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (

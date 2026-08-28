@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/config/env", () => ({
   publicApiUrl: "https://api.example.com",
-  publicWorkerHealthUrl: "https://worker.example.com",
+  publicWorkerHealthUrl: "https://worker.example.com/health",
 }));
 
 import { AppShell } from "./app-shell";
@@ -20,5 +20,6 @@ describe("AppShell", () => {
     expect(markup).toContain('href="https://worker.example.com/health"');
     expect(markup).toContain("API live");
     expect(markup).toContain("API ready");
+    expect(markup).toContain("Worker");
   });
 });

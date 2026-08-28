@@ -53,7 +53,8 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   │   │       ├── types.ts
 │   │   │   │       └── utils.ts
 │   │   │   ├── config/
-│   │   │   │   └── env.ts
+│   │   │   │   ├── env.ts
+│   │   │   │   └── health-urls.ts
 │   │   │   ├── lib/
 │   │   │   │   └── api-client.ts
 │   │   │   └── types/
