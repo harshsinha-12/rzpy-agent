@@ -5,10 +5,9 @@ import { useState } from "react";
 
 import { TEST_MODE_DEMO_AMOUNT_PAISE } from "@recoveryos/domain";
 
-import { publicApiUrl } from "@/config/env";
 import { formatMoney } from "@/lib/formatters";
 
-import { checkoutOrderSchema } from "../schemas";
+import { createDemoCheckoutOrder } from "../create-order";
 import styles from "./checkout.module.css";
 
 interface RazorpayCheckout {
@@ -36,18 +35,7 @@ export function CheckoutTrigger() {
 
     try {
       await loadCheckoutScript();
-      const response = await fetch(
-        new URL("/demo/razorpay/orders", publicApiUrl),
-        { method: "POST" },
-      );
-      const body: unknown = await response.json();
-      const parsed = checkoutOrderSchema.safeParse(body);
-
-      if (!response.ok || !parsed.success) {
-        throw new Error(
-          "Could not create a Razorpay Test Mode order. Add Test Mode keys first.",
-        );
-      }
+      const order = await createDemoCheckoutOrder();
 
       const RazorpayCheckout = window.Razorpay;
       if (!RazorpayCheckout) {
@@ -55,15 +43,15 @@ export function CheckoutTrigger() {
       }
 
       const checkout = new RazorpayCheckout({
-        amount: parsed.data.data.amountPaise,
-        currency: parsed.data.data.currency,
+        amount: order.amountPaise,
+        currency: order.currency,
         handler() {
           router.push("/recoveries?dataSource=RAZORPAY_TEST_MODE");
         },
-        key: parsed.data.data.keyId,
+        key: order.keyId,
         name: "Aurora Retail",
         notes: { source: "recoveryos_demo" },
-        order_id: parsed.data.data.orderId,
+        order_id: order.orderId,
         prefill: {
           contact: "+919000000099",
           email: "demo.customer@example.com",

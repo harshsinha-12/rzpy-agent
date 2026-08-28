@@ -5,12 +5,12 @@ Last updated: 2026-08-28
 ## Current snapshot
 
 - **Current step:** Step 13 — Razorpay Test Mode webhook proof
-- **State:** Step 12 is complete after explicit approval and current hosted verification. Step 13 is in progress: the Railway API has an active webhook secret, the signed-ingestion path is deployed, and the deliberate checkout is now configured in source for Razorpay's ₹1 minimum. The ₹1 change still needs deployment before the failed Test Mode transaction is run.
+- **State:** Step 12 is complete after explicit approval and current hosted verification. Step 13 is in progress: the Railway API has an active webhook secret, the signed-ingestion path is deployed, and both the public UI and API use Razorpay's ₹1 minimum. The deployed checkout failure was traced to a browser bundle calling localhost; a validated same-origin order proxy is ready to deploy.
 - **Application code:** `NEXT_PUBLIC_WORKER_HEALTH_URL` is the full worker readiness URL, including `/health`; the header Worker link uses that href and falls back if the hostname is truncated. The Test Mode demo amount is a shared domain constant set to 100 paise and used by both order creation and the visible checkout label. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Deploy the ₹1 checkout change, then confirm the Razorpay Test Mode webhook itself is enabled with the four Step 13 events before triggering a deliberate failure.
-- **Exact next action:** Push the ₹1 change, wait for Railway and Vercel, confirm the deployed order amount is 100 paise, then complete a Test Mode UPI failure with `failure@razorpay` and verify one idempotent `RAZORPAY_TEST_MODE` case.
+- **Current blocker:** Deploy the same-origin checkout proxy, then a user must complete the interactive Razorpay Test Mode Checkout using UPI ID `failure@razorpay`; Razorpay Dashboard delivery history and the four active-event selections also require dashboard confirmation.
+- **Exact next action:** Push and deploy the proxy, verify the public web route no longer requests localhost, then complete the ₹1 failure and verify successful webhook delivery, one normalized Test Mode case, and duplicate replay behavior.
 
 ## Step overview
 
@@ -1713,13 +1713,62 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 
 **Blockers:**
 
-- The ₹1 source change must be pushed and deployed before creating the Test Mode order.
 - Razorpay Dashboard delivery history and active-event selection still require dashboard confirmation.
-- Completing the UPI failure requires the interactive Razorpay Checkout.
+- Completing the UPI failure requires an interactive Razorpay Checkout, and no controllable browser session is connected.
+
+**Additional deployment evidence:**
+
+- Vercel rendered the ₹1 checkout label.
+- Railway's read-only checkout status reported `amountPaise: 100` after deployment.
+- Exactly one ₹1 Test Mode order was created and verified without exposing its key or order identifier.
+- One earlier unpaid ₹4,999 Test Mode order was created while Railway still served the previous build; no payment or webhook was triggered from it.
+- The deployed product currently has zero `RAZORPAY_TEST_MODE` recovery cases, establishing the pre-failure baseline.
+- Browser automation is unavailable, so the interactive UPI failure remains the exact next action.
 
 **Next action:**
 
-- Deploy the ₹1 change, verify the deployed order amount is 100 paise, then run `failure@razorpay` and inspect webhook delivery plus the resulting Test Mode case.
+- Open the deployed checkout, run the ₹1 UPI failure with `failure@razorpay`, then inspect Razorpay delivery history and the resulting Test Mode case before testing duplicate delivery.
+
+### 2026-08-28 — Repair deployed checkout localhost request
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Diagnose and fix the `Failed to fetch` error shown after clicking the ₹1 UPI payment button.
+
+**Completed:**
+
+- Confirmed from browser network evidence that the deployed client requested `http://localhost:4000/demo/razorpay/orders`.
+- Added a same-origin Next.js POST route that proxies order creation to Railway through server-only `API_BASE_URL`.
+- Moved client order creation into a focused fetcher that calls `/api/demo/razorpay/orders` and validates the response schema.
+- Added success and upstream-failure tests for the client fetcher.
+- Recorded the same-origin proxy boundary as D-046.
+
+**Files changed:**
+
+- `apps/web/src/app/api/demo/razorpay/orders/route.ts`
+- `apps/web/src/features/demo-checkout/create-order.ts`
+- `apps/web/src/features/demo-checkout/create-order.test.ts`
+- `apps/web/src/features/demo-checkout/components/checkout-trigger.tsx`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Web lint passed.
+- Web TypeScript check passed.
+- Focused checkout tests passed: 2 files and 3 tests.
+- Web production build passed and emitted `/api/demo/razorpay/orders` as a dynamic route.
+
+**Blockers:**
+
+- The fix must deploy to Vercel before interactive browser verification.
+- Razorpay Dashboard delivery history and active-event selection still require dashboard confirmation.
+
+**Next action:**
+
+- Push the proxy, wait for Vercel, verify the deployed same-origin route, then retry the ₹1 Test Mode UPI failure with `failure@razorpay`.
 
 ## Session entry template
 
