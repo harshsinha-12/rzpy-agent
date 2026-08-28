@@ -1,16 +1,16 @@
 # Project Status
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 ## Current snapshot
 
 - **Current step:** Step 12 — Hosted runtime foundation
-- **State:** Step 12 is in progress. The public Railway API and worker domains now return healthy responses against Aiven and Redis Cloud, and the exact production endpoints are documented. Vercel still needs the production API/worker environment values and a redeploy. Steps 13–16 define the remaining Razorpay webhook, paid bounded-recovery, measured-batch, and final-demo gates. Steps 17–22 now sequence the other Track 03 directions after that core loop.
-- **Application code:** Runtime PostgreSQL pools now handle Aiven's CA-less `sslmode=require` explicitly without disabling TLS globally, remote seeding has a bounded 30-second transaction, and stable BullMQ job IDs are colon-free. The public `/about` page is complete as a judge-facing surface. README, architecture, and limitations now name Track 03 and the deferred example directions. Reported Issues includes the detect-to-observe workflow.
-- **Runtime services:** `recoveryosapi-production.up.railway.app` passed liveness and readiness with PostgreSQL and Redis `up`; `recoveryosworker-production.up.railway.app` passed readiness with both dependencies `up`. Aiven contains 4 applied migrations and the verified Aurora Retail sample dataset. Redis Cloud contains six queue namespaces, one delayed reconciliation job, and one scheduler.
+- **State:** Step 12 remains in progress after approval to advance because its final live verification exposed Redis Cloud client saturation. Production CORS is corrected, the public web routes load, and the Railway API has an active webhook secret, but Step 13 must not begin until API readiness is healthy again after the connection-sharing repair is deployed.
+- **Application code:** The worker now reuses one normal ioredis client across its five recovery queues and six BullMQ consumers, while retaining the blocking duplicates BullMQ requires and a separate fail-fast health client. Runtime PostgreSQL pools retain the Aiven TLS and connection-budget controls, and stable BullMQ job IDs remain colon-free.
+- **Runtime services:** Vercel `/`, `/recoveries`, and `/demo/checkout` returned HTTP 200. Railway API liveness returned `live`, production CORS returned the exact origin without a trailing slash, and an unsigned webhook request returned `INVALID_WEBHOOK_SIGNATURE`, proving the webhook secret is active. Redis Cloud rejected one additional diagnostic client with `ERR max number of clients reached`, temporarily degrading API readiness; after that client closed, both API and worker readiness returned healthy with PostgreSQL and Redis `up`. The lack of client headroom still requires the connection-sharing repair before a safe rolling deployment.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Redis Cloud still reports `volatile-lru`; it must use `no eviction` before BullMQ state is considered reliable. Railway API `APP_BASE_URL` also needs the Vercel origin without a trailing slash, and Vercel needs the documented production variables followed by a redeploy.
-- **Exact next action:** Set Redis Cloud to `no eviction`, set Railway API `APP_BASE_URL=https://rzpy-agent-web.vercel.app`, paste the four documented variables into Vercel Production, redeploy Vercel, and verify `/`, `/recoveries`, `/demo/checkout`, and all three health links.
+- **Current blocker:** Deploy the BullMQ connection-sharing repair and confirm API and worker readiness stay healthy within the Redis Cloud client limit. The user reports the Redis policy is now `no eviction`; direct CLI verification was prevented by the saturated client limit.
+- **Exact next action:** Deploy the worker repair, verify Redis `maxmemory_policy=noeviction` when a client slot is available, and repeat all three public health checks. Only then mark Step 12 complete and Step 13 in progress, change the checkout to ₹1, and trigger the signed Test Mode failure.
 
 ## Step overview
 
@@ -58,11 +58,11 @@ These versions were observed on 2026-08-20 and should be rechecked if environmen
 | Local PostgreSQL URL            |              1 | Configured with Docker default                                |
 | Local Redis URL                 |              1 | Configured on host port 6380                                  |
 | Razorpay Test Key ID and Secret |              5 | Configured and authenticated                                  |
-| Razorpay webhook secret         |          5, 13 | Not created                                                   |
+| Razorpay webhook secret         |          5, 13 | Configured on Railway API; signature rejection verified       |
 | OpenAI API key                  |          7, 14 | Rotated; fresh value pending in Railway worker                |
-| Redis Cloud credentials         |             12 | Connected; BullMQ initialized; eviction policy pending        |
+| Redis Cloud credentials         |             12 | Connected; user reports `no eviction`; client limit saturated |
 | Aiven PostgreSQL URL            |             12 | Connected, migrated, seeded, and count-verified               |
-| Deployment credentials          |             12 | Railway API/worker verified; Vercel production wiring pending |
+| Deployment credentials          |             12 | Vercel/CORS verified; Redis connection repair pending deploy  |
 
 Secrets must be placed only in an untracked local environment file, never in this status document.
 
@@ -1019,7 +1019,6 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 
 - `apps/api/src/config/env.ts`
 - `apps/worker/src/config/env.ts`
-- `README.md`
 - `DECISIONS.md`
 - `STATUS.md`
 
@@ -1590,6 +1589,53 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Apply the Railway CORS and Vercel environment values, redeploy Vercel, then verify public product routes and health links.
+
+### 2026-08-28 — Reduce BullMQ Redis connection fan-out
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Verify the completed hosted foundation and begin the Razorpay Test Mode webhook proof.
+
+**Completed:**
+
+- Treated the user's instruction as approval to finish Step 12 and advance only after its live acceptance checks passed.
+- Verified the public Vercel routes, corrected production CORS, API liveness, worker readiness, and active webhook-secret validation without exposing secrets or creating a provider object.
+- Found that Redis Cloud rejected an additional client with `ERR max number of clients reached`; API readiness consequently returned degraded with Redis down.
+- Reused one worker-owned ioredis client across all BullMQ Queue and Worker instances with `maxRetriesPerRequest: null`, retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
+- Added graceful shutdown of the shared client after queues and workers close.
+- Kept Step 12 in progress and did not change the checkout amount or create a Razorpay order because the hosted-runtime acceptance gate is not currently green.
+
+**Files changed:**
+
+- `apps/worker/src/worker.ts`
+- `apps/worker/src/queues/recovery-queues.ts`
+- `README.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Vercel `/`, `/recoveries`, and `/demo/checkout` returned HTTP 200 earlier in the session.
+- Railway API `/health/live` returned `live`; worker `/health` returned PostgreSQL and Redis `up`.
+- Production CORS returned `access-control-allow-origin: https://rzpy-agent-web.vercel.app` without a trailing slash.
+- An unsigned webhook request returned HTTP 400 `INVALID_WEBHOOK_SIGNATURE`, proving `RAZORPAY_WEBHOOK_SECRET` is active without revealing it.
+- Direct Redis inspection was rejected with `ERR max number of clients reached`; API `/health` returned degraded with Redis `Connection is closed`.
+- After the diagnostic client closed, API and worker `/health` both returned healthy with PostgreSQL and Redis `up`.
+- Worker lint and TypeScript checks passed.
+- The transitive worker production build passed.
+- Formatting and repository diff checks passed before the documentation update.
+- Worker integration tests could not run because local PostgreSQL and Redis were stopped; the rerun failed with `ECONNREFUSED` on ports 5432 and 6380, and Docker Desktop was not running.
+
+**Blockers:**
+
+- The connection-sharing repair must be deployed, then API and worker readiness must be rechecked.
+- Direct `no eviction` verification remains pending until Redis Cloud has an available client slot; the user reports the console setting is complete.
+
+**Next action:**
+
+- Deploy the worker repair, verify stable public readiness and `maxmemory_policy=noeviction`, then mark Step 12 complete and Step 13 in progress before changing the deliberate checkout to ₹1.
 
 ## Session entry template
 

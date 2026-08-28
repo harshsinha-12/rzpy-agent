@@ -1,4 +1,4 @@
-import { Queue } from "bullmq";
+import { Queue, type ConnectionOptions } from "bullmq";
 import {
   analysisJobId,
   analyseRecoveryJobName,
@@ -22,7 +22,6 @@ import {
   type RecoveryVerificationJobData,
 } from "@recoveryos/domain";
 
-import { createBullMqConnectionOptions } from "./connection.js";
 import { defaultRecoveryJobOptions, delayUntil } from "./job-options.js";
 
 export interface RecoveryJobQueues {
@@ -40,8 +39,9 @@ export interface RecoveryJobQueues {
   scheduleReconciliation(merchantSlug: string): Promise<void>;
 }
 
-export function createRecoveryJobQueues(redisUrl: string): RecoveryJobQueues {
-  const connection = createBullMqConnectionOptions(redisUrl);
+export function createRecoveryJobQueues(
+  connection: ConnectionOptions,
+): RecoveryJobQueues {
   const paymentEvents = new Queue<PaymentEventJobData>(paymentEventsQueueName, {
     connection,
   });

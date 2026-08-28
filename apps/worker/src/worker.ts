@@ -20,7 +20,6 @@ import { createPrismaRecoveryAgentTools } from "./agents/recovery-context.js";
 import { env } from "./config/env.js";
 import { startHealthServer } from "./health-server.js";
 import { processSystemHealthJob } from "./jobs/system-health.js";
-import { createBullMqConnectionOptions } from "./queues/connection.js";
 import { SYSTEM_HEALTH_QUEUE } from "./queues/names.js";
 import { createRecoveryJobQueues } from "./queues/recovery-queues.js";
 import { createRecoveryWorkers } from "./queues/register-workers.js";
@@ -31,12 +30,14 @@ const database = createDatabasePool(env.DATABASE_URL);
 const prisma = createPrismaClient(env.DATABASE_URL, {
   max: env.DATABASE_POOL_MAX,
 });
-const redis = new Redis(env.REDIS_URL, {
+const healthRedis = new Redis(env.REDIS_URL, {
   lazyConnect: true,
   maxRetriesPerRequest: 1,
 });
-const connection = createBullMqConnectionOptions(env.REDIS_URL);
-const queues = createRecoveryJobQueues(env.REDIS_URL);
+const bullMqRedis = new Redis(env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+});
+const queues = createRecoveryJobQueues(bullMqRedis);
 const recoveryAgentTools = createPrismaRecoveryAgentTools(prisma);
 const recoveryAgent = env.OPENAI_API_KEY
   ? createOpenAIRecoveryAgent({
@@ -52,10 +53,10 @@ const recoveryActionExecutor = createRecoveryActionExecutor(
 );
 
 const healthWorker = new Worker(SYSTEM_HEALTH_QUEUE, processSystemHealthJob, {
-  connection,
+  connection: bullMqRedis,
 });
 const recoveryWorkers = createRecoveryWorkers({
-  connection,
+  connection: bullMqRedis,
   prisma,
   queues,
   recoveryAgent,
@@ -82,10 +83,10 @@ async function getHealthSnapshot(): Promise<HealthSnapshot> {
   const [postgres, redisHealth] = await Promise.all([
     checkDependency(async () => checkDatabaseConnection(database)),
     checkDependency(async () => {
-      if (redis.status === "wait") {
-        await redis.connect();
+      if (healthRedis.status === "wait") {
+        await healthRedis.connect();
       }
-      await redis.ping();
+      await healthRedis.ping();
     }),
   ]);
 
@@ -129,10 +130,13 @@ const shutdown = async (signal: string) => {
     queues.close(),
     prisma.$disconnect(),
     closeDatabasePool(database),
-    redis.status === "wait" || redis.status === "end"
+    healthRedis.status === "wait" || healthRedis.status === "end"
       ? Promise.resolve()
-      : redis.quit(),
+      : healthRedis.quit(),
   ]);
+  if (bullMqRedis.status !== "end") {
+    await bullMqRedis.quit();
+  }
   process.exit(0);
 };
 
