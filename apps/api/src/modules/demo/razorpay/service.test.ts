@@ -8,6 +8,7 @@ describe("demo checkout service", () => {
     const service = createDemoCheckoutService({ keyId: "" });
     const status = service.getStatus();
 
+    expect(status.amountPaise).toBe(TEST_MODE_DEMO_AMOUNT_PAISE);
     expect(status.configured).toBe(false);
     expect(status.keySetupUrl).toContain("razorpay.com");
   });

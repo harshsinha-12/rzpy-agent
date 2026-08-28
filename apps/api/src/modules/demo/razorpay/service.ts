@@ -40,6 +40,7 @@ export function createDemoCheckoutService(options: {
 
     getStatus() {
       return {
+        amountPaise: TEST_MODE_DEMO_AMOUNT_PAISE,
         configured: Boolean(options.keyId && options.orders),
         keySetupUrl: RAZORPAY_KEY_SETUP_URL,
         mode: "test",

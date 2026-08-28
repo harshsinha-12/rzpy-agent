@@ -1,4 +1,5 @@
 export interface DemoCheckoutStatus {
+  amountPaise: number;
   configured: boolean;
   keySetupUrl: string;
   mode: "test";
