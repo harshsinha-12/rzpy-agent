@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 ## Current snapshot
 
@@ -1779,6 +1779,40 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - The single proposed `ALTERNATIVE_METHOD` action was policy-denied and skipped; no automated financial or messaging action executed.
 - API and worker health both remained healthy after ingestion.
 - Razorpay delivery-history HTTP status and replay of the same provider event remain pending.
+
+### 2026-08-29 — Audit Step 14 start gate
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Start Step 14.
+
+**Completed:**
+
+- Re-read the repository operating contract, Step 13 and Step 14 acceptance gates, current status, architecture decisions, project structure, and relevant recovery-flow sections of `idea.md`.
+- Confirmed the repository is clean at commit `05348ef` before this status update.
+- Confirmed Step 13 still requires Razorpay delivery-history HTTP 2xx evidence and one replay of the same provider event with no duplicate case, action, or job.
+- Attempted to connect to the logged-in Razorpay Dashboard to collect the missing evidence, but browser control was unavailable.
+- Kept Step 13 in progress and Step 14 not started as required by the sequential plan gate.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- `PLAN.md` still marks Step 13 in progress and Step 14 not started.
+- The last verified deployed state remains one ₹1 `RAZORPAY_TEST_MODE` case with a four-event audit timeline and healthy API/worker services.
+
+**Blockers:**
+
+- In Razorpay Test Mode webhook delivery history, confirm that the `payment.failed` delivery returned HTTP 2xx and replay that exact delivery once.
+- Browser control could not access the dashboard in this session.
+
+**Next action:**
+
+- After the user confirms the same delivery was replayed, verify the Test Mode case remains unique, mark Step 13 complete with evidence, and use the user's explicit approval to mark Step 14 in progress.
 
 ## Session entry template
 
