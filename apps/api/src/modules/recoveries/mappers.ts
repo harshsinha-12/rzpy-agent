@@ -40,6 +40,19 @@ function isPolicyViolation(
   );
 }
 
+function razorpayPaymentLinkUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "rzp.io"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function actionMetadata(action: RecoveryActionRecord) {
   const input = isRecord(action.input) ? action.input : undefined;
   const output = isRecord(action.output) ? action.output : undefined;
@@ -53,6 +66,13 @@ function actionMetadata(action: RecoveryActionRecord) {
     : [];
 
   return {
+    paymentLinkShortUrl: razorpayPaymentLinkUrl(output?.shortUrl),
+    paymentLinkStatus:
+      typeof output?.paymentLinkStatus === "string"
+        ? output.paymentLinkStatus
+        : typeof output?.status === "string"
+          ? output.status
+          : null,
     policyViolations,
     proposalEvidence: evidence,
     proposalModel: typeof input?.model === "string" ? input.model : null,

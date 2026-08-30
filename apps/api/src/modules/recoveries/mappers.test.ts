@@ -127,4 +127,33 @@ describe("mapRecoveryCaseDetail", () => {
       safeFallbackAction: "ESCALATE",
     });
   });
+
+  it("exposes only an HTTPS Razorpay short URL for a created Payment Link", () => {
+    const record = detailRecord();
+    const existingAction = record.actions[0];
+    if (!existingAction) throw new Error("Expected one recovery action.");
+    const paymentLinkAction: RecoveryCaseDetailRecord["actions"][number] = {
+      ...existingAction,
+      actionType: "CREATE_PAYMENT_LINK",
+      output: {
+        shortUrl: "https://rzp.io/i/test-recovery",
+        status: "created",
+      },
+      policyDecision: "APPROVED",
+      result: "SUCCEEDED",
+    };
+    record.actions[0] = paymentLinkAction;
+
+    const mapped = mapRecoveryCaseDetail(record);
+
+    expect(mapped.actions[0]).toMatchObject({
+      paymentLinkShortUrl: "https://rzp.io/i/test-recovery",
+      paymentLinkStatus: "created",
+    });
+
+    paymentLinkAction.output = { shortUrl: "http://example.com/not-safe" };
+    expect(mapRecoveryCaseDetail(record).actions[0]?.paymentLinkShortUrl).toBe(
+      null,
+    );
+  });
 });

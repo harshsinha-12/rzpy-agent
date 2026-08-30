@@ -57,6 +57,16 @@ export function RecoveryActionCard({ action }: { action: RecoveryAction }) {
           <span>Eligible {formatDateTime(action.scheduledFor)}</span>
         ) : null}
       </div>
+      {action.paymentLinkShortUrl ? (
+        <a
+          className={styles.paymentLink}
+          href={action.paymentLinkShortUrl}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Open Test Mode Payment Link
+        </a>
+      ) : null}
     </article>
   );
 }

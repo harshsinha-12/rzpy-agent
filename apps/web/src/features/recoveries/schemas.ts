@@ -58,6 +58,8 @@ const recoveryActionSchema = z.object({
   id: z.string(),
   input: z.unknown(),
   output: z.unknown(),
+  paymentLinkShortUrl: z.string().url().nullable(),
+  paymentLinkStatus: z.string().nullable(),
   policyDecision: z.enum(policyDecisions),
   policyViolations: z.array(
     z.object({ code: z.string(), message: z.string() }),

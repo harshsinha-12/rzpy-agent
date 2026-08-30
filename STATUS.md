@@ -6,11 +6,11 @@ Last updated: 2026-08-30
 
 - **Current step:** Step 14 — Bounded AI recovery and paid Test Mode outcome
 - **State:** Step 13 is complete after a signature-valid replay of the retained Test Mode event returned HTTP 200 with `duplicate: true`; webhook, case, action, job, and audit counts remained unchanged. Step 14 is in progress by explicit user approval. The first live case already provides the contrasting policy-denied path; an approved Payment Link case and paid outcome remain.
-- **Application code:** `NEXT_PUBLIC_WORKER_HEALTH_URL` is the full worker readiness URL, including `/health`; the header Worker link uses that href and falls back if the hostname is truncated. The Test Mode demo amount is a shared domain constant set to 100 paise and used by both order creation and the visible checkout label. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
+- **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders a Test Mode Payment Link action. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
 - **Current blocker:** The existing Test Mode case cannot be reused for an approved action because its first proposal is intentionally idempotent and was policy-denied for violating the three-minute minimum. Step 14 needs one new real failed Test Mode payment whose AI proposal passes policy and creates a silent Payment Link.
-- **Exact next action:** Tighten the agent prompt and tests so non-terminal proposals respect the supplied minimum delay, deploy the worker, then create one new ₹1 Test Mode failure and verify an approved action-bound Payment Link before paying it.
+- **Exact next action:** Deploy commit `1aecc52` plus the Payment Link UI follow-up, create one new ₹1 Test Mode failure, wait for the approved action to execute after three minutes, then open and pay the generated link from the case page.
 
 ## Step overview
 
@@ -1833,6 +1833,8 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Required non-terminal deterministic fallbacks to honor the merchant minimum delay.
 - Added focused prompt, diagnosis, and fallback tests.
 - Ran a read-only GPT-5.6 Terra dry run with the corrected context; it proposed `CREATE_PAYMENT_LINK` with a three-minute delay and no fallback.
+- Added typed Payment Link status/short-URL fields to the case API, accepting only HTTPS links on Razorpay's `rzp.io` host.
+- Added an `Open Test Mode Payment Link` action to executed recovery cards so the paid outcome can be completed from the deployed case page.
 
 **Files changed:**
 
@@ -1842,6 +1844,12 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - `packages/agents/src/recovery/agent.test.ts`
 - `packages/recovery-engine/src/diagnosis/constants.ts`
 - `packages/recovery-engine/src/diagnosis/diagnose.test.ts`
+- `apps/api/src/modules/recoveries/mappers.ts`
+- `apps/api/src/modules/recoveries/mappers.test.ts`
+- `apps/web/src/features/recoveries/schemas.ts`
+- `apps/web/src/features/recoveries/components/recovery-action-card.tsx`
+- `apps/web/src/features/recoveries/components/recovery-action-card.test.tsx`
+- `apps/web/src/features/recoveries/components/recovery-detail.module.css`
 - `PLAN.md`
 - `README.md`
 - `DECISIONS.md`
@@ -1853,6 +1861,8 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Agents lint and TypeScript checks passed; 2 files and 8 tests passed; production build passed.
 - Worker TypeScript check and production build passed.
 - Live-model dry run returned source `OPENAI`, model `gpt-5.6-terra`, action `CREATE_PAYMENT_LINK`, delay 3 minutes, and no fallback reason.
+- API lint, TypeScript, focused recovery mapper/routes tests (2 files, 8 tests), and production build passed.
+- Web lint, TypeScript, focused recovery-action tests (1 file, 2 tests), and production build passed.
 
 **Blockers:**
 

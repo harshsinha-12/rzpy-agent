@@ -15,6 +15,8 @@ const action: RecoveryCaseDetail["actions"][number] = {
   id: "action_test_policy",
   input: {},
   output: {},
+  paymentLinkShortUrl: null,
+  paymentLinkStatus: null,
   policyDecision: "DENIED",
   policyReason: "Merchant failures must not contact the customer.",
   policyViolations: [
@@ -44,5 +46,24 @@ describe("RecoveryActionCard", () => {
     expect(markup).toContain("Denied");
     expect(markup).toContain("Safe fallback: Escalate");
     expect(markup).toContain("Merchant Failure:");
+  });
+
+  it("links to an executed Razorpay Test Mode Payment Link", () => {
+    const markup = renderToStaticMarkup(
+      createElement(RecoveryActionCard, {
+        action: {
+          ...action,
+          actionType: "CREATE_PAYMENT_LINK",
+          paymentLinkShortUrl: "https://rzp.io/i/test-recovery",
+          paymentLinkStatus: "created",
+          policyDecision: "APPROVED",
+          result: "SUCCEEDED",
+        },
+      }),
+    );
+
+    expect(markup).toContain("Open Test Mode Payment Link");
+    expect(markup).toContain('href="https://rzp.io/i/test-recovery"');
+    expect(markup).toContain('target="_blank"');
   });
 });
