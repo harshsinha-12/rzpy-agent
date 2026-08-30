@@ -142,7 +142,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 5 — Razorpay Test Mode ingestion
 
-**Status:** Blocked
+**Status:** Complete
 
 **Goal:** Safely receive and persist actual Razorpay Test Mode payment events. Initially redirect to where I can get the API keys if needed for razorpay test mode and let me add them then after confirmation start implementing
 
@@ -334,7 +334,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 13 — Razorpay Test Mode webhook proof
 
-**Status:** In progress
+**Status:** Complete
 
 **Goal:** Close the track's detection requirement by proving that an actual failed Test Mode payment becomes an idempotent RecoveryOS case.
 
@@ -361,7 +361,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 14 — Bounded AI recovery and paid Test Mode outcome
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Prove the complete detect-to-recover loop on one real Test Mode case while deterministic policy retains execution authority.
 

@@ -31,13 +31,14 @@ interface CreateOpenAIRecoveryAgentOptions {
 function fallbackProposal(
   context: RecoveryAgentContext,
 ): RecoveryAgentProposal {
+  const isTerminal = ["ESCALATE", "STOP"].includes(
+    context.diagnosis.fallbackAction,
+  );
+
   return {
     action: context.diagnosis.fallbackAction,
     confidence: context.diagnosis.recoverabilityScore,
-    delayMinutes:
-      context.diagnosis.fallbackAction === "WAIT"
-        ? context.policy.minimumRetryDelayMinutes
-        : 0,
+    delayMinutes: isTerminal ? 0 : context.policy.minimumRetryDelayMinutes,
     diagnosis: context.diagnosis.summary,
     evidence:
       context.diagnosis.evidence.length > 0

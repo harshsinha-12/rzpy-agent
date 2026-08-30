@@ -17,7 +17,7 @@ export const categoryProfiles: Record<FailureCategory, CategoryProfile> = {
       "Customer authentication failed. A fresh, contextual payment attempt is more useful than repeated automatic retries.",
     minimumScore: 30,
     repeatPenalty: 12,
-    recommendedAction: "ALTERNATIVE_METHOD",
+    recommendedAction: "CREATE_PAYMENT_LINK",
   },
   GATEWAY_TRANSIENT: {
     baseScore: 86,

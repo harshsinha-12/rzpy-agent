@@ -122,4 +122,24 @@ describe("createRecoveryAgent", () => {
     );
     expect(model.generate).not.toHaveBeenCalled();
   });
+
+  it("keeps a non-terminal deterministic fallback inside the merchant delay", async () => {
+    const result = await createRecoveryAgent({
+      tools: {
+        loadContext: vi.fn().mockResolvedValue({
+          ...context,
+          diagnosis: {
+            ...context.diagnosis,
+            category: "CUSTOMER_AUTH",
+            fallbackAction: "CREATE_PAYMENT_LINK",
+          },
+        }),
+      },
+    }).propose(context.caseId);
+
+    expect(result.proposal).toMatchObject({
+      action: "CREATE_PAYMENT_LINK",
+      delayMinutes: 3,
+    });
+  });
 });

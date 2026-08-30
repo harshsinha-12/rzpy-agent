@@ -8,7 +8,7 @@ The central rule is simple:
 
 The project combines a merchant-facing recovery dashboard with Razorpay Test Mode, an OpenAI-powered proposal agent, deterministic safeguards, persistent BullMQ workflows, and an auditable simulator. Every record is visibly labelled `SIMULATED` or `RAZORPAY_TEST_MODE`; neither represents live merchant revenue.
 
-> **Project status:** Steps 0–4, 6–8, and 10–12 are complete. Step 13's Razorpay Test Mode webhook proof is in progress. Steps 14–16 define the remaining bounded Test Mode recovery, measured batch proof, and final judge-demo gates. Step 5's live webhook and Step 9's paid-link checks close inside those later acceptance steps. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
+> **Project status:** Steps 0–8 and 10–13 are complete. Step 14's bounded Test Mode recovery is in progress. Steps 15–16 define the remaining measured batch proof and final judge-demo gates. Step 9's paid-link check closes inside Step 14. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
 
 ## What we are doing
 

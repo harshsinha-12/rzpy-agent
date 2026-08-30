@@ -118,6 +118,22 @@ describe("diagnosePaymentFailure", () => {
     });
   });
 
+  it("offers a fresh payment link after customer authentication fails", () => {
+    const result = diagnosePaymentFailure({
+      attemptCount: 1,
+      errorReason: "payment_cancelled",
+      errorSource: "customer",
+      errorStep: "payment_authentication",
+      method: "CARD",
+    });
+
+    expect(result).toMatchObject({
+      category: "CUSTOMER_AUTH",
+      customerContactAllowed: true,
+      recommendedAction: "CREATE_PAYMENT_LINK",
+    });
+  });
+
   it("never recommends customer contact for merchant failures", () => {
     const result = diagnosePaymentFailure({
       attemptCount: 2,

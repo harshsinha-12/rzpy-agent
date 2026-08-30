@@ -1,16 +1,16 @@
 # Project Status
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## Current snapshot
 
-- **Current step:** Step 13 — Razorpay Test Mode webhook proof
-- **State:** Step 12 is complete after explicit approval and current hosted verification. Step 13 is in progress: the deployed same-origin checkout created a ₹1 Razorpay Test Mode card attempt, its signed `payment.failed` webhook created exactly one normalized case, and the diagnosis/policy audit completed. Razorpay delivery-history evidence and duplicate replay verification remain.
+- **Current step:** Step 14 — Bounded AI recovery and paid Test Mode outcome
+- **State:** Step 13 is complete after a signature-valid replay of the retained Test Mode event returned HTTP 200 with `duplicate: true`; webhook, case, action, job, and audit counts remained unchanged. Step 14 is in progress by explicit user approval. The first live case already provides the contrasting policy-denied path; an approved Payment Link case and paid outcome remain.
 - **Application code:** `NEXT_PUBLIC_WORKER_HEALTH_URL` is the full worker readiness URL, including `/health`; the header Worker link uses that href and falls back if the hostname is truncated. The Test Mode demo amount is a shared domain constant set to 100 paise and used by both order creation and the visible checkout label. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Razorpay Dashboard delivery history and the four active-event selections require dashboard confirmation; the same successful provider event must be replayed once to finish the idempotency acceptance check.
-- **Exact next action:** In Razorpay Test Mode webhook delivery history, confirm the failed-payment delivery returned HTTP 2xx, capture redacted evidence, replay that same delivery once, then verify the Test Mode case count remains one with no duplicate action or audit sequence.
+- **Current blocker:** The existing Test Mode case cannot be reused for an approved action because its first proposal is intentionally idempotent and was policy-denied for violating the three-minute minimum. Step 14 needs one new real failed Test Mode payment whose AI proposal passes policy and creates a silent Payment Link.
+- **Exact next action:** Tighten the agent prompt and tests so non-terminal proposals respect the supplied minimum delay, deploy the worker, then create one new ₹1 Test Mode failure and verify an approved action-bound Payment Link before paying it.
 
 ## Step overview
 
@@ -21,7 +21,7 @@ Last updated: 2026-08-29
 |    2 | Database schema and deterministic seed data      | Complete          |
 |    3 | Read-only product API                            | Complete          |
 |    4 | Dashboard and Reported Issues frontend           | Complete          |
-|    5 | Razorpay Test Mode ingestion                     | Partially blocked |
+|    5 | Razorpay Test Mode ingestion                     | Complete          |
 |    6 | Deterministic diagnosis engine                   | Complete          |
 |    7 | AI proposal and deterministic policy engine      | Complete          |
 |    8 | BullMQ recovery orchestration                    | Complete          |
@@ -29,8 +29,8 @@ Last updated: 2026-08-29
 |   10 | Simulator and evaluation harness                 | Complete          |
 |   11 | Reliability, security, and end-to-end validation | Complete          |
 |   12 | Hosted runtime foundation                        | Complete          |
-|   13 | Razorpay Test Mode webhook proof                 | In progress       |
-|   14 | Bounded AI recovery and paid Test Mode outcome   | Not started       |
+|   13 | Razorpay Test Mode webhook proof                 | Complete          |
+|   14 | Bounded AI recovery and paid Test Mode outcome   | In progress       |
 |   15 | Measured batch recovery evidence                 | Not started       |
 |   16 | Final judge demo and submission hardening        | Not started       |
 |   17 | Checkout drop-off recovery                       | Not started       |
@@ -1813,6 +1813,55 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - After the user confirms the same delivery was replayed, verify the Test Mode case remains unique, mark Step 13 complete with evidence, and use the user's explicit approval to mark Step 14 in progress.
+
+### 2026-08-30 — Complete webhook idempotency and start Step 14
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Start Step 14.
+
+**Completed:**
+
+- Replayed the retained, reconstructed Test Mode webhook payload with a fresh valid signature and the same provider event ID against the deployed API.
+- Verified the API returned HTTP 200 with `received: true` and `duplicate: true`.
+- Verified webhook, case, action, job, and audit counts remained exactly unchanged at 1, 1, 1, 1, and 4.
+- Marked Steps 5 and 13 complete and Step 14 in progress after explicit user approval.
+- Confirmed the first live GPT-5.6 Terra proposal was denied only because its zero-minute delay violated the merchant's three-minute minimum.
+- Changed customer-authentication diagnosis to recommend a silent `CREATE_PAYMENT_LINK` and reserved `ALTERNATIVE_METHOD` for method-specific barriers.
+- Required non-terminal deterministic fallbacks to honor the merchant minimum delay.
+- Added focused prompt, diagnosis, and fallback tests.
+- Ran a read-only GPT-5.6 Terra dry run with the corrected context; it proposed `CREATE_PAYMENT_LINK` with a three-minute delay and no fallback.
+
+**Files changed:**
+
+- `packages/agents/src/recovery/prompt.ts`
+- `packages/agents/src/recovery/prompt.test.ts`
+- `packages/agents/src/recovery/agent.ts`
+- `packages/agents/src/recovery/agent.test.ts`
+- `packages/recovery-engine/src/diagnosis/constants.ts`
+- `packages/recovery-engine/src/diagnosis/diagnose.test.ts`
+- `PLAN.md`
+- `README.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Recovery engine lint and TypeScript checks passed; 3 files and 26 tests passed; production build passed.
+- Agents lint and TypeScript checks passed; 2 files and 8 tests passed; production build passed.
+- Worker TypeScript check and production build passed.
+- Live-model dry run returned source `OPENAI`, model `gpt-5.6-terra`, action `CREATE_PAYMENT_LINK`, delay 3 minutes, and no fallback reason.
+
+**Blockers:**
+
+- The worker change must deploy before creating the next real Test Mode failure.
+- Paying the resulting Razorpay Test Mode Payment Link requires an interactive checkout.
+
+**Next action:**
+
+- Deploy the worker, create one new ₹1 failed Test Mode card payment, wait for the approved action to execute after three minutes, then open and pay the generated silent Payment Link.
 
 ## Session entry template
 
