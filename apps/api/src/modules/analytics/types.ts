@@ -29,6 +29,7 @@ export interface AnalyticsCaseRecord {
 
 export interface SimulationRunRecord {
   configurationHash: string;
+  escalations: number;
   seed: number;
   paymentCount: number;
   revenueAtRiskPaise: number;
@@ -40,6 +41,7 @@ export interface SimulationRunRecord {
   attempts: number;
   falseInterventions: number;
   policyStops: number;
+  preventedFalseInterventions: number;
   customerContacts: number;
   dataSource: DataSource;
   startedAt: Date;

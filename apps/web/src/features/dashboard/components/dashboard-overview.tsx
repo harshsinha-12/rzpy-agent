@@ -159,7 +159,11 @@ export function DashboardOverview({
             <span>{simulation.paymentCount} synthetic payments</span>
             <span>{simulation.attempts} recovery attempts</span>
             <span>{simulation.policyStops} policy stops</span>
+            <span>{simulation.escalations} escalations</span>
             <span>{simulation.falseInterventions} false interventions</span>
+            <span>
+              {simulation.preventedFalseInterventions} interventions prevented
+            </span>
             <span>{simulation.customerContacts} simulated contacts</span>
             <span>
               {formatMoney(simulation.revenueAtRiskPaise)} at risk ·{" "}

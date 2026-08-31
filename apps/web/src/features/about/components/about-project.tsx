@@ -110,8 +110,9 @@ export function AboutProject({
               <span>Incremental</span>
               <h3>+{formatMoney(simulation.incrementalRevenuePaise)}</h3>
               <p>
-                {simulation.policyStops} policy stops ·{" "}
-                {simulation.falseInterventions} false-intervention flags.
+                {simulation.policyStops} policy stops · {simulation.escalations}{" "}
+                escalations · {simulation.preventedFalseInterventions}{" "}
+                unnecessary interventions prevented.
               </p>
             </article>
           </div>

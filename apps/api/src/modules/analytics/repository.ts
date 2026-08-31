@@ -8,7 +8,7 @@ export function createAnalyticsRepository(
 ): AnalyticsRepository {
   return {
     async getOverviewRecords(): Promise<AnalyticsOverviewRecords> {
-      const [cases, latestSimulationRun] = await Promise.all([
+      const [cases, latestRun] = await Promise.all([
         prisma.recoveryCase.findMany({
           orderBy: { publicId: "asc" },
           select: {
@@ -41,6 +41,7 @@ export function createAnalyticsRepository(
             dataSource: true,
             falseInterventions: true,
             incrementalRevenuePaise: true,
+            id: true,
             noInterventionRevenuePaise: true,
             paymentCount: true,
             policyStops: true,
@@ -54,7 +55,41 @@ export function createAnalyticsRepository(
         }),
       ]);
 
-      return { cases, latestSimulationRun };
+      if (!latestRun) return { cases, latestSimulationRun: null };
+
+      const { id: runId, ...latestSimulationRun } = latestRun;
+      const outcomes = await prisma.simulationOutcome.findMany({
+        select: {
+          action: true,
+          paymentId: true,
+          policyStopped: true,
+          recovered: true,
+          strategy: true,
+        },
+        where: { runId },
+      });
+      const noInterventionRecovered = new Map(
+        outcomes
+          .filter((outcome) => outcome.strategy === "NO_INTERVENTION")
+          .map((outcome) => [outcome.paymentId, outcome.recovered]),
+      );
+      const recoveryOutcomes = outcomes.filter(
+        (outcome) => outcome.strategy === "RECOVERY_OS",
+      );
+      return {
+        cases,
+        latestSimulationRun: {
+          ...latestSimulationRun,
+          escalations: recoveryOutcomes.filter(
+            (outcome) => outcome.action === "ESCALATE",
+          ).length,
+          preventedFalseInterventions: recoveryOutcomes.filter(
+            (outcome) =>
+              outcome.policyStopped &&
+              noInterventionRecovered.get(outcome.paymentId),
+          ).length,
+        },
+      };
     },
   };
 }
