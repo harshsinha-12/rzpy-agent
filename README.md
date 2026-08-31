@@ -8,7 +8,7 @@ The central rule is simple:
 
 The project combines a merchant-facing recovery dashboard with Razorpay Test Mode, an OpenAI-powered proposal agent, deterministic safeguards, persistent BullMQ workflows, and an auditable simulator. Every record is visibly labelled `SIMULATED` or `RAZORPAY_TEST_MODE`; neither represents live merchant revenue.
 
-> **Project status:** Steps 0–14 are complete. Step 15's measured batch evidence is in progress; Step 16 remains the final judge-demo gate. Step 14 proved a paid ₹1 Razorpay Test Mode Payment Link recovery, not real merchant revenue. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
+> **Project status:** Steps 0–15 are complete. Step 16 is packaging the final judge-demo and submission checks. Step 14 proved a paid ₹1 Razorpay Test Mode Payment Link recovery, while Step 15 proved frozen `SIMULATED` batch evidence; neither is real merchant revenue. See [Project status](#project-status), [SUBMISSION.md](./SUBMISSION.md), and [`LIMITATIONS.md`](./LIMITATIONS.md).
 
 ## What we are doing
 
@@ -697,6 +697,8 @@ pnpm db:setup
 | [`STATUS.md`](./STATUS.md)                       | Current step, credential state, blockers, validation evidence, and session history                   |
 | [`DECISIONS.md`](./DECISIONS.md)                 | Durable product and architecture decisions with rationale                                            |
 | [`LIMITATIONS.md`](./LIMITATIONS.md)             | Intentional demo, reliability, security, and operational constraints                                 |
+| [`SUBMISSION.md`](./SUBMISSION.md)               | Final judge walkthrough, reset/fallback, graceful-failure proof, and recording checklist             |
+| [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md)             | Spoken final walkthrough beginning with revenue at risk and ending with incremental recovery         |
 | [`AGENTS.md`](./AGENTS.md)                       | Working agreement for coding agents and step-gated delivery rules                                    |
 | [`.env.example`](./.env.example)                 | Safe configuration contract without credential values                                                |
 
@@ -709,8 +711,8 @@ At present:
 - the dashboard, Reported Issues, case detail, Razorpay ingestion path, diagnosis, AI proposal, policy engine, queues, execution tools, simulator, reliability controls, About page, and architecture documentation are implemented;
 - Razorpay Test Mode API credentials and the OpenAI key are configured locally;
 - Steps 12–14 are complete, including a signed webhook proof and one policy-approved ₹1 Test Mode Payment Link recovery;
-- Step 15 is freezing the reconciled batch comparison used in the submission;
-- Step 16 must complete the repeatable judge demo, graceful-failure proof, and final secret/public-route checks; and
+- Step 15 is complete with the reconciled frozen batch comparison used in the submission;
+- Step 16 is packaging the repeatable judge demo, graceful-failure proof, and final secret/public-route checks; and
 - reminders and alternative-method outreach remain simulated and never send real customer messages.
 
 Known constraints are documented rather than hidden. Read [`LIMITATIONS.md`](./LIMITATIONS.md) before presenting the project as production-ready.
