@@ -6,7 +6,7 @@ Last updated: 2026-08-31
 
 - **Current step:** Step 15 — Measured batch recovery evidence
 - **State:** Step 14 is complete: a live `RAZORPAY_TEST_MODE` failure received a GPT-5.6 Terra `CREATE_PAYMENT_LINK` proposal, deterministic approval, action-bound ₹1 Payment Link, and Netbanking mock-success payment. The provider reports the link as `paid`; the case is `RECOVERED` with 100 paise recovered and a `payment_link.paid.received` audit event. Step 9's paid-link check is complete by explicit user approval. Step 15 is in progress by the user's prior approval.
-- **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders a Test Mode Payment Link action. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
+- **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
 - **Current blocker:** Step 15 requires one frozen, reconciled 250–500-payment simulated comparison with the same verified metrics in the dashboard, About page, README, and spoken demo. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
@@ -2014,14 +2014,15 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Web focused action-card tests passed: 1 file, 3 tests.
 - Web lint, TypeScript check, and production build passed.
 - `git diff --check` passed.
+- The deployed Vercel case page renders `Test Mode payment recovered` and no longer renders a Payment Link continuation control.
 
 **Blockers:**
 
-- The completed-state web UI must deploy before the hosted page reflects the removed link.
+- None for Step 14; Step 15's frozen simulation and reconciliation work is now active.
 
 **Next action:**
 
-- Commit and deploy the focused web/docs/status updates, verify the deployed recovered-case UI, then begin the frozen Step 15 batch-run inspection.
+- Inspect the existing simulator run and stored outcomes, then define the reproducible Step 15 submission run and its exact reconciliation checks.
 
 ## Session entry template
 
