@@ -5,12 +5,12 @@ Last updated: 2026-08-31
 ## Current snapshot
 
 - **Current step:** Step 15 — Measured batch recovery evidence
-- **State:** Step 14 is complete: a live `RAZORPAY_TEST_MODE` failure received a GPT-5.6 Terra `CREATE_PAYMENT_LINK` proposal, deterministic approval, action-bound ₹1 Payment Link, and Netbanking mock-success payment. The provider reports the link as `paid`; the case is `RECOVERED` with 100 paise recovered and a `payment_link.paid.received` audit event. Step 9's paid-link check is complete by explicit user approval. Step 15 is in progress by the user's prior approval.
+- **State:** Step 14 is complete: a live `RAZORPAY_TEST_MODE` failure received a GPT-5.6 Terra `CREATE_PAYMENT_LINK` proposal, deterministic approval, action-bound ₹1 Payment Link, and Netbanking mock-success payment. The provider reports the link as `paid`; the case is `RECOVERED` with 100 paise recovered and a `payment_link.paid.received` audit event. Step 9's paid-link check is complete by explicit user approval. Step 15 is in progress with a frozen 500-payment `SIMULATED` run (seed `20260821`, hash `925ba5d2`) and 1,500 stored outcomes.
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Step 15 requires one frozen, reconciled 250–500-payment simulated comparison with the same verified metrics in the dashboard, About page, README, and spoken demo. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
-- **Exact next action:** Inspect the existing simulator run and stored outcomes, then define the reproducible Step 15 submission run and its exact reconciliation checks.
+- **Current blocker:** The API/web presentation changes exposing the frozen run's fingerprint and reconciliation metrics must deploy before Step 15 can be accepted. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
+- **Exact next action:** Deploy the Step 15 evidence update, verify the hosted dashboard and About page show the frozen values, then check README and spoken-demo copy against the same figures.
 
 ## Step overview
 
@@ -2023,6 +2023,53 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Inspect the existing simulator run and stored outcomes, then define the reproducible Step 15 submission run and its exact reconciliation checks.
+
+### 2026-08-31 — Freeze Step 15 batch evidence
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Start Step 15.
+
+**Completed:**
+
+- Replaced the stale seeded 250-payment simulation record with the canonical 500-payment `SIMULATED` submission run using seed `20260821` and configuration hash `925ba5d2`.
+- Persisted 1,500 per-payment/per-strategy outcomes for no intervention, naive immediate retry, and RecoveryOS.
+- Verified a repeated deployed simulation request returned the same configuration hash and aggregate response.
+- Reconciled stored outcomes to the run: ₹28,75,582 at risk; ₹3,33,131 no intervention; ₹5,50,591 naive retry; ₹13,34,223 RecoveryOS; and +₹7,83,632 incremental simulated recovery.
+- Verified 336 RecoveryOS attempts, 79 simulated contacts, 164 policy stops, 63 escalations, 51 RecoveryOS false-intervention flags versus 59 naive-retry flags, and 8 policy-stopped cases that naturally recovered without an intervention.
+- Added the frozen run fingerprint and relevant metrics to dashboard and About surfaces, plus matching README evidence and a spoken-demo script.
+- Recorded the frozen run decision as D-050.
+
+**Files changed:**
+
+- `apps/api/src/modules/analytics/repository.ts`
+- `apps/api/src/modules/analytics/types.ts`
+- `apps/web/src/features/dashboard/schemas.ts`
+- `apps/web/src/features/dashboard/components/dashboard-overview.tsx`
+- `apps/web/src/app/about/page.tsx`
+- `apps/web/src/features/about/components/about-project.tsx`
+- `apps/web/src/features/about/components/about.module.css`
+- `README.md`
+- `DEMO_SCRIPT.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Deployed `POST /simulator/run` twice with the frozen configuration returned identical aggregate responses.
+- Direct database reconciliation confirmed 1,500 outcomes and every stated strategy aggregate.
+- Simulator tests passed: 1 file, 4 tests.
+- API typecheck, About component test, web lint, web typecheck, and web production build passed.
+
+**Blockers:**
+
+- Deploy the API/web evidence changes and verify the hosted dashboard/About copy before marking Step 15 complete.
+
+**Next action:**
+
+- Commit and deploy the focused Step 15 evidence changes; verify all hosted and documentation figures match the frozen run.
 
 ## Session entry template
 

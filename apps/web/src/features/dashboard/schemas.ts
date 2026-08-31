@@ -13,6 +13,7 @@ const simulationRunSchema = z.object({
   attempts: z.number().int().nonnegative(),
   baselineRevenuePaise: z.number().int().nonnegative(),
   completedAt: z.string().datetime(),
+  configurationHash: z.string().min(1),
   customerContacts: z.number().int().nonnegative(),
   dataSource: z.enum(dataSources),
   falseInterventions: z.number().int().nonnegative(),

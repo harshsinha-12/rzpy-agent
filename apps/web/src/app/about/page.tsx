@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 
 import { AboutProject } from "@/features/about/components/about-project";
+import { fetchAnalyticsOverview } from "@/features/dashboard/fetchers";
 
 export const metadata: Metadata = {
   description:
@@ -8,7 +10,10 @@ export const metadata: Metadata = {
   title: "About the project",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  await connection();
+  const overview = await fetchAnalyticsOverview();
+
   return (
     <div className="page-stack">
       <header className="page-heading">
@@ -28,7 +33,7 @@ export default function AboutPage() {
           </p>
         </div>
       </header>
-      <AboutProject />
+      <AboutProject simulation={overview.latestSimulationRun} />
     </div>
   );
 }

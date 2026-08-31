@@ -28,6 +28,7 @@ export interface AnalyticsCaseRecord {
 }
 
 export interface SimulationRunRecord {
+  configurationHash: string;
   seed: number;
   paymentCount: number;
   revenueAtRiskPaise: number;

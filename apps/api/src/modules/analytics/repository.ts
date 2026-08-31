@@ -36,6 +36,7 @@ export function createAnalyticsRepository(
             attempts: true,
             baselineRevenuePaise: true,
             completedAt: true,
+            configurationHash: true,
             customerContacts: true,
             dataSource: true,
             falseInterventions: true,

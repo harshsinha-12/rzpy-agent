@@ -524,6 +524,25 @@ The credential names above are intentional. Legacy `RAZORPAY_KEY_ID` and `RAZORP
 
 Payment Links created by RecoveryOS are silent Test Mode links: provider notifications and reminders are disabled. Reminder and alternative-method actions are recorded as simulated rather than contacting a customer. Netbanking is a Test Mode completion aid only; it does not change recovery-policy selection or represent real merchant revenue.
 
+## Frozen simulation evidence
+
+The Step 15 submission run is `SIMULATED`, deterministic, and intentionally separate from the paid ₹1 Razorpay Test Mode recovery proof.
+
+| Frozen configuration                     |                                  Result |
+| ---------------------------------------- | --------------------------------------: |
+| Payments / seed / configuration          |           500 / `20260821` / `925ba5d2` |
+| Stored outcomes                          |    1,500 (three strategies per payment) |
+| Revenue at risk                          |                              ₹28,75,582 |
+| No intervention recovered                |                               ₹3,33,131 |
+| Naive immediate-retry recovered          |                               ₹5,50,591 |
+| RecoveryOS recovered                     |                      ₹13,34,223 (45.2%) |
+| Incremental recovery vs naive retry      |                              +₹7,83,632 |
+| RecoveryOS attempts / simulated contacts |                                336 / 79 |
+| Policy stops / escalations               |                                164 / 63 |
+| False-intervention flags                 | 51 for RecoveryOS vs 59 for naive retry |
+
+Re-running `POST /simulator/run` with this payment count and seed returns the same configuration hash, aggregates, and stored outcomes. The per-payment records reconcile to every strategy aggregate; 8 policy-stopped cases also naturally recovered under the no-intervention comparison, demonstrating prevented unnecessary intervention. Use [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) for the matching spoken walkthrough.
+
 ## API reference
 
 ### Health
@@ -689,10 +708,8 @@ At present:
 
 - the dashboard, Reported Issues, case detail, Razorpay ingestion path, diagnosis, AI proposal, policy engine, queues, execution tools, simulator, reliability controls, About page, and architecture documentation are implemented;
 - Razorpay Test Mode API credentials and the OpenAI key are configured locally;
-- Step 12 must finish healthy public API and worker deployment against Aiven and Redis Cloud;
-- Step 13 must configure the public signed webhook and ingest one deliberate Test Mode failure;
-- Step 14 must complete one policy-approved and paid Test Mode Payment Link recovery;
-- Step 15 must freeze the reconciled batch comparison used in the submission;
+- Steps 12–14 are complete, including a signed webhook proof and one policy-approved ₹1 Test Mode Payment Link recovery;
+- Step 15 is freezing the reconciled batch comparison used in the submission;
 - Step 16 must complete the repeatable judge demo, graceful-failure proof, and final secret/public-route checks; and
 - reminders and alternative-method outreach remain simulated and never send real customer messages.
 

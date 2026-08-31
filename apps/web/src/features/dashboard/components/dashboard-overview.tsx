@@ -161,6 +161,17 @@ export function DashboardOverview({
             <span>{simulation.policyStops} policy stops</span>
             <span>{simulation.falseInterventions} false interventions</span>
             <span>{simulation.customerContacts} simulated contacts</span>
+            <span>
+              {formatMoney(simulation.revenueAtRiskPaise)} at risk ·{" "}
+              {formatPercentage(simulation.recoveryRateBps)} RecoveryOS recovery
+              rate
+            </span>
+            <span>
+              Frozen run · seed {simulation.seed} ·{" "}
+              {simulation.configurationHash}
+              {" · "}
+              {simulation.paymentCount * 3} stored outcomes
+            </span>
             <span>All amounts are simulated; no real money moved</span>
           </div>
         </section>

@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import { DataSourceBadge } from "@/components/ui/data-source-badge";
+import type { AnalyticsOverview } from "@/features/dashboard/schemas";
+import { formatMoney, formatPercentage } from "@/lib/formatters";
+
 import {
   challengeProof,
   deliveryProof,
@@ -9,7 +13,11 @@ import {
 import { ArchitectureDiagram } from "./architecture-diagram";
 import styles from "./about.module.css";
 
-export function AboutProject() {
+export function AboutProject({
+  simulation,
+}: {
+  simulation?: AnalyticsOverview["latestSimulationRun"];
+}) {
   return (
     <div className={styles.aboutStack}>
       <section aria-labelledby="project-summary" className={styles.introGrid}>
@@ -64,6 +72,58 @@ export function AboutProject() {
           scope. The failed-payment loop is the complete first version.
         </p>
       </section>
+
+      {simulation ? (
+        <section
+          aria-labelledby="simulation-evidence"
+          className={styles.section}
+        >
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.sectionEyebrow}>Frozen batch evidence</p>
+              <h2 className={styles.sectionTitle} id="simulation-evidence">
+                Same payments. Measured uplift.
+              </h2>
+            </div>
+            <p>
+              This fixed Test Mode-labelled simulation compares all three
+              strategies against identical generated payments and outcome rolls.
+            </p>
+          </div>
+          <div className={styles.proofGrid}>
+            <article>
+              <span>At risk</span>
+              <h3>{formatMoney(simulation.revenueAtRiskPaise)}</h3>
+              <p>{simulation.paymentCount} synthetic failed payments.</p>
+            </article>
+            <article>
+              <span>Naive retry</span>
+              <h3>{formatMoney(simulation.baselineRevenuePaise)}</h3>
+              <p>Named immediate-retry baseline.</p>
+            </article>
+            <article>
+              <span>RecoveryOS</span>
+              <h3>{formatMoney(simulation.recoveredRevenuePaise)}</h3>
+              <p>{formatPercentage(simulation.recoveryRateBps)} recovered.</p>
+            </article>
+            <article>
+              <span>Incremental</span>
+              <h3>+{formatMoney(simulation.incrementalRevenuePaise)}</h3>
+              <p>
+                {simulation.policyStops} policy stops ·{" "}
+                {simulation.falseInterventions} false-intervention flags.
+              </p>
+            </article>
+          </div>
+          <div className={styles.evidenceFoot}>
+            <DataSourceBadge source={simulation.dataSource} />
+            <span>Seed {simulation.seed}</span>
+            <span>Configuration {simulation.configurationHash}</span>
+            <span>{simulation.paymentCount * 3} stored outcomes</span>
+            <span>All amounts are simulated; no real money moved.</span>
+          </div>
+        </section>
+      ) : null}
 
       <section aria-labelledby="recovery-loop" className={styles.section}>
         <div className={styles.sectionHeading}>

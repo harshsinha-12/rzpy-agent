@@ -303,6 +303,15 @@
   border-left: 1px solid var(--line);
 }
 
+.evidenceFoot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.8rem;
+  color: var(--ink-muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
 .integrationGrid article,
 .proofGrid article {
   min-height: 11rem;
