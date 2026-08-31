@@ -4,13 +4,13 @@ Last updated: 2026-08-31
 
 ## Current snapshot
 
-- **Current step:** Step 15 — Measured batch recovery evidence
-- **State:** Step 14 is complete: a live `RAZORPAY_TEST_MODE` failure received a GPT-5.6 Terra `CREATE_PAYMENT_LINK` proposal, deterministic approval, action-bound ₹1 Payment Link, and Netbanking mock-success payment. The provider reports the link as `paid`; the case is `RECOVERED` with 100 paise recovered and a `payment_link.paid.received` audit event. Step 9's paid-link check is complete by explicit user approval. Step 15 is in progress with a frozen 500-payment `SIMULATED` run (seed `20260821`, hash `925ba5d2`) and 1,500 stored outcomes.
+- **Current step:** Step 16 — Final judge demo and submission hardening
+- **State:** Step 15 is complete: its frozen 500-payment `SIMULATED` run (seed `20260821`, hash `925ba5d2`) persists 1,500 outcomes and publicly exposes the reconciled recovery comparison, 164 policy stops, 63 escalations, and 8 prevented unnecessary interventions. Step 14 remains the separately labelled ₹1 `RAZORPAY_TEST_MODE` paid-link proof.
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** The API/web presentation changes exposing the frozen run's fingerprint and reconciliation metrics must deploy before Step 15 can be accepted. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
-- **Exact next action:** Deploy the Step 15 evidence update, verify the hosted dashboard and About page show the frozen values, then check README and spoken-demo copy against the same figures.
+- **Current blocker:** None. Step 16 requires an evidence-backed, repeatable judge package and explicit user approval before final submission.
+- **Exact next action:** Audit the reset path, graceful provider-failure proof, public routes, secrets, validation suite, and submission copy; then package the verified walkthrough and backups for user review.
 
 ## Step overview
 
@@ -31,8 +31,8 @@ Last updated: 2026-08-31
 |   12 | Hosted runtime foundation                        | Complete    |
 |   13 | Razorpay Test Mode webhook proof                 | Complete    |
 |   14 | Bounded AI recovery and paid Test Mode outcome   | Complete    |
-|   15 | Measured batch recovery evidence                 | In progress |
-|   16 | Final judge demo and submission hardening        | Not started |
+|   15 | Measured batch recovery evidence                 | Complete    |
+|   16 | Final judge demo and submission hardening        | In progress |
 |   17 | Checkout drop-off recovery                       | Not started |
 |   18 | Failed-subscription recovery                     | Not started |
 |   19 | B2B receivables human-in-the-loop alerts         | Not started |
@@ -2070,6 +2070,44 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Commit and deploy the focused Step 15 evidence changes; verify all hosted and documentation figures match the frozen run.
+
+### 2026-08-31 — Complete measured batch recovery evidence and begin submission hardening
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Complete Step 15, then start Step 16.
+
+**Completed:**
+
+- Deployed the frozen-run safeguards presentation and verified the public API reports configuration hash `925ba5d2`, 500 payments, 1,500 outcomes, 63 escalations, and 8 prevented unnecessary interventions.
+- Re-ran the canonical 500-payment simulation against the deployed API; it reproduced the same hash and aggregate metrics.
+- Marked Step 15 complete and Step 16 in progress under the user's explicit approval.
+
+**Files changed:**
+
+- `apps/api/src/modules/analytics/repository.ts`
+- `apps/api/src/modules/analytics/types.ts`
+- `apps/web/src/features/dashboard/schemas.ts`
+- `apps/web/src/features/dashboard/components/dashboard-overview.tsx`
+- `apps/web/src/features/about/components/about-project.tsx`
+- `PLAN.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Deployed `POST /simulator/run` with `paymentCount: 500` and `seed: 20260821` returned hash `925ba5d2`, ₹28,75,582 at risk, and +₹7,83,632 incremental simulated recovery.
+- Deployed `GET /analytics/overview` returned 500 payments, hash `925ba5d2`, 63 escalations, and 8 prevented unnecessary interventions.
+- API and web TypeScript checks passed; focused API route and About component tests passed.
+
+**Blockers:**
+
+- None for starting Step 16.
+
+**Next action:**
+
+- Perform Step 16's final judge-demo, reset, public-route, full-validation, secret-scan, and submission-copy audit before requesting final user approval.
 
 ## Session entry template
 

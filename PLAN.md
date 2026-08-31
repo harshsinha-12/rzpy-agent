@@ -390,7 +390,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 15 — Measured batch recovery evidence
 
-**Status:** In progress
+**Status:** Complete
 
 **Goal:** Meet the Razorpay track bar by presenting auditable, batch-level recovery value rather than only a single successful case.
 
@@ -415,7 +415,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 16 — Final judge demo and submission hardening
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Package the verified live loop and measured batch evidence into a repeatable, failure-tolerant submission.
 
