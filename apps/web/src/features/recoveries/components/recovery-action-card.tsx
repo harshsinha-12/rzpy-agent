@@ -57,14 +57,24 @@ export function RecoveryActionCard({ action }: { action: RecoveryAction }) {
           <span>Eligible {formatDateTime(action.scheduledFor)}</span>
         ) : null}
       </div>
-      {action.paymentLinkShortUrl ? (
+      {action.paymentLinkStatus === "paid" ? (
+        <div className={styles.paymentLinkComplete} role="status">
+          <span className={styles.paymentLinkCompleteMark} aria-hidden="true">
+            ✓
+          </span>
+          <span>
+            <strong>Test Mode payment recovered</strong>
+            <span>The ₹1 Payment Link has been paid and needs no retry.</span>
+          </span>
+        </div>
+      ) : action.paymentLinkShortUrl ? (
         <a
           className={styles.paymentLink}
           href={action.paymentLinkShortUrl}
           rel="noreferrer"
           target="_blank"
         >
-          Open Test Mode Payment Link
+          Continue Test Mode Payment
         </a>
       ) : null}
     </article>

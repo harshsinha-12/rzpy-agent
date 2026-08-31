@@ -340,18 +340,56 @@
   width: fit-content;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--brand-strong);
-  border-radius: 999px;
-  background: var(--brand-strong);
-  color: var(--surface);
+  border: 1px solid var(--ink-strong);
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--ink-strong);
   font-size: 0.67rem;
   font-weight: 800;
-  padding: 0.55rem 0.8rem;
+  padding: 0.6rem 0.85rem;
   text-decoration: none;
 }
 
 .paymentLink:hover {
   background: var(--ink-strong);
+  color: var(--surface);
+}
+
+.paymentLinkComplete {
+  display: flex;
+  width: fit-content;
+  align-items: flex-start;
+  gap: 0.55rem;
+  border: 1px solid var(--positive);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--positive) 8%, var(--surface));
+  color: var(--positive);
+  padding: 0.6rem 0.75rem;
+}
+
+.paymentLinkCompleteMark {
+  display: grid;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--positive);
+  color: var(--surface);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.paymentLinkComplete > span:last-child {
+  display: grid;
+  gap: 0.14rem;
+  color: var(--positive);
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+.paymentLinkComplete strong {
+  font-size: 0.68rem;
 }
 
 .timeline {

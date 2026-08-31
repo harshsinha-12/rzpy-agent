@@ -4,41 +4,41 @@ Last updated: 2026-08-31
 
 ## Current snapshot
 
-- **Current step:** Step 14 — Bounded AI recovery and paid Test Mode outcome
-- **State:** Step 13 is complete after a signature-valid replay of the retained Test Mode event returned HTTP 200 with `duplicate: true`; webhook, case, action, job, and audit counts remained unchanged. Step 14 is in progress by explicit user approval. The first live case already provides the contrasting policy-denied path; an approved Payment Link case and paid outcome remain.
+- **Current step:** Step 15 — Measured batch recovery evidence
+- **State:** Step 14 is complete: a live `RAZORPAY_TEST_MODE` failure received a GPT-5.6 Terra `CREATE_PAYMENT_LINK` proposal, deterministic approval, action-bound ₹1 Payment Link, and Netbanking mock-success payment. The provider reports the link as `paid`; the case is `RECOVERED` with 100 paise recovered and a `payment_link.paid.received` audit event. Step 9's paid-link check is complete by explicit user approval. Step 15 is in progress by the user's prior approval.
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders a Test Mode Payment Link action. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Completing the new ₹1 failed checkout and the later Payment Link payment requires interactive Razorpay Test Mode checkout. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
-- **Exact next action:** Create one new ₹1 Test Mode card failure from the deployed checkout, wait for the approved action to execute after three minutes, then pay the generated link from the case page.
+- **Current blocker:** Step 15 requires one frozen, reconciled 250–500-payment simulated comparison with the same verified metrics in the dashboard, About page, README, and spoken demo. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
+- **Exact next action:** Inspect the existing simulator run and stored outcomes, then define the reproducible Step 15 submission run and its exact reconciliation checks.
 
 ## Step overview
 
-| Step | Name                                             | State             |
-| ---: | ------------------------------------------------ | ----------------- |
-|    0 | Planning and operating documents                 | Complete          |
-|    1 | Workspace foundation                             | Complete          |
-|    2 | Database schema and deterministic seed data      | Complete          |
-|    3 | Read-only product API                            | Complete          |
-|    4 | Dashboard and Reported Issues frontend           | Complete          |
-|    5 | Razorpay Test Mode ingestion                     | Complete          |
-|    6 | Deterministic diagnosis engine                   | Complete          |
-|    7 | AI proposal and deterministic policy engine      | Complete          |
-|    8 | BullMQ recovery orchestration                    | Complete          |
-|    9 | Recovery execution tools                         | Awaiting approval |
-|   10 | Simulator and evaluation harness                 | Complete          |
-|   11 | Reliability, security, and end-to-end validation | Complete          |
-|   12 | Hosted runtime foundation                        | Complete          |
-|   13 | Razorpay Test Mode webhook proof                 | Complete          |
-|   14 | Bounded AI recovery and paid Test Mode outcome   | In progress       |
-|   15 | Measured batch recovery evidence                 | Not started       |
-|   16 | Final judge demo and submission hardening        | Not started       |
-|   17 | Checkout drop-off recovery                       | Not started       |
-|   18 | Failed-subscription recovery                     | Not started       |
-|   19 | B2B receivables human-in-the-loop alerts         | Not started       |
-|   20 | Mandate retry sequencing                         | Not started       |
-|   21 | Generated voice recovery messages                | Not started       |
-|   22 | Promise-to-pay and udhaar tracker                | Not started       |
+| Step | Name                                             | State       |
+| ---: | ------------------------------------------------ | ----------- |
+|    0 | Planning and operating documents                 | Complete    |
+|    1 | Workspace foundation                             | Complete    |
+|    2 | Database schema and deterministic seed data      | Complete    |
+|    3 | Read-only product API                            | Complete    |
+|    4 | Dashboard and Reported Issues frontend           | Complete    |
+|    5 | Razorpay Test Mode ingestion                     | Complete    |
+|    6 | Deterministic diagnosis engine                   | Complete    |
+|    7 | AI proposal and deterministic policy engine      | Complete    |
+|    8 | BullMQ recovery orchestration                    | Complete    |
+|    9 | Recovery execution tools                         | Complete    |
+|   10 | Simulator and evaluation harness                 | Complete    |
+|   11 | Reliability, security, and end-to-end validation | Complete    |
+|   12 | Hosted runtime foundation                        | Complete    |
+|   13 | Razorpay Test Mode webhook proof                 | Complete    |
+|   14 | Bounded AI recovery and paid Test Mode outcome   | Complete    |
+|   15 | Measured batch recovery evidence                 | In progress |
+|   16 | Final judge demo and submission hardening        | Not started |
+|   17 | Checkout drop-off recovery                       | Not started |
+|   18 | Failed-subscription recovery                     | Not started |
+|   19 | B2B receivables human-in-the-loop alerts         | Not started |
+|   20 | Mandate retry sequencing                         | Not started |
+|   21 | Generated voice recovery messages                | Not started |
+|   22 | Promise-to-pay and udhaar tracker                | Not started |
 
 ## Available local tooling observed
 
@@ -1880,6 +1880,148 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Deploy the worker, create one new ₹1 failed Test Mode card payment, wait for the approved action to execute after three minutes, then open and pay the generated silent Payment Link.
+
+### 2026-08-31 — Isolate deployed Payment Link credential mismatch
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Verify whether the failed Test Mode checkout and the newly visible recovery cases are sufficient to continue Step 14.
+
+**Completed:**
+
+- Verified that three new ₹1 failed card payments appear as `RAZORPAY_TEST_MODE` recovery cases in the deployed product, proving webhook ingestion and background analysis are working.
+- Verified one case completed deterministic policy approval for `CREATE_PAYMENT_LINK` with a three-minute delay, then its action job exhausted all five bounded attempts with the stored error `Razorpay API request failed.`
+- Verified the originating payment remains a failed ₹1 Test Mode payment through Razorpay's payment API.
+- Verified the workspace Test Mode key pair can list Payment Links and create silent ₹1 Payment Links through Razorpay's Payment Links API; this created two isolated Test Mode diagnostic links and did not charge a payment method.
+- Isolated the remaining failure to the Railway worker's deployed Razorpay key-pair configuration rather than the checkout failure, webhook signature, RecoveryOS policy, or Razorpay account capability.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- The deployed case API reports the approved action as `EXHAUSTED` only after a five-attempt `execute-recovery` job.
+- Direct Test Mode payment recheck returned `failed`, amount `100`, and currency `INR`.
+- Direct Test Mode Payment Links list request returned HTTP 200.
+- Direct silent ₹1 Payment Link creation succeeded twice with status `created`.
+
+**Blockers:**
+
+- The Railway worker must receive the current Test Mode API key and secret and be redeployed before the in-product action can create a linked Payment Link.
+
+**Next action:**
+
+- Update both Razorpay Test Mode variables on the Railway worker service, redeploy it, create one fresh ₹1 card failure, and wait at least three minutes for the approved action.
+
+### 2026-08-31 — Step 15 gate review
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Start Step 15.
+
+**Completed:**
+
+- Re-read the repository operating agreement and the Step 14–15 plan gates.
+- Confirmed Step 14 remains in progress and its paid Test Mode Payment Link, recovered-case/metric update, and outcome audit evidence are still outstanding.
+- Kept Step 15 not started because its batch-level evidence must follow the completed live recovery proof.
+
+**Files changed:**
+
+- `STATUS.md`
+
+**Validation:**
+
+- `PLAN.md` Step 14 acceptance gate requires a paid Test Mode link to change the case to recovered and update Test Mode metrics.
+- `STATUS.md` records the approved action as exhausted pending Railway worker credential correction.
+
+**Blockers:**
+
+- The worker must be redeployed with the verified Test Mode key pair and a fresh failed ₹1 payment must produce, then complete, the in-product Payment Link outcome.
+
+**Next action:**
+
+- Complete and verify Step 14; then, with the user's existing approval, mark Step 14 complete and start Step 15.
+
+### 2026-08-31 — Document deterministic Test Mode link completion
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Document the preferred Razorpay Test Mode Payment Link completion path.
+
+**Completed:**
+
+- Verified a new RecoveryOS case has an approved, successfully executed ₹1 `CREATE_PAYMENT_LINK` action and exposes its hosted Test Mode link.
+- Documented Netbanking's demo-bank `Success` control as the preferred way to complete the single paid Test Mode recovery-link proof.
+- Preserved the distinction between initial failed-payment generation (UPI/card failure paths) and recovery-link success (Netbanking mock success), and retained `RAZORPAY_TEST_MODE` labelling rather than making a real-revenue claim.
+- Recorded the choice as durable decision D-049.
+
+**Files changed:**
+
+- `README.md`
+- `PLAN.md`
+- `idea.md`
+- `DECISIONS.md`
+- `STATUS.md`
+
+**Validation:**
+
+- The current case API reports the approved `CREATE_PAYMENT_LINK` action as `SUCCEEDED`, with a ₹1 hosted link in provider status `created`.
+- Razorpay's Test Mode Netbanking documentation describes a mock bank page with explicit Success and Failure controls.
+
+**Blockers:**
+
+- The user must choose `Success` on the open mock bank page; then provider webhook/state verification must turn the case into `RECOVERED`.
+
+**Next action:**
+
+- Verify the paid outcome and audit trail immediately after the user selects the Netbanking demo-bank Success control.
+
+### 2026-08-31 — Complete paid recovery and refine its UI
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Improve the Test Mode Payment Link UI and remove its retry affordance after recovery.
+
+**Completed:**
+
+- Verified the live RecoveryOS case is `RECOVERED` with `100` paise recovered; its Payment Link provider status is `paid` and its audit contains `payment_link.paid.received`.
+- Replaced the active blue Payment Link control with a non-actionable green completion panel when the provider status is `paid`.
+- Refined the active-link control into an outlined `Continue Test Mode Payment` action aligned with the recovery-detail visual language.
+- Added coverage for both the active-link and paid-link states.
+- Marked Steps 9 and 14 complete after the successful simulated Netbanking Test Mode payment; Step 15 is now in progress under the user's prior approval.
+
+**Files changed:**
+
+- `apps/web/src/features/recoveries/components/recovery-action-card.tsx`
+- `apps/web/src/features/recoveries/components/recovery-action-card.test.tsx`
+- `apps/web/src/features/recoveries/components/recovery-detail.module.css`
+- `README.md`
+- `PLAN.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Deployed case API reported `RECOVERED`, `recoveredAmountPaise: 100`, Payment Link status `paid`, and the full paid-outcome audit event.
+- Web focused action-card tests passed: 1 file, 3 tests.
+- Web lint, TypeScript check, and production build passed.
+- `git diff --check` passed.
+
+**Blockers:**
+
+- The completed-state web UI must deploy before the hosted page reflects the removed link.
+
+**Next action:**
+
+- Commit and deploy the focused web/docs/status updates, verify the deployed recovered-case UI, then begin the frozen Step 15 batch-run inspection.
 
 ## Session entry template
 

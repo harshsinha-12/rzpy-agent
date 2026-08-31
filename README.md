@@ -8,7 +8,7 @@ The central rule is simple:
 
 The project combines a merchant-facing recovery dashboard with Razorpay Test Mode, an OpenAI-powered proposal agent, deterministic safeguards, persistent BullMQ workflows, and an auditable simulator. Every record is visibly labelled `SIMULATED` or `RAZORPAY_TEST_MODE`; neither represents live merchant revenue.
 
-> **Project status:** Steps 0–8 and 10–13 are complete. Step 14's bounded Test Mode recovery is in progress. Steps 15–16 define the remaining measured batch proof and final judge-demo gates. Step 9's paid-link check closes inside Step 14. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
+> **Project status:** Steps 0–14 are complete. Step 15's measured batch evidence is in progress; Step 16 remains the final judge-demo gate. Step 14 proved a paid ₹1 Razorpay Test Mode Payment Link recovery, not real merchant revenue. See [Project status](#project-status) and [`LIMITATIONS.md`](./LIMITATIONS.md).
 
 ## What we are doing
 
@@ -518,9 +518,11 @@ The credential names above are intentional. Legacy `RAZORPAY_KEY_ID` and `RAZORP
 3. Restart the API and worker so they load the configuration.
 4. Open `/demo/checkout` and pay with Razorpay's failure UPI ID `failure@razorpay`.
 5. Filter Reported Issues by `RAZORPAY_TEST_MODE`.
-6. For real webhook delivery, expose `POST /webhooks/razorpay` over public HTTPS, subscribe to `payment.failed`, `payment.authorized`, `payment.captured`, and `payment_link.paid`, then configure its separate signing secret as `RAZORPAY_WEBHOOK_SECRET`.
+6. Open the approved `CREATE_PAYMENT_LINK` action from its case detail. For the Test Mode **recovery-link success**, select Netbanking, choose any bank, and select `Success` on Razorpay's demo-bank page. This is the preferred completion path because it deterministically simulates a successful payment without an SMS OTP or real money.
+7. Wait for `payment_link.paid` processing (or provider-state verification), then confirm the case is `RECOVERED` and Test Mode metrics update.
+8. For real webhook delivery, expose `POST /webhooks/razorpay` over public HTTPS, subscribe to `payment.failed`, `payment.authorized`, `payment.captured`, and `payment_link.paid`, then configure its separate signing secret as `RAZORPAY_WEBHOOK_SECRET`.
 
-Payment Links created by RecoveryOS are silent Test Mode links: provider notifications and reminders are disabled. Reminder and alternative-method actions are recorded as simulated rather than contacting a customer.
+Payment Links created by RecoveryOS are silent Test Mode links: provider notifications and reminders are disabled. Reminder and alternative-method actions are recorded as simulated rather than contacting a customer. Netbanking is a Test Mode completion aid only; it does not change recovery-policy selection or represent real merchant revenue.
 
 ## API reference
 

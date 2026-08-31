@@ -618,6 +618,8 @@ Therefore:
 
 Also, dedicated UPI Payment Links are currently not supported in Test Mode, although regular Checkout supports UPI test flows such as `success@razorpay` and `failure@razorpay`.
 
+For the single paid recovery-link proof, use a Standard Payment Link's **Netbanking** option, choose any demo bank, and select **Success** on Razorpay's mock-bank page. This is the documented Test Mode completion path: it is deterministic, requires no SMS OTP, and remains explicitly Test Mode rather than merchant revenue.
+
 ---
 
 # 12. The Policy Engine

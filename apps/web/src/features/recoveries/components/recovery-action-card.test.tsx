@@ -62,8 +62,28 @@ describe("RecoveryActionCard", () => {
       }),
     );
 
-    expect(markup).toContain("Open Test Mode Payment Link");
+    expect(markup).toContain("Continue Test Mode Payment");
     expect(markup).toContain('href="https://rzp.io/i/test-recovery"');
     expect(markup).toContain('target="_blank"');
+  });
+
+  it("replaces a paid link with a completed recovery state", () => {
+    const markup = renderToStaticMarkup(
+      createElement(RecoveryActionCard, {
+        action: {
+          ...action,
+          actionType: "CREATE_PAYMENT_LINK",
+          paymentLinkShortUrl: "https://rzp.io/i/test-recovery",
+          paymentLinkStatus: "paid",
+          policyDecision: "APPROVED",
+          result: "SUCCEEDED",
+        },
+      }),
+    );
+
+    expect(markup).toContain("Test Mode payment recovered");
+    expect(markup).toContain("has been paid and needs no retry");
+    expect(markup).not.toContain("Continue Test Mode Payment");
+    expect(markup).not.toContain('href="https://rzp.io/i/test-recovery"');
   });
 });
