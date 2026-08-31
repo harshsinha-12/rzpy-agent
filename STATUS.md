@@ -4,13 +4,13 @@ Last updated: 2026-08-31
 
 ## Current snapshot
 
-- **Current step:** Step 16 — Final judge demo and submission hardening
-- **State:** Step 15 is complete: its frozen 500-payment `SIMULATED` run (seed `20260821`, hash `925ba5d2`) persists 1,500 outcomes and publicly exposes the reconciled recovery comparison, 164 policy stops, 63 escalations, and 8 prevented unnecessary interventions. Step 14 remains the separately labelled ₹1 `RAZORPAY_TEST_MODE` paid-link proof.
+- **Current step:** Step 17 — Checkout drop-off recovery
+- **State:** The user explicitly deferred Step 16 before its remaining local validation, backup capture, and final submission approval. Step 17 is now active and remains limited to merchant-selected, policy-gated checkout-drop-off recovery email drafts.
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Docker is unavailable on this machine, so the database-backed local retry and full-suite checks cannot run here. Hosted API, worker, and public web smoke checks are healthy. Step 16 still requires explicit user approval before final submission. Step 23 (public landing) is planned and must not start while Step 16 or Steps 17–22 are unfinished.
-- **Exact next action:** Audit the reset path, graceful provider-failure proof, public routes, secrets, validation suite, and submission copy; then package the verified walkthrough and backups for user review.
+- **Current blocker:** Step 17 needs an email-provider decision before any real outbound delivery can be added. Until then, work will stop at merchant selection, deterministic policy approval, a rendered draft, and audit records; no customer email will be sent. Step 23 remains deferred until Steps 17–22 are finished.
+- **Exact next action:** Inspect existing checkout/order and recovery modules, then add the bounded checkout-drop-off domain model and read-only product flow.
 
 ## Step overview
 
@@ -32,8 +32,8 @@ Last updated: 2026-08-31
 |   13 | Razorpay Test Mode webhook proof                 | Complete    |
 |   14 | Bounded AI recovery and paid Test Mode outcome   | Complete    |
 |   15 | Measured batch recovery evidence                 | Complete    |
-|   16 | Final judge demo and submission hardening        | In progress |
-|   17 | Checkout drop-off recovery                       | Not started |
+|   16 | Final judge demo and submission hardening        | Deferred    |
+|   17 | Checkout drop-off recovery                       | In progress |
 |   18 | Failed-subscription recovery                     | Not started |
 |   19 | B2B receivables human-in-the-loop alerts         | Not started |
 |   20 | Mandate retry sequencing                         | Not started |
@@ -2186,6 +2186,37 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Complete local validation when Docker is available, capture the four backup artifacts, then present the final submission package for explicit approval.
+
+### 2026-08-31 — Defer Step 16 and start checkout drop-off recovery
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Skip Step 16 and start Step 17.
+
+**Completed:**
+
+- Recorded the user's explicit decision to defer, rather than complete, Step 16.
+- Marked Step 17 as the only active implementation step.
+
+**Files changed:**
+
+- `PLAN.md`
+- `STATUS.md`
+- `DECISIONS.md`
+
+**Validation:**
+
+- Confirmed Step 17's scope is checkout drop-offs only and requires merchant selection plus deterministic policy before any email action.
+
+**Blockers:**
+
+- An outbound email provider is not selected; no real email delivery will be implemented without that decision.
+
+**Next action:**
+
+- Inspect the current order, recovery, policy, and audit modules to define the smallest safe Step 17 implementation.
 
 ## Session entry template
 

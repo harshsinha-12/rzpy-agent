@@ -35,8 +35,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 1 — Workspace foundation
 
 **Status:** Complete
@@ -71,8 +69,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 2 — Database schema and deterministic seed data
 
 **Status:** Complete
@@ -97,8 +93,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 3 — Read-only product API
 
 **Status:** Complete
@@ -121,8 +115,6 @@ This is the binding implementation order for the project. We will complete, veri
 - No frontend component imports or bypasses the database directly.
 
 ---
-
-
 
 ## Step 4 — Dashboard and Reported Issues frontend
 
@@ -147,8 +139,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Key pages pass focused component tests and manual browser verification.
 
 ---
-
-
 
 ## Step 5 — Razorpay Test Mode ingestion
 
@@ -175,8 +165,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 6 — Deterministic diagnosis engine
 
 **Status:** Complete
@@ -197,8 +185,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Diagnosis outputs are stored and visible in case details.
 
 ---
-
-
 
 ## Step 7 — AI proposal and deterministic policy engine
 
@@ -224,8 +210,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 8 — BullMQ recovery orchestration
 
 **Status:** Complete
@@ -249,8 +233,6 @@ This is the binding implementation order for the project. We will complete, veri
 - No external cron service or dedicated VM is required.
 
 ---
-
-
 
 ## Step 9 — Recovery execution tools
 
@@ -276,8 +258,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 10 — Simulator and evaluation harness
 
 **Status:** Complete
@@ -302,8 +282,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 11 — Reliability, security, and end-to-end validation
 
 **Status:** Complete
@@ -325,8 +303,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Known limitations are documented rather than hidden.
 
 ---
-
-
 
 ## Step 12 — Hosted runtime foundation
 
@@ -356,8 +332,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 13 — Razorpay Test Mode webhook proof
 
 **Status:** Complete
@@ -384,8 +358,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Step 5's pending live acceptance check can be marked complete after explicit approval.
 
 ---
-
-
 
 ## Step 14 — Bounded AI recovery and paid Test Mode outcome
 
@@ -416,8 +388,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 15 — Measured batch recovery evidence
 
 **Status:** Complete
@@ -443,11 +413,9 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 16 — Final judge demo and submission hardening
 
-**Status:** In progress
+**Status:** Deferred by user
 
 **Goal:** Package the verified live loop and measured batch evidence into a repeatable, failure-tolerant submission.
 
@@ -472,11 +440,9 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 17 — Checkout drop-off recovery
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Recover orders that were created but never paid by letting the merchant choose which drop-offs receive a policy-gated recovery email.
 
@@ -497,8 +463,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Replay or re-select does not send duplicate email for the same case and draft.
 
 ---
-
-
 
 ## Step 18 — Failed-subscription recovery
 
@@ -522,8 +486,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Escalation and stop rules remain enforceable regardless of model copy.
 
 ---
-
-
 
 ## Step 19 — B2B receivables human-in-the-loop alerts
 
@@ -549,8 +511,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 20 — Mandate retry sequencing
 
 **Status:** Not started
@@ -573,8 +533,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Selected email outreach remains policy-gated and idempotent.
 
 ---
-
-
 
 ## Step 21 — Generated voice recovery messages
 
@@ -600,8 +558,6 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
-
-
 ## Step 22 — Promise-to-pay and udhaar tracker
 
 **Status:** Not started
@@ -625,8 +581,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Live Test Mode money, simulated batch money, and udhaar reminders stay distinctly labelled.
 
 ---
-
-
 
 ## Step 23 — Public product landing
 
@@ -671,8 +625,6 @@ This is the binding implementation order for the project. We will complete, veri
 - Web lint, typecheck, and production build succeed; `/` is statically generated.
 
 ---
-
-
 
 ## Deferred work
 
