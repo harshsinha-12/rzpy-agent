@@ -408,6 +408,8 @@ pnpm db:migrate
 
 This applies future migrations without resetting the deterministic demo merchant on every API redeploy. Run `pnpm db:seed` from an intentional Railway one-off/pre-deploy run only when you want to reset the demo dataset.
 
+Production seeding is guarded. If `NODE_ENV=production`, `pnpm db:setup` and `pnpm db:seed` stop before changing data unless that one intentional run includes `ALLOW_DEMO_RESET=RESET_AURORA_RETAIL`. Normal Railway deployments must use `pnpm db:migrate`; do not persist the reset confirmation as a service variable.
+
 **API service**
 
 1. New Railway service from the same GitHub repo.

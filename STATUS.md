@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-08-30
+Last updated: 2026-08-31
 
 ## Current snapshot
 
@@ -9,8 +9,8 @@ Last updated: 2026-08-30
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders a Test Mode Payment Link action. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** The existing Test Mode case cannot be reused for an approved action because its first proposal is intentionally idempotent and was policy-denied for violating the three-minute minimum. Step 14 needs one new real failed Test Mode payment whose AI proposal passes policy and creates a silent Payment Link.
-- **Exact next action:** Deploy commit `1aecc52` plus the Payment Link UI follow-up, create one new ₹1 Test Mode failure, wait for the approved action to execute after three minutes, then open and pay the generated link from the case page.
+- **Current blocker:** The API's Railway pre-deploy command is still effectively running the one-time `pnpm db:setup`, which reseeded the demo merchant and removed the verified Test Mode case. It must be changed to `pnpm db:migrate` before another evidence-producing payment.
+- **Exact next action:** Set the Railway API Pre-deploy Command to `pnpm db:migrate`, deploy the production seed guard and Payment Link UI, then create one new ₹1 Test Mode failure, wait three minutes, and pay the generated link from the case page.
 
 ## Step overview
 
@@ -1835,6 +1835,8 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Ran a read-only GPT-5.6 Terra dry run with the corrected context; it proposed `CREATE_PAYMENT_LINK` with a three-minute delay and no fallback.
 - Added typed Payment Link status/short-URL fields to the case API, accepting only HTTPS links on Razorpay's `rzp.io` host.
 - Added an `Open Test Mode Payment Link` action to executed recovery cards so the paid outcome can be completed from the deployed case page.
+- Detected that an API redeploy removed all Test Mode cases and restored exactly seven simulated seed cases, proving the one-time seed command was still running during normal deploys.
+- Added a fail-closed production seed guard requiring a one-run `ALLOW_DEMO_RESET=RESET_AURORA_RETAIL` confirmation; normal production deploys remain migration-only.
 
 **Files changed:**
 
@@ -1850,6 +1852,9 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - `apps/web/src/features/recoveries/components/recovery-action-card.tsx`
 - `apps/web/src/features/recoveries/components/recovery-action-card.test.tsx`
 - `apps/web/src/features/recoveries/components/recovery-detail.module.css`
+- `packages/database/prisma/seed.ts`
+- `packages/database/src/seed/reset-policy.ts`
+- `packages/database/src/seed/reset-policy.test.ts`
 - `PLAN.md`
 - `README.md`
 - `DECISIONS.md`
@@ -1863,6 +1868,8 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Live-model dry run returned source `OPENAI`, model `gpt-5.6-terra`, action `CREATE_PAYMENT_LINK`, delay 3 minutes, and no fallback reason.
 - API lint, TypeScript, focused recovery mapper/routes tests (2 files, 8 tests), and production build passed.
 - Web lint, TypeScript, focused recovery-action tests (1 file, 2 tests), and production build passed.
+- Database lint and TypeScript checks passed; the focused reset-policy suite passed 3 tests.
+- A production-mode `db:seed` without the explicit reset confirmation exited non-zero before database mutation with the intended guard message.
 
 **Blockers:**
 
