@@ -25,6 +25,9 @@ import { registerCheckoutDropOffRoutes } from "./modules/checkout-dropoffs/route
 import { createCheckoutDropOffService } from "./modules/checkout-dropoffs/service.js";
 import { createDemoCheckoutService } from "./modules/demo/razorpay/service.js";
 import { registerDemoCheckoutRoutes } from "./modules/demo/razorpay/routes.js";
+import { createExtendedRecoveryRepository } from "./modules/extended-recovery/repository.js";
+import { registerExtendedRecoveryRoutes } from "./modules/extended-recovery/routes.js";
+import { createExtendedRecoveryService } from "./modules/extended-recovery/service.js";
 import type { DemoCheckoutService } from "./modules/demo/razorpay/types.js";
 import { registerHealthRoutes } from "./modules/health/routes.js";
 import {
@@ -98,6 +101,9 @@ export async function buildApp(
       env.RAZORPAY_TEST_MODE_SECRET_KEY,
     ),
   );
+  const extendedRecoveryService = createExtendedRecoveryService(
+    createExtendedRecoveryRepository(database!),
+  );
   const simulatorService =
     options.simulatorService ??
     createSimulatorService(createSimulatorRepository(database!));
@@ -151,6 +157,7 @@ export async function buildApp(
   await registerHealthRoutes(app, healthService);
   await registerRecoveryCaseRoutes(app, recoveryCaseService);
   await registerCheckoutDropOffRoutes(app, checkoutDropOffService);
+  await registerExtendedRecoveryRoutes(app, extendedRecoveryService);
   await registerAnalyticsRoutes(app, analyticsService);
   await registerSimulatorRoutes(app, simulatorService);
   await registerRazorpayWebhookRoutes(app, razorpayWebhookService);

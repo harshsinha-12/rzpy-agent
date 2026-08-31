@@ -106,6 +106,7 @@ model Merchant {
 
   customers      Customer[]
   checkoutDropOffs CheckoutDropOff[]
+  extendedRecoveryCases ExtendedRecoveryCase[]
   paymentEvents  PaymentEvent[]
   recoveryCases  RecoveryCase[]
   recoveryPolicy RecoveryPolicy?
@@ -127,6 +128,7 @@ model Customer {
 
   merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   checkoutDropOffs CheckoutDropOff[]
+  extendedRecoveryCases ExtendedRecoveryCase[]
   paymentEvents PaymentEvent[]
   recoveryCases RecoveryCase[]
 
@@ -333,6 +335,49 @@ enum CheckoutDropOffStatus {
   OPEN
   DRAFT_READY
   STOPPED
+}
+
+enum ExtendedRecoveryKind {
+  SUBSCRIPTION
+  RECEIVABLE
+  MANDATE
+  VOICE
+  UDHAAR
+}
+
+enum ExtendedRecoveryStatus {
+  OPEN
+  DRAFT_READY
+  HUMAN_REVIEW
+  SNOOZED
+  STOPPED
+  RECOVERED
+}
+
+model ExtendedRecoveryCase {
+  id             String                 @id
+  publicId       String                 @unique
+  merchantId     String
+  customerId     String
+  kind           ExtendedRecoveryKind
+  reference      String                 @unique
+  amountPaise    Int
+  currency       String
+  status         ExtendedRecoveryStatus
+  dueAt          DateTime?
+  reason         String
+  draftSubject   String?
+  draftBody      String?
+  voiceScript    String?
+  operatorAction String?
+  createdAt      DateTime
+  updatedAt      DateTime
+  dataSource     DataSource
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, kind, status])
 }
 
 model RecoveryJob {

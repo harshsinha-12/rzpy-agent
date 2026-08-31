@@ -18,6 +18,7 @@
     "db:reset": "prisma migrate reset --force",
     "db:seed": "prisma db seed",
     "db:seed-dropoffs": "tsx prisma/seed-dropoffs.ts",
+    "db:seed-extended-recovery": "tsx prisma/seed-extended-recovery.ts",
     "lint": "eslint src --max-warnings=0",
     "test": "prisma generate && vitest run src --passWithNoTests",
     "typecheck": "prisma generate && tsc --noEmit"
