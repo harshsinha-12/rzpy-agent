@@ -18,6 +18,8 @@ const demos = [
     reference: "sub_sim_aurora_1001",
     kind: "SUBSCRIPTION" as const,
     customerRef: "customer_priya_nair",
+    customerName: "Priya Nair",
+    customerEmail: "priya.nair@example.com",
     amountPaise: 249900,
     status: "DRAFT_READY" as const,
     dueAt: null,
@@ -33,6 +35,8 @@ const demos = [
     reference: "udhaar_sim_aurora_1001",
     kind: "UDHAAR" as const,
     customerRef: "customer_meera_iyer",
+    customerName: "Meera Iyer",
+    customerEmail: "meera.iyer@example.com",
     amountPaise: 399900,
     status: "DRAFT_READY" as const,
     dueAt: new Date("2026-09-30T12:00:00.000Z"),
@@ -51,13 +55,25 @@ async function main() {
     where: { slug: "aurora-retail" },
   });
   for (const demo of demos) {
-    const { customerRef, ...caseData } = demo;
-    const customer = await prisma.customer.findUniqueOrThrow({
+    const { customerEmail, customerName, customerRef, ...caseData } = demo;
+    const customer = await prisma.customer.upsert({
       where: {
         merchantId_externalRef: {
           merchantId: merchant.id,
           externalRef: customerRef,
         },
+      },
+      update: { email: customerEmail, name: customerName, updatedAt: now },
+      create: {
+        id: `seed_${customerRef}`,
+        merchantId: merchant.id,
+        externalRef: customerRef,
+        email: customerEmail,
+        name: customerName,
+        optedOut: false,
+        dataSource: "SIMULATED",
+        createdAt: now,
+        updatedAt: now,
       },
     });
     await prisma.extendedRecoveryCase.upsert({
