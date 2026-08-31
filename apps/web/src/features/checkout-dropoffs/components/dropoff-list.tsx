@@ -127,8 +127,9 @@ export function DropOffList({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [errorById, setErrorById] = useState<Record<string, string>>({});
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  async function createDraft(item: CheckoutDropOff) {
+  async function createDraft(item: CheckoutDropOff): Promise<boolean> {
     setBusyId(item.caseId);
     setErrorById((current) => {
       const next = { ...current };
@@ -153,14 +154,22 @@ export function DropOffList({
           entry.caseId === item.caseId ? updated : entry,
         ),
       );
+      return true;
     } catch {
       setErrorById((current) => ({
         ...current,
         [item.caseId]: "Could not prepare the email draft.",
       }));
+      return false;
     } finally {
       setBusyId(null);
     }
+  }
+
+  async function prepareSelected() {
+    const selected = items.filter((item) => selectedIds.includes(item.caseId));
+    for (const item of selected) await createDraft(item);
+    setSelectedIds([]);
   }
 
   async function copyDraft(item: CheckoutDropOff) {
@@ -181,6 +190,22 @@ export function DropOffList({
           auditable, copyable draft; connect a provider later to deliver it.
         </p>
       </header>
+      {items.some((item) => item.status === "OPEN") ? (
+        <div className={styles.bulkActions}>
+          <p>
+            {selectedIds.length} checkout{selectedIds.length === 1 ? "" : "s"}{" "}
+            selected
+          </p>
+          <button
+            className={styles.primaryButton}
+            disabled={selectedIds.length === 0 || busyId !== null}
+            onClick={() => void prepareSelected()}
+            type="button"
+          >
+            Prepare selected drafts
+          </button>
+        </div>
+      ) : null}
       {items.length === 0 ? (
         <div className={styles.empty}>
           <div>
@@ -198,6 +223,7 @@ export function DropOffList({
             <table className={styles.table}>
               <thead>
                 <tr>
+                  <th aria-label="Select">Select</th>
                   <th>Checkout</th>
                   <th>Customer</th>
                   <th>Amount</th>
@@ -209,6 +235,22 @@ export function DropOffList({
               <tbody>
                 {items.map((item) => (
                   <tr key={item.caseId}>
+                    <td>
+                      {item.status === "OPEN" ? (
+                        <input
+                          aria-label={`Select ${item.caseId}`}
+                          checked={selectedIds.includes(item.caseId)}
+                          onChange={(event) =>
+                            setSelectedIds((current) =>
+                              event.target.checked
+                                ? [...current, item.caseId]
+                                : current.filter((id) => id !== item.caseId),
+                            )
+                          }
+                          type="checkbox"
+                        />
+                      ) : null}
+                    </td>
                     <td>
                       <div className={styles.stack}>
                         <span className={styles.primary}>{item.caseId}</span>

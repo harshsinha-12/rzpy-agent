@@ -22,4 +22,14 @@ describe("AppShell", () => {
     expect(markup).toContain("API ready");
     expect(markup).toContain("Worker");
   });
+
+  it("treats /dashboard as the operator home", () => {
+    const markup = renderToStaticMarkup(
+      createElement(AppShell, null, createElement("p", null, "Content")),
+    );
+
+    expect(markup).toContain('href="/dashboard"');
+    expect(markup).toContain("Overview");
+    expect(markup).not.toMatch(/href="\/"(?![a-z])/);
+  });
 });

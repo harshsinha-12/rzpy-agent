@@ -93,6 +93,10 @@ export async function buildApp(
     createRecoveryCaseService(createRecoveryCaseRepository(database!));
   const checkoutDropOffService = createCheckoutDropOffService(
     createCheckoutDropOffRepository(database!),
+    createRuntimeCheckoutDropOffPaymentLinks(
+      env.RAZORPAY_TEST_MODE_API_KEY,
+      env.RAZORPAY_TEST_MODE_SECRET_KEY,
+    ),
   );
   const simulatorService =
     options.simulatorService ??
@@ -192,4 +196,41 @@ function createRuntimeDemoCheckoutService(keyId: string, keySecret: string) {
       mode: "test",
     }),
   });
+}
+
+function createRuntimeCheckoutDropOffPaymentLinks(
+  keyId: string,
+  keySecret: string,
+) {
+  if (!keyId || !keySecret) {
+    return {
+      async ensure(): Promise<never> {
+        throw new Error("Razorpay Test Mode Payment Links are not configured.");
+      },
+    };
+  }
+
+  const client = createRazorpayClient({ keyId, keySecret, mode: "test" });
+  return {
+    async ensure(input: {
+      amountPaise: number;
+      caseId: string;
+      currency: "INR";
+      customerName: string;
+      orderId: string;
+    }) {
+      const result = await client.ensurePaymentLink({
+        amountPaise: input.amountPaise,
+        currency: input.currency,
+        description: `Checkout recovery for ${input.orderId}`,
+        notes: {
+          checkout_drop_off: input.caseId,
+          customer_name: input.customerName,
+          source: "recoveryos_checkout_dropoff",
+        },
+        referenceId: `checkout_${input.caseId.replaceAll(/[^a-zA-Z0-9]/g, "").slice(0, 31)}`,
+      });
+      return { id: result.paymentLink.id, url: result.paymentLink.short_url };
+    },
+  };
 }

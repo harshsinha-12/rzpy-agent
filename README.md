@@ -90,7 +90,7 @@ The remaining delivery order is intentionally sequential:
 - A deterministic simulator comparing no intervention, naive retry, and RecoveryOS over 250–500 synthetic failed payments.
 - Security and reliability controls including Helmet, API rate limits, log redaction, bounded retries, payment-state rechecks, and idempotent Payment Link references.
 - A public `/about` page that explains the product, challenge proof, architecture, and AI safety boundary without requiring repository knowledge.
-- A public landing at `/` is planned as Step 23 (hero, recovery-loop animation, and product mockups). Until then `/` remains the dashboard.
+- A public landing at `/` with a hero, recovery-loop animation, and illustrative product mockups. The executive dashboard lives at `/dashboard`.
 
 ## Recovery workflow
 
@@ -166,7 +166,7 @@ The complete system diagram, queue diagram, integration responsibilities, and re
 
 | Component              | Responsibility                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Next.js and React      | Dashboard, Reported Issues, case detail, Test Mode checkout, and About page                                 |
+| Next.js and React      | Landing, dashboard, Reported Issues, case detail, Test Mode checkout, and About page                        |
 | Fastify and TypeScript | Product APIs, analytics, simulator runs, secure webhook ingestion, health checks, and rate limiting         |
 | Razorpay Test Mode     | Checkout orders, payment events, status checks, and silent Test Mode Payment Links                          |
 | OpenAI Responses API   | One structured `gpt-5.6-terra` recovery proposal from read-only case facts                                  |
@@ -237,13 +237,14 @@ No external cron provider or dedicated VM is required, but the application does 
 
 | Route              | Purpose                                                                        |
 | ------------------ | ------------------------------------------------------------------------------ |
-| `/`                | Executive recovery dashboard and simulator comparison                          |
+| `/`                | Public product landing (hero, recovery loop, illustrative mockups)             |
+| `/dashboard`       | Executive recovery dashboard and simulator comparison                          |
 | `/recoveries`      | Reported Issues table plus the detect-to-observe workflow for each row         |
 | `/recoveries/[id]` | Case facts, recovery reasoning, actions, and audit timeline                    |
 | `/demo/checkout`   | Razorpay Test Mode checkout and failure generation                             |
 | `/about`           | Judge-facing product, challenge proof, architecture, and AI safety explanation |
 
-Step 23 will move this dashboard to `/dashboard` and put a public landing explainer at `/`. Until that step is implemented, `/` remains the dashboard.
+The landing at `/` renders without the API. Operator pages keep `AppShell` with health links.
 
 ## Quick start
 
@@ -273,6 +274,8 @@ pnpm dev
 | Service                | URL                                   |
 | ---------------------- | ------------------------------------- |
 | Web application        | `http://localhost:3000`               |
+| Product landing        | `http://localhost:3000/`              |
+| Executive dashboard    | `http://localhost:3000/dashboard`     |
 | Test Mode checkout     | `http://localhost:3000/demo/checkout` |
 | About and architecture | `http://localhost:3000/about`         |
 | API liveness           | `http://localhost:4000/health/live`   |
@@ -352,7 +355,7 @@ Set `APP_BASE_URL=https://rzpy-agent-web.vercel.app` on the Railway API service 
 
 Do **not** put Razorpay secrets, the webhook secret, `DATABASE_URL`, Redis credentials, or `OPENAI_API_KEY` on Vercel. Those belong only in the Railway API/worker secret stores even though PostgreSQL and Redis are managed elsewhere.
 
-7. Deploy. After it succeeds, open `/about`. `/` and `/recoveries` will say the API is unavailable until the backend is deployed. Copy the Vercel URL; the Railway API needs it as `APP_BASE_URL` for CORS.
+7. Deploy. After it succeeds, open `/` and `/about`. `/dashboard` and `/recoveries` will say the API is unavailable until the backend is deployed. Copy the Vercel URL; the Railway API needs it as `APP_BASE_URL` for CORS.
 
 ### Railway API and worker with external data services
 
@@ -509,7 +512,7 @@ The credential names above are intentional. Legacy `RAZORPAY_KEY_ID` and `RAZORP
 ### Seeded product flow
 
 1. Start the infrastructure and applications.
-2. Open `/` and review revenue at risk, funnel stages, failure categories, and strategy performance.
+2. Open `/` for the product landing, then `/dashboard` to review revenue at risk, funnel stages, failure categories, and strategy performance.
 3. Open `/recoveries` to inspect the Reported Issues table and filter by source or recovery state.
 4. Open a case to review evidence, diagnosis, model proposal, policy decision, actions, and audit history.
 5. Run the deterministic simulator and compare no intervention, naive retry, and RecoveryOS.

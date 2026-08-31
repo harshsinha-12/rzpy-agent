@@ -1,6 +1,7 @@
 import { notFoundError } from "../../lib/errors.js";
 import type {
   CheckoutDropOffRepository,
+  CheckoutDropOffPaymentLinks,
   CheckoutDropOffService,
 } from "./types.js";
 
@@ -23,12 +24,14 @@ function map(
     orderId: record.razorpayOrderId,
     policyDecision: record.policyDecision,
     policyReason: record.policyReason,
+    paymentLinkUrl: record.paymentLinkUrl,
     status: record.status,
   };
 }
 
 export function createCheckoutDropOffService(
   repository: CheckoutDropOffRepository,
+  paymentLinks: CheckoutDropOffPaymentLinks,
 ): CheckoutDropOffService {
   return {
     async createDraft(id) {
@@ -38,7 +41,22 @@ export function createCheckoutDropOffService(
           "CHECKOUT_DROPOFF_NOT_FOUND",
           `Checkout drop-off ${id} was not found.`,
         );
-      return { data: map(record) };
+      if (record.policyDecision !== "APPROVED" || record.paymentLinkUrl) {
+        return { data: map(record) };
+      }
+      const link = await paymentLinks.ensure({
+        amountPaise: record.amountPaise,
+        caseId: record.publicId,
+        currency: "INR",
+        customerName: record.customer.name,
+        orderId: record.razorpayOrderId,
+      });
+      const updated = await repository.attachPaymentLink({
+        id: record.publicId,
+        paymentLinkId: link.id,
+        paymentLinkUrl: link.url,
+      });
+      return { data: map(updated ?? record) };
     },
     async list() {
       return { data: (await repository.list()).map(map) };

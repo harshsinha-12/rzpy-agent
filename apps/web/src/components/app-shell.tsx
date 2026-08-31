@@ -15,11 +15,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className={styles.shell}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <Link className={styles.brand} href="/">
+          <Link className={styles.brand} href="/dashboard">
             RecoveryOS
           </Link>
           <nav aria-label="Primary navigation" className={styles.nav}>
-            <Link className={styles.navLink} href="/">
+            <Link className={styles.navLink} href="/dashboard">
               Overview
             </Link>
             <Link className={styles.navLink} href="/recoveries">

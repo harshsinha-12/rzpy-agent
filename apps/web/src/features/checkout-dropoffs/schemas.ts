@@ -25,6 +25,7 @@ export const checkoutDropOffSchema = z.object({
   orderId: z.string(),
   policyDecision: z.enum(["APPROVED", "DENIED"]).nullable(),
   policyReason: z.string().nullable(),
+  paymentLinkUrl: z.string().url().nullable(),
   status: z.enum(["OPEN", "DRAFT_READY", "STOPPED"]),
 });
 

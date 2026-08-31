@@ -72,7 +72,7 @@ The must-have user experience is:
 4. Razorpay Test Mode event appearing in the product
 5. Baseline-versus-agent simulation
 
-After Step 23, `/` is the public landing explainer and the executive dashboard lives at `/dashboard`. Until that step is implemented, `/` remains the dashboard.
+After Step 23, `/` is the public landing explainer and the executive dashboard lives at `/dashboard`.
 
 ## Documentation ownership
 

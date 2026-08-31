@@ -4,13 +4,13 @@ Last updated: 2026-08-31
 
 ## Current snapshot
 
-- **Current step:** Step 17 — Checkout drop-off recovery
-- **State:** The user explicitly deferred Step 16 before its remaining local validation, backup capture, and final submission approval. Step 17 now has a draft-only checkout-drop-off vertical slice: separate persisted unpaid-order records, deterministic policy review, audit events, and copyable email drafts. No email provider or outbound send path exists.
-- **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
-- **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
-- **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** Step 17 needs an email-provider decision before any real outbound delivery can be added. Until then, work will stop at merchant selection, deterministic policy approval, a rendered draft, and audit records; no customer email will be sent. Step 23 remains deferred until Steps 17–22 are finished.
-- **Exact next action:** Deploy the checkout-drop-off migration and API/web slice, then seed or ingest drop-offs and verify draft selection/copy behavior in the hosted product.
+- **Current step:** Step 23 — Public product landing (parallel with Steps 17–22 per explicit user direction)
+- **State:** Step 23 landing implementation is in progress. `/` is a static marketing landing with marketing chrome; the executive dashboard moved to `/dashboard` under `AppShell`. Steps 17–22 continue with another agent and are treated as available product surfaces for linking.
+- **Application code:** Route groups `(marketing)` and `(app)` are in place. `features/landing` owns copy, mockups, CSS-first motion, and tests. Frozen Step 15 `SIMULATED` figures and the ₹1 `RAZORPAY_TEST_MODE` proof appear on the landing with labels. AppShell Overview and About “Review the dashboard” point to `/dashboard`.
+- **Runtime services:** Unchanged from prior Step 17 session notes; this session did not redeploy.
+- **Local runtime:** Production web build succeeded with `/` prerendered as static. Interactive browser verification was blocked (port 3000 unavailable / start skipped).
+- **Current blocker for Step 23:** Browser viewport verification (desktop + mobile) still needed before acceptance. Step 17’s email-provider decision remains a separate blocker for that vertical.
+- **Exact next action:** Visually verify landing → dashboard → Reported Issues in the browser on desktop and a mobile viewport, then mark Step 23 complete after acceptance checks pass.
 
 ## Step overview
 
@@ -39,7 +39,7 @@ Last updated: 2026-08-31
 |   20 | Mandate retry sequencing                         | Not started |
 |   21 | Generated voice recovery messages                | Not started |
 |   22 | Promise-to-pay and udhaar tracker                | Not started |
-|   23 | Public product landing                           | Not started |
+|   23 | Public product landing                           | In progress |
 
 ## Available local tooling observed
 
@@ -2257,6 +2257,46 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Run formatting/build checks, push the slice, and verify the deployed draft-only workflow after the normal migration pre-deploy.
+
+### 2026-08-31 — Step 23 public landing
+
+**Agent:** Auto
+
+**Requested outcome:** Implement Step 23 public product landing while treating Steps 17–22 as available; keep the existing cream/navy editorial UI.
+
+**Completed:**
+
+- Restructured web routes into `(marketing)` and `(app)` groups.
+- Moved the executive dashboard to `/dashboard` and made `/` a static landing.
+- Added `features/landing` with content, marketing shell, hero, six-stage loop, product mockups, safety/proof strips, CSS motion, and component tests.
+- Updated AppShell Overview, About dashboard CTA, README product surfaces, DEMO_SCRIPT opener, AGENTS.md routing note, and PLAN Step 23 status.
+- Reused frozen Step 15 `SIMULATED` figures and labelled the ₹1 `RAZORPAY_TEST_MODE` proof on the landing.
+
+**Files changed:**
+
+- `apps/web/src/app/layout.tsx`
+- `apps/web/src/app/(marketing)/*`
+- `apps/web/src/app/(app)/*`
+- `apps/web/src/features/landing/*`
+- `apps/web/src/components/app-shell.tsx`
+- `apps/web/src/components/app-shell.test.tsx`
+- `apps/web/src/features/about/components/about-project.tsx`
+- `README.md`, `DEMO_SCRIPT.md`, `PLAN.md`, `AGENTS.md`, `STATUS.md`
+
+**Validation:**
+
+- `pnpm --filter @recoveryos/web test` — 14 files, 29 tests passed
+- `pnpm --filter @recoveryos/web lint` — passed
+- `pnpm --filter @recoveryos/web typecheck` — passed
+- `pnpm --filter @recoveryos/web build` — succeeded; `/` reported as static (`○`)
+
+**Blockers:**
+
+- Browser desktop/mobile verification of hero CTAs and landing → dashboard → Reported Issues path not completed this session.
+
+**Next action:**
+
+- Start the web app, verify the landing visually on desktop and mobile, confirm CTA paths, then close Step 23 acceptance.
 
 ## Session entry template
 

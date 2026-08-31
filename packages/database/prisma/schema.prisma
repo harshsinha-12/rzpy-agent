@@ -368,6 +368,8 @@ model CheckoutDropOff {
   status            CheckoutDropOffStatus
   draftSubject      String?
   draftBody         String?
+  paymentLinkId     String?
+  paymentLinkUrl    String?
   policyDecision    PolicyDecision?
   policyReason      String?
   checkoutCreatedAt DateTime
@@ -380,6 +382,7 @@ model CheckoutDropOff {
 
   @@index([merchantId, status])
   @@index([merchantId, lastUpdatedAt])
+  @@unique([paymentLinkId])
 }
 
 model CheckoutDropOffAudit {

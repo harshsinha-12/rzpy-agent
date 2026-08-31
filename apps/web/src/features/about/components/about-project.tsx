@@ -236,7 +236,7 @@ export function AboutProject({
           </p>
         </div>
         <div className={styles.closerLinks}>
-          <Link href="/">Review the dashboard →</Link>
+          <Link href="/dashboard">Review the dashboard →</Link>
           <Link href="/recoveries">Explore Reported Issues →</Link>
           <Link href="/demo/checkout">Open Test Mode checkout →</Link>
         </div>

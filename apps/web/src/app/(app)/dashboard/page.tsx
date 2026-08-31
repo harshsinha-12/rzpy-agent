@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 
 import { DashboardOverview } from "@/features/dashboard/components/dashboard-overview";
 import { fetchAnalyticsOverview } from "@/features/dashboard/fetchers";
 
-export default async function HomePage() {
+export const metadata: Metadata = {
+  description:
+    "Executive recovery dashboard for revenue at risk, policy-controlled actions, and simulated incremental recovery.",
+  title: "Dashboard",
+};
+
+export default async function DashboardPage() {
   await connection();
   const overview = await fetchAnalyticsOverview();
 

@@ -14,6 +14,8 @@ export interface CheckoutDropOffRecord {
   status: CheckoutDropOffStatus;
   draftSubject: string | null;
   draftBody: string | null;
+  paymentLinkId: string | null;
+  paymentLinkUrl: string | null;
   policyDecision: PolicyDecision | null;
   policyReason: string | null;
   checkoutCreatedAt: Date;
@@ -31,10 +33,25 @@ export interface CheckoutDropOffRecord {
 
 export interface CheckoutDropOffRepository {
   createDraft(id: string): Promise<CheckoutDropOffRecord | null>;
+  attachPaymentLink(input: {
+    id: string;
+    paymentLinkId: string;
+    paymentLinkUrl: string;
+  }): Promise<CheckoutDropOffRecord | null>;
   list(): Promise<CheckoutDropOffRecord[]>;
 }
 
 export interface CheckoutDropOffService {
   createDraft(id: string): Promise<unknown>;
   list(): Promise<unknown>;
+}
+
+export interface CheckoutDropOffPaymentLinks {
+  ensure(input: {
+    amountPaise: number;
+    caseId: string;
+    currency: "INR";
+    customerName: string;
+    orderId: string;
+  }): Promise<{ id: string; url: string }>;
 }

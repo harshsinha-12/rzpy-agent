@@ -22,6 +22,7 @@ const openDropOff: CheckoutDropOff = {
   orderId: "order_checkout_sim_1001",
   policyDecision: null,
   policyReason: null,
+  paymentLinkUrl: null,
   status: "OPEN",
 };
 
