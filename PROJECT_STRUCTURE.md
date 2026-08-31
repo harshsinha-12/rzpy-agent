@@ -26,17 +26,29 @@ The tree below is the intended direction. Individual entries are created only in
 │   │   ├── src/
 │   │   │   ├── app/
 │   │   │   │   ├── layout.tsx
-│   │   │   │   ├── page.tsx
-│   │   │   │   ├── about/
+│   │   │   │   ├── (marketing)/
+│   │   │   │   │   ├── layout.tsx
 │   │   │   │   │   └── page.tsx
-│   │   │   │   ├── recoveries/
-│   │   │   │   │   ├── page.tsx
-│   │   │   │   │   └── [id]/page.tsx
+│   │   │   │   ├── (app)/
+│   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   ├── dashboard/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── about/
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── recoveries/
+│   │   │   │   │   │   ├── page.tsx
+│   │   │   │   │   │   └── [id]/page.tsx
+│   │   │   │   │   └── demo/
+│   │   │   │   │       └── checkout/
+│   │   │   │   │           └── page.tsx
 │   │   │   │   └── globals.css
 │   │   │   ├── components/
 │   │   │   │   └── ui/
 │   │   │   ├── features/
 │   │   │   │   ├── about/
+│   │   │   │   │   ├── components/
+│   │   │   │   │   └── content.ts
+│   │   │   │   ├── landing/
 │   │   │   │   │   ├── components/
 │   │   │   │   │   └── content.ts
 │   │   │   │   ├── dashboard/
@@ -191,6 +203,7 @@ Controllers must not contain business rules or Prisma queries. Repositories must
 
 - Route files compose pages and handle route-level loading or metadata.
 - Feature components render one product capability such as the recovery table or audit timeline.
+- Landing copy and illustrative mockups live in `features/landing`. They must not import dashboard fetchers or hardcode live recovery cases.
 - `fetchers.ts` contains typed API calls for that feature and no React rendering logic.
 - `schemas.ts` validates data received at runtime.
 - `types.ts` holds frontend-specific view types when they cannot be derived from schemas or shared contracts.

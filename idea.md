@@ -96,6 +96,8 @@ The other official Track 03 example directions are planned as `PLAN.md` Steps 17
 | Hinglish voice recovery | OpenAI-generated recovery message the customer would receive; merchant can play it in the product. |
 | Promise-to-pay tracker | Udhaar records with a month-end due date, Hindi reminder, and generated voice recovery message. |
 
+A public product landing (hero, mockups, recovery-loop animation) is planned as `PLAN.md` Step 23 after those expansions. It is a first-impression explainer, not a new Track 03 vertical.
+
 ---
 
 # 2. The Problem
@@ -1835,6 +1837,8 @@ All cases.
 Full agent reasoning + audit timeline.
 
 That's enough.
+
+Step 23 later adds a public landing at `/` and moves this dashboard to `/dashboard`. The landing explains the product with a hero, short mockups, and the recovery loop; it is not a substitute for the live dashboard.
 
 ---
 

@@ -8,7 +8,7 @@ The model is advisory. It cannot call Razorpay, write to PostgreSQL, enqueue wor
 
 RecoveryOS is a Track 03 AI Revenue Recovery system. The implemented workflow is payment degradation → root cause → recovery action for failed one-time Razorpay Test Mode payments.
 
-Checkout drop-off, failed subscriptions, B2B receivables, mandate retry sequencing, generated voice recovery, and promise-to-pay / udhaar tracking are official Track 03 examples planned as architecture expansions in `PLAN.md` Steps 17–22. They stay out of the current failed-payment runtime. Voice messages are generated with OpenAI text-to-speech, stored as audio objects with Postgres metadata, and played in the product so the merchant can hear the recovery call the customer would receive. Redis remains job infrastructure and is not the audio store.
+Checkout drop-off, failed subscriptions, B2B receivables, mandate retry sequencing, generated voice recovery, and promise-to-pay / udhaar tracking are official Track 03 examples planned as architecture expansions in `PLAN.md` Steps 17–22. They stay out of the current failed-payment runtime. Voice messages are generated with OpenAI text-to-speech, stored as audio objects with Postgres metadata, and played in the product so the merchant can hear the recovery call the customer would receive. Redis remains job infrastructure and is not the audio store. A public product landing at `/`, with the dashboard moved to `/dashboard`, is planned as Step 23.
 
 ## System architecture
 

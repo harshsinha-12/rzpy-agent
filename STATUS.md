@@ -9,7 +9,7 @@ Last updated: 2026-08-31
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** None. Step 16 requires an evidence-backed, repeatable judge package and explicit user approval before final submission.
+- **Current blocker:** Docker is unavailable on this machine, so the database-backed local retry and full-suite checks cannot run here. Hosted API, worker, and public web smoke checks are healthy. Step 16 still requires explicit user approval before final submission. Step 23 (public landing) is planned and must not start while Step 16 or Steps 17–22 are unfinished.
 - **Exact next action:** Audit the reset path, graceful provider-failure proof, public routes, secrets, validation suite, and submission copy; then package the verified walkthrough and backups for user review.
 
 ## Step overview
@@ -39,6 +39,7 @@ Last updated: 2026-08-31
 |   20 | Mandate retry sequencing                         | Not started |
 |   21 | Generated voice recovery messages                | Not started |
 |   22 | Promise-to-pay and udhaar tracker                | Not started |
+|   23 | Public product landing                           | Not started |
 
 ## Available local tooling observed
 
@@ -2108,6 +2109,83 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Perform Step 16's final judge-demo, reset, public-route, full-validation, secret-scan, and submission-copy audit before requesting final user approval.
+
+### 2026-08-31 — Sequence Step 23 public product landing
+
+**Agent:** Cursor Grok 4.6
+
+**Requested outcome:**
+
+- Add a final plan step for a public landing page with a hero, animations, and short mockups that explain what RecoveryOS does.
+
+**Completed:**
+
+- Added `PLAN.md` Step 23 after the Track 03 expansions. It is `Not started` and must not begin while an earlier step is in progress.
+- Recorded D-051: `/` becomes the marketing landing, the executive dashboard moves to `/dashboard`, and `/about` stays the judge-facing architecture page.
+- Updated routing, structure, and scope docs so later implementation does not collide with the live dashboard or About page.
+
+**Files changed:**
+
+- `PLAN.md`
+- `STATUS.md`
+- `DECISIONS.md`
+- `AGENTS.md`
+- `PROJECT_STRUCTURE.md`
+- `README.md`
+- `IDEA.md`
+- `LIMITATIONS.md`
+- `ARCHITECTURE.md`
+
+**Validation:**
+
+- Cross-checked current routes: `/` is still the dashboard, `/about` remains architecture/proof, and no landing code was added.
+- Confirmed Step 16 remains the in-progress implementation step.
+
+**Blockers:**
+
+- None for planning. Implementation of Step 23 waits on Steps 16–22.
+
+**Next action:**
+
+- Continue Step 16 judge-demo and submission hardening. Do not implement the landing until Step 23 is marked in progress.
+
+### 2026-08-31 — Package Step 16 judge walkthrough
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Start Step 16 after Step 15 completion.
+
+**Completed:**
+
+- Created the final spoken walkthrough, which begins with frozen revenue at risk and ends with +₹7,83,632 incremental `SIMULATED` recovery.
+- Added a submission runbook covering the proof boundary, known-good evidence, reset/fallback behavior, controlled Razorpay 5xx proof, backup capture, and final validation commands.
+- Verified public API liveness/readiness, worker readiness, and web routes `/`, `/about`, `/recoveries`, and `/demo/checkout` all return HTTP 200.
+- Ran the repository secret-assignment scan; it returned no credential assignments outside allowed example/documentation paths.
+
+**Files changed:**
+
+- `DEMO_SCRIPT.md`
+- `SUBMISSION.md`
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- `pnpm prettier --check DEMO_SCRIPT.md SUBMISSION.md README.md` passed.
+- `GET` API `/health/live`, API `/health`, and worker `/health` were healthy.
+- Public-route smoke checks returned HTTP 200 for `/`, `/about`, `/recoveries`, and `/demo/checkout`.
+- The focused 5xx test was attempted but could not connect to local PostgreSQL; Docker was unavailable, so local database services could not be started.
+
+**Blockers:**
+
+- Start Docker or provide an isolated test database before re-running database-backed tests and the complete local validation suite.
+- Backup screenshots and recording remain a final human capture task.
+
+**Next action:**
+
+- Complete local validation when Docker is available, capture the four backup artifacts, then present the final submission package for explicit approval.
 
 ## Session entry template
 

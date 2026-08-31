@@ -76,6 +76,7 @@ The remaining delivery order is intentionally sequential:
 4. **Step 15:** freeze and reconcile the batch-level incremental-recovery evidence; and
 5. **Step 16:** run, record, and harden the final judge walkthrough.
 6. **Steps 17–22:** expand the remaining Track 03 directions (drop-off email, subscriptions, B2B alerts, mandates, generated voice, udhaar / promise-to-pay).
+7. **Step 23:** replace `/` with a public landing (hero, recovery-loop animation, product mockups) and move the executive dashboard to `/dashboard`.
 
 ## What the demo includes
 
@@ -89,6 +90,7 @@ The remaining delivery order is intentionally sequential:
 - A deterministic simulator comparing no intervention, naive retry, and RecoveryOS over 250–500 synthetic failed payments.
 - Security and reliability controls including Helmet, API rate limits, log redaction, bounded retries, payment-state rechecks, and idempotent Payment Link references.
 - A public `/about` page that explains the product, challenge proof, architecture, and AI safety boundary without requiring repository knowledge.
+- A public landing at `/` is planned as Step 23 (hero, recovery-loop animation, and product mockups). Until then `/` remains the dashboard.
 
 ## Recovery workflow
 
@@ -240,6 +242,8 @@ No external cron provider or dedicated VM is required, but the application does 
 | `/recoveries/[id]` | Case facts, recovery reasoning, actions, and audit timeline                    |
 | `/demo/checkout`   | Razorpay Test Mode checkout and failure generation                             |
 | `/about`           | Judge-facing product, challenge proof, architecture, and AI safety explanation |
+
+Step 23 will move this dashboard to `/dashboard` and put a public landing explainer at `/`. Until that step is implemented, `/` remains the dashboard.
 
 ## Quick start
 

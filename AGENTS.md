@@ -62,7 +62,7 @@ At the end of every session:
 
 ## Scope guardrails
 
-The first version includes failed-payment recovery only. Checkout drop-off, failed subscriptions, B2B receivables, mandate sequencing, generated voice recovery, promise-to-pay / udhaar tracking, real SMS/WhatsApp delivery, multi-merchant authentication, and adaptive model training stay out of implementation until the core demo is complete. Those Track 03 expansions are sequenced as `PLAN.md` Steps 17–22 and must not start while an earlier step is in progress.
+The first version includes failed-payment recovery only. Checkout drop-off, failed subscriptions, B2B receivables, mandate sequencing, generated voice recovery, promise-to-pay / udhaar tracking, real SMS/WhatsApp delivery, multi-merchant authentication, and adaptive model training stay out of implementation until the core demo is complete. Those Track 03 expansions are sequenced as `PLAN.md` Steps 17–22. Step 23 is the public product landing after those expansions. None of Steps 17–23 may start while an earlier step is in progress.
 
 The must-have user experience is:
 
@@ -71,6 +71,8 @@ The must-have user experience is:
 3. Recovery case detail and audit timeline
 4. Razorpay Test Mode event appearing in the product
 5. Baseline-versus-agent simulation
+
+After Step 23, `/` is the public landing explainer and the executive dashboard lives at `/dashboard`. Until that step is implemented, `/` remains the dashboard.
 
 ## Documentation ownership
 

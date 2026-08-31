@@ -35,6 +35,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 1 — Workspace foundation
 
 **Status:** Complete
@@ -69,6 +71,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 2 — Database schema and deterministic seed data
 
 **Status:** Complete
@@ -93,6 +97,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 3 — Read-only product API
 
 **Status:** Complete
@@ -115,6 +121,8 @@ This is the binding implementation order for the project. We will complete, veri
 - No frontend component imports or bypasses the database directly.
 
 ---
+
+
 
 ## Step 4 — Dashboard and Reported Issues frontend
 
@@ -139,6 +147,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Key pages pass focused component tests and manual browser verification.
 
 ---
+
+
 
 ## Step 5 — Razorpay Test Mode ingestion
 
@@ -165,6 +175,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 6 — Deterministic diagnosis engine
 
 **Status:** Complete
@@ -185,6 +197,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Diagnosis outputs are stored and visible in case details.
 
 ---
+
+
 
 ## Step 7 — AI proposal and deterministic policy engine
 
@@ -210,6 +224,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 8 — BullMQ recovery orchestration
 
 **Status:** Complete
@@ -233,6 +249,8 @@ This is the binding implementation order for the project. We will complete, veri
 - No external cron service or dedicated VM is required.
 
 ---
+
+
 
 ## Step 9 — Recovery execution tools
 
@@ -258,6 +276,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 10 — Simulator and evaluation harness
 
 **Status:** Complete
@@ -282,6 +302,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 11 — Reliability, security, and end-to-end validation
 
 **Status:** Complete
@@ -303,6 +325,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Known limitations are documented rather than hidden.
 
 ---
+
+
 
 ## Step 12 — Hosted runtime foundation
 
@@ -332,6 +356,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 13 — Razorpay Test Mode webhook proof
 
 **Status:** Complete
@@ -358,6 +384,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Step 5's pending live acceptance check can be marked complete after explicit approval.
 
 ---
+
+
 
 ## Step 14 — Bounded AI recovery and paid Test Mode outcome
 
@@ -388,6 +416,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 15 — Measured batch recovery evidence
 
 **Status:** Complete
@@ -412,6 +442,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Dashboard, About page, README, and spoken demo use the same verified numbers and labels.
 
 ---
+
+
 
 ## Step 16 — Final judge demo and submission hardening
 
@@ -440,6 +472,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 17 — Checkout drop-off recovery
 
 **Status:** Not started
@@ -464,6 +498,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 18 — Failed-subscription recovery
 
 **Status:** Not started
@@ -487,6 +523,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 19 — B2B receivables human-in-the-loop alerts
 
 **Status:** Not started
@@ -500,6 +538,7 @@ This is the binding implementation order for the project. We will complete, veri
 - Operator acknowledge, snooze, escalate, or stop actions
 - Optional policy-gated customer email after a human confirms outreach
 - Audit events for alert raised, operator decision, and invoice outcome
+- Currently add a UI to manually send alert althouh we won't since no API for it, the feature will be there
 
 **Acceptance gate:**
 
@@ -509,6 +548,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Dashboard and case detail show who was alerted and what they decided.
 
 ---
+
+
 
 ## Step 20 — Mandate retry sequencing
 
@@ -532,6 +573,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Selected email outreach remains policy-gated and idempotent.
 
 ---
+
+
 
 ## Step 21 — Generated voice recovery messages
 
@@ -557,6 +600,8 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
 ## Step 22 — Promise-to-pay and udhaar tracker
 
 **Status:** Not started
@@ -581,9 +626,57 @@ This is the binding implementation order for the project. We will complete, veri
 
 ---
 
+
+
+## Step 23 — Public product landing
+
+**Status:** Not started
+
+**Goal:** Give a first-time visitor a short, visual explanation of RecoveryOS before they enter the operator product. The page should answer “what is this?” in one screen, then show the recovery loop with compact mockups so a judge or merchant understands the product without reading the repository.
+
+**Placement:** After Steps 17–22. Do not start this step while an earlier step is in progress. `/about` remains the judge-facing architecture and challenge-proof page; this landing is the plain-language first impression.
+
+**Routing contract:**
+
+- `/` becomes the marketing landing and must render without the API.
+- The executive dashboard moves to `/dashboard`.
+- Use Next.js route groups so the landing has its own marketing chrome and the operator pages keep `AppShell`.
+- Existing product links that currently treat `/` as the dashboard (`AppShell` Overview, About “Review the dashboard”, README, DEMO_SCRIPT) must be updated in the same step.
+
+**Deliverables:**
+
+- A `features/landing` module with `content.ts` for copy, focused components, CSS, and tests. Route files compose; they do not own long copy or mockup markup.
+- A marketing layout with a wordmark, a primary “Open dashboard” action, and secondary links to About and Test payment. No API/worker health chrome on the landing.
+- Hero section: one-line problem, one-line product promise, two short CTAs (open the dashboard, try a Test Mode payment). Include one compact product-frame mockup in the hero, not a screenshot of live cases.
+- How-it-works section: the six-stage loop in plain language (Detect → Diagnose → Propose → Guard → Execute → Verify). Animate the sequence with CSS; keep each stage to a short title and one sentence.
+- Three short product mockups that explain the merchant surfaces without live data:
+  - a dashboard frame (revenue at risk, recovered, policy stops);
+  - a Reported Issues row (failed UPI, diagnosis, proposed action, policy decision);
+  - a case-timeline frame (detected → proposed → guarded → recovered).
+- A safety strip: AI can propose; it cannot move money, contact customers, or bypass policy.
+- A proof strip that distinguishes `RAZORPAY_TEST_MODE` live loop evidence from `SIMULATED` batch figures. Any rupee amounts on the landing must reuse the frozen Step 15 numbers and keep those labels. Do not invent new metrics.
+- CSS-first motion: hero entrance, staged loop highlight, and mockup reveal on scroll. Honor `prefers-reduced-motion: reduce` with a static layout. Do not add a new animation library unless CSS cannot deliver the sequence.
+- Keep the existing cream, navy, editorial-serif, cobalt visual system. The landing should feel like RecoveryOS, not a second product skin.
+- Update `AppShell`, About dashboard links, README product surfaces, DEMO_SCRIPT opener, `PROJECT_STRUCTURE.md`, and local/hosted route tables so `/dashboard` is the operator home.
+
+**Acceptance gate:**
+
+- Visiting `/` explains what RecoveryOS does in under a minute without repository knowledge or a running API.
+- `/dashboard`, `/recoveries`, `/recoveries/[id]`, `/demo/checkout`, and `/about` remain reachable and keep their current responsibilities.
+- Mockups are illustrative CSS/HTML frames. They do not hardcode live dashboard arrays, payment identifiers, or customer records. Any money shown is labelled `SIMULATED` or `RAZORPAY_TEST_MODE`.
+- The landing and About pages do not duplicate each other: landing teaches the story; About proves architecture, challenge fit, and AI safety in depth.
+- Motion is noticeable on desktop and restrained on mobile; reduced-motion users see the same content without animation.
+- Desktop and a representative mobile viewport are verified in the browser, including the hero CTAs and the path from landing → dashboard → Reported Issues.
+- Focused component tests cover landing copy, CTAs, dashboard relocation, and the absence of operator health links on `/`.
+- Web lint, typecheck, and production build succeed; `/` is statically generated.
+
+---
+
+
+
 ## Deferred work
 
-These items still require a separate plan after Steps 17–22:
+These items still require a separate plan after Steps 17–23:
 
 - Live placement of the generated voice onto a telephony carrier
 - Real SMS or WhatsApp delivery
