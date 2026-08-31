@@ -87,10 +87,11 @@ export function createCheckoutDropOffRepository(
             reasoning: policyReason,
           },
         });
-        return tx.checkoutDropOff.findUniqueOrThrow({
+        const updated = await tx.checkoutDropOff.findUniqueOrThrow({
           select,
           where: { id: record.id },
-        }) as Promise<CheckoutDropOffRecord>;
+        });
+        return updated as CheckoutDropOffRecord;
       });
     },
     async list() {
