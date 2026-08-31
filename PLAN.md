@@ -236,7 +236,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 9 — Recovery execution tools
 
-**Status:** Awaiting approval; live paid-link acceptance pending
+**Status:** Complete
 
 **Goal:** Implement one real, bounded recovery action and safe simulated alternatives.
 
@@ -361,7 +361,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 14 — Bounded AI recovery and paid Test Mode outcome
 
-**Status:** In progress
+**Status:** Complete
 
 **Goal:** Prove the complete detect-to-recover loop on one real Test Mode case while deterministic policy retains execution authority.
 
@@ -372,6 +372,7 @@ This is the binding implementation order for the project. We will complete, veri
 - Payment-state re-check immediately before execution
 - One approved, silent, action-bound Razorpay Test Mode Payment Link
 - Successful Test Mode payment of that recovery link
+- Test Mode completion runbook using Razorpay's Netbanking demo-bank `Success` control; card/UPI failure paths remain useful for creating the initial failed-payment case, not for proving the paid recovery outcome
 - `payment_link.paid` or provider-state verification updating the case and dashboard
 - Complete audit timeline covering detection, diagnosis, proposal, guard, execution, verification, and outcome
 - A contrasting policy-stop or escalation case showing that unsafe customer intervention is blocked
@@ -389,7 +390,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 15 — Measured batch recovery evidence
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Meet the Razorpay track bar by presenting auditable, batch-level recovery value rather than only a single successful case.
 
