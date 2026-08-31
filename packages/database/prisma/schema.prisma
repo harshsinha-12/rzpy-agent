@@ -105,6 +105,7 @@ model Merchant {
   updatedAt  DateTime
 
   customers      Customer[]
+  checkoutDropOffs CheckoutDropOff[]
   paymentEvents  PaymentEvent[]
   recoveryCases  RecoveryCase[]
   recoveryPolicy RecoveryPolicy?
@@ -125,6 +126,7 @@ model Customer {
   updatedAt   DateTime
 
   merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  checkoutDropOffs CheckoutDropOff[]
   paymentEvents PaymentEvent[]
   recoveryCases RecoveryCase[]
 
@@ -327,6 +329,12 @@ enum RecoveryJobStatus {
   EXHAUSTED
 }
 
+enum CheckoutDropOffStatus {
+  OPEN
+  DRAFT_READY
+  STOPPED
+}
+
 model RecoveryJob {
   id           String            @id
   queueName    String
@@ -347,4 +355,45 @@ model RecoveryJob {
 
   @@unique([queueName, bullJobId])
   @@index([status, updatedAt])
+}
+
+model CheckoutDropOff {
+  id                String                @id
+  publicId          String                @unique
+  merchantId        String
+  customerId        String
+  razorpayOrderId   String                @unique
+  amountPaise       Int
+  currency          String
+  status            CheckoutDropOffStatus
+  draftSubject      String?
+  draftBody         String?
+  policyDecision    PolicyDecision?
+  policyReason      String?
+  checkoutCreatedAt DateTime
+  lastUpdatedAt     DateTime
+  dataSource        DataSource
+
+  merchant Merchant                  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  auditEvents CheckoutDropOffAudit[]
+
+  @@index([merchantId, status])
+  @@index([merchantId, lastUpdatedAt])
+}
+
+model CheckoutDropOffAudit {
+  id         String     @id
+  dropOffId  String
+  actor      Actor
+  eventType  String
+  decision   String?
+  reasoning  String?
+  output     Json?
+  occurredAt DateTime
+  dataSource DataSource
+
+  dropOff CheckoutDropOff @relation(fields: [dropOffId], references: [id], onDelete: Cascade)
+
+  @@index([dropOffId, occurredAt])
 }

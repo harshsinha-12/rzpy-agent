@@ -5,12 +5,12 @@ Last updated: 2026-08-31
 ## Current snapshot
 
 - **Current step:** Step 17 — Checkout drop-off recovery
-- **State:** The user explicitly deferred Step 16 before its remaining local validation, backup capture, and final submission approval. Step 17 is now active and remains limited to merchant-selected, policy-gated checkout-drop-off recovery email drafts.
+- **State:** The user explicitly deferred Step 16 before its remaining local validation, backup capture, and final submission approval. Step 17 now has a draft-only checkout-drop-off vertical slice: separate persisted unpaid-order records, deterministic policy review, audit events, and copyable email drafts. No email provider or outbound send path exists.
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders an outlined continuation action only while a link remains payable. A paid link renders a non-actionable recovered panel. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
 - **Current blocker:** Step 17 needs an email-provider decision before any real outbound delivery can be added. Until then, work will stop at merchant selection, deterministic policy approval, a rendered draft, and audit records; no customer email will be sent. Step 23 remains deferred until Steps 17–22 are finished.
-- **Exact next action:** Inspect existing checkout/order and recovery modules, then add the bounded checkout-drop-off domain model and read-only product flow.
+- **Exact next action:** Deploy the checkout-drop-off migration and API/web slice, then seed or ingest drop-offs and verify draft selection/copy behavior in the hosted product.
 
 ## Step overview
 
@@ -2217,6 +2217,46 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Inspect the current order, recovery, policy, and audit modules to define the smallest safe Step 17 implementation.
+
+### 2026-08-31 — Implement draft-only checkout drop-off recovery slice
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Let a merchant create a copyable recovery email without an email provider or outbound delivery.
+
+**Completed:**
+
+- Added a separate `CheckoutDropOff` model and audit trail so unpaid orders are not represented as `payment.failed` cases.
+- Added three deterministic `SIMULATED` drop-offs to the demo seed and a migration for the new persistence model.
+- Added API list and merchant-selection draft endpoints. Selection runs deterministic eligibility checks for email presence and opt-out, writes an approval/denial audit event, and is idempotent once a draft is ready.
+- Added `/dropoffs` with draft preview and explicit `Copy email` behavior. The copy includes recipient, subject, and body; RecoveryOS has no send action or email-provider configuration.
+
+**Files changed:**
+
+- `packages/database/prisma/schema.prisma`
+- `packages/database/prisma/migrations/20260831100000_add_checkout_dropoffs/migration.sql`
+- `packages/database/src/seed/run-seed.ts`
+- `packages/domain/src/recovery/enums.ts`
+- `apps/api/src/modules/checkout-dropoffs/*`
+- `apps/web/src/app/dropoffs/page.tsx`
+- `apps/web/src/app/api/checkout/drop-offs/[id]/draft/route.ts`
+- `apps/web/src/features/checkout-dropoffs/*`
+
+**Validation:**
+
+- Database client generation passed.
+- API and web TypeScript checks passed.
+
+**Blockers:**
+
+- The migration and new seed data have not yet been deployed; no hosted UI verification has occurred.
+- No email provider is selected, by design. Drafts can only be copied and sent manually.
+
+**Next action:**
+
+- Run formatting/build checks, push the slice, and verify the deployed draft-only workflow after the normal migration pre-deploy.
 
 ## Session entry template
 

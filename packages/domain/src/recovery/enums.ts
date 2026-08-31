@@ -11,6 +11,13 @@ export const recoveryCaseStatuses = [
 ] as const;
 export type RecoveryCaseStatus = (typeof recoveryCaseStatuses)[number];
 
+export const checkoutDropOffStatuses = [
+  "OPEN",
+  "DRAFT_READY",
+  "STOPPED",
+] as const;
+export type CheckoutDropOffStatus = (typeof checkoutDropOffStatuses)[number];
+
 export const failureCategories = [
   "CUSTOMER_AUTH",
   "INSUFFICIENT_FUNDS",

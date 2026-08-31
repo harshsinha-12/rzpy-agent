@@ -20,6 +20,9 @@ import { createAnalyticsRepository } from "./modules/analytics/repository.js";
 import { registerAnalyticsRoutes } from "./modules/analytics/routes.js";
 import { createAnalyticsService } from "./modules/analytics/service.js";
 import type { AnalyticsService } from "./modules/analytics/types.js";
+import { createCheckoutDropOffRepository } from "./modules/checkout-dropoffs/repository.js";
+import { registerCheckoutDropOffRoutes } from "./modules/checkout-dropoffs/routes.js";
+import { createCheckoutDropOffService } from "./modules/checkout-dropoffs/service.js";
 import { createDemoCheckoutService } from "./modules/demo/razorpay/service.js";
 import { registerDemoCheckoutRoutes } from "./modules/demo/razorpay/routes.js";
 import type { DemoCheckoutService } from "./modules/demo/razorpay/types.js";
@@ -88,6 +91,9 @@ export async function buildApp(
   const recoveryCaseService =
     options.recoveryCaseService ??
     createRecoveryCaseService(createRecoveryCaseRepository(database!));
+  const checkoutDropOffService = createCheckoutDropOffService(
+    createCheckoutDropOffRepository(database!),
+  );
   const simulatorService =
     options.simulatorService ??
     createSimulatorService(createSimulatorRepository(database!));
@@ -140,6 +146,7 @@ export async function buildApp(
   registerErrorHandlers(app);
   await registerHealthRoutes(app, healthService);
   await registerRecoveryCaseRoutes(app, recoveryCaseService);
+  await registerCheckoutDropOffRoutes(app, checkoutDropOffService);
   await registerAnalyticsRoutes(app, analyticsService);
   await registerSimulatorRoutes(app, simulatorService);
   await registerRazorpayWebhookRoutes(app, razorpayWebhookService);

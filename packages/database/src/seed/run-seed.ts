@@ -37,6 +37,12 @@ export async function runDemoSeed(
     });
 
     if (existing) {
+      await tx.checkoutDropOffAudit.deleteMany({
+        where: { dropOff: { merchantId: existing.id } },
+      });
+      await tx.checkoutDropOff.deleteMany({
+        where: { merchantId: existing.id },
+      });
       await tx.auditEvent.deleteMany({
         where: { recoveryCase: { merchantId: existing.id } },
       });
@@ -90,6 +96,44 @@ export async function runDemoSeed(
         optedOut: customer.optedOut,
         phone: customer.phone,
         updatedAt: nowPolicy,
+      })),
+    });
+
+    const dropOffs = [
+      {
+        amountPaise: 249900,
+        customerId: "customer_priya_nair",
+        id: "dropoff_co1001",
+        publicId: "CO-SIM-1001",
+        razorpayOrderId: "order_checkout_sim_1001",
+      },
+      {
+        amountPaise: 129900,
+        customerId: "customer_kabir_shah",
+        id: "dropoff_co1002",
+        publicId: "CO-SIM-1002",
+        razorpayOrderId: "order_checkout_sim_1002",
+      },
+      {
+        amountPaise: 399900,
+        customerId: "customer_meera_iyer",
+        id: "dropoff_co1003",
+        publicId: "CO-SIM-1003",
+        razorpayOrderId: "order_checkout_sim_1003",
+      },
+    ];
+
+    await tx.checkoutDropOff.createMany({
+      data: dropOffs.map((dropOff, index) => ({
+        ...dropOff,
+        checkoutCreatedAt: new Date(
+          nowPolicy.getTime() - (index + 1) * 30 * 60_000,
+        ),
+        currency: DEFAULT_CURRENCY,
+        dataSource: "SIMULATED" as const,
+        lastUpdatedAt: nowPolicy,
+        merchantId: dataset.merchant.id,
+        status: "OPEN" as const,
       })),
     });
 
