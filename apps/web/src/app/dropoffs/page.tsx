@@ -14,17 +14,19 @@ export default async function DropOffsPage() {
   return (
     <div className="page-stack">
       <header className="page-heading">
-        <p className="eyebrow">Checkout recovery</p>
-        <h1 className="page-title">
-          Recover the orders
-          <br />
-          <span className="title-accent">that never paid.</span>
-        </h1>
-        <p className="page-description">
-          These are separate from failed payments. RecoveryOS prepares a
-          policy-gated email only after merchant selection; you copy and send it
-          yourself until an email provider is connected.
-        </p>
+        <div>
+          <p className="eyebrow">Checkout recovery</p>
+          <h1 className="page-title">
+            Recover the orders
+            <br />
+            <span className="title-accent">that never paid.</span>
+          </h1>
+          <p className="page-description">
+            These are separate from failed payments. RecoveryOS prepares a
+            policy-gated email only after merchant selection; you copy and send
+            it yourself until an email provider is connected.
+          </p>
+        </div>
       </header>
       <DropOffList initialItems={response.data} />
     </div>

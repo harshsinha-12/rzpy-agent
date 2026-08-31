@@ -5,12 +5,14 @@ import styles from "./status-badge.module.css";
 const positiveValues = new Set([
   "APPROVED",
   "CAPTURED",
+  "DRAFT_READY",
   "RECOVERED",
   "SUCCEEDED",
 ]);
 const warningValues = new Set([
   "ACTION_REQUIRED",
   "DIAGNOSING",
+  "OPEN",
   "PENDING",
   "RECOVERY_RUNNING",
   "RETRYING",

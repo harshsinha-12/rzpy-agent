@@ -1,0 +1,264 @@
+.panel {
+  overflow: hidden;
+}
+
+.intro {
+  display: grid;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--line);
+  padding: 1.1rem 1.15rem 1rem;
+}
+
+.introTitle {
+  margin: 0;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.4vw, 2.05rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.introCopy {
+  max-width: 42rem;
+  margin: 0.2rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 58rem;
+  border-collapse: collapse;
+}
+
+.table th {
+  border-bottom: 1.5px solid var(--line-strong);
+  background: var(--ink-strong);
+  color: var(--surface);
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.065em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 0.72rem;
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: #f5eedf;
+}
+
+.stack {
+  display: grid;
+  gap: 0.28rem;
+  justify-items: start;
+}
+
+.primary {
+  color: var(--ink-strong);
+  font-weight: 800;
+}
+
+.subtleId {
+  color: var(--ink-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.63rem;
+  font-weight: 500;
+}
+
+.money {
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusCell {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+}
+
+.reason {
+  color: var(--ink-muted);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.5rem 0.85rem;
+  white-space: nowrap;
+}
+
+.primaryButton {
+  border: 1px solid var(--line-strong);
+  background: var(--highlight);
+  color: var(--ink-strong);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #efb234;
+}
+
+.secondaryButton {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.secondaryButton:hover {
+  background: var(--highlight);
+  color: var(--ink-strong);
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.preview {
+  width: min(22rem, 100%);
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--surface-subtle);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  padding: 0.7rem 0.75rem;
+  white-space: pre-wrap;
+}
+
+.preview summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.preview pre {
+  margin: 0.55rem 0 0;
+  overflow: auto;
+  font-family: inherit;
+  white-space: pre-wrap;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.empty {
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.empty h2 {
+  margin: 0;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 600;
+}
+
+.empty p {
+  max-width: 28rem;
+  margin: 0.5rem auto 0;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.mobileCards {
+  display: none;
+}
+
+.mobileCard {
+  display: grid;
+  gap: 0.9rem;
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 1.15rem;
+}
+
+.mobileCard:last-child {
+  border-bottom: 0;
+}
+
+.mobileCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.mobileMeta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.metaItem {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.metaLabel {
+  color: var(--ink-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metaValue {
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 680;
+}
+
+@media (max-width: 720px) {
+  .tableScroll {
+    display: none;
+  }
+
+  .mobileCards {
+    display: block;
+  }
+}

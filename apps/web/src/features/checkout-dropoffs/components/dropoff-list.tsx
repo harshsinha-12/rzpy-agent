@@ -1,11 +1,122 @@
 "use client";
 
 import { useState } from "react";
+
+import { DataSourceBadge } from "@/components/ui/data-source-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { formatMoney } from "@/lib/formatters";
+
 import {
   checkoutDropOffsResponseSchema,
   type CheckoutDropOff,
 } from "../schemas";
+import styles from "./dropoffs.module.css";
+
+function DropOffActions({
+  busyId,
+  copiedId,
+  error,
+  item,
+  onCopy,
+  onPrepare,
+}: {
+  busyId: string | null;
+  copiedId: string | null;
+  error: string | null;
+  item: CheckoutDropOff;
+  onCopy: (item: CheckoutDropOff) => void;
+  onPrepare: (item: CheckoutDropOff) => void;
+}) {
+  return (
+    <div className={styles.actions}>
+      {item.status === "OPEN" ? (
+        <button
+          className={styles.primaryButton}
+          disabled={busyId === item.caseId}
+          onClick={() => onPrepare(item)}
+          type="button"
+        >
+          {busyId === item.caseId ? "Preparing…" : "Prepare email"}
+        </button>
+      ) : item.draftBody ? (
+        <>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => onCopy(item)}
+            type="button"
+          >
+            {copiedId === item.caseId ? "Copied" : "Copy email"}
+          </button>
+          <details className={styles.preview}>
+            <summary>Preview draft</summary>
+            <pre>
+              {item.draftSubject ? `Subject: ${item.draftSubject}\n\n` : ""}
+              {item.draftBody}
+            </pre>
+          </details>
+        </>
+      ) : (
+        <span className={styles.subtleId}>Policy stopped</span>
+      )}
+      {error ? <p className={styles.error}>{error}</p> : null}
+    </div>
+  );
+}
+
+function MobileDropOffCard({
+  busyId,
+  copiedId,
+  error,
+  item,
+  onCopy,
+  onPrepare,
+}: {
+  busyId: string | null;
+  copiedId: string | null;
+  error: string | null;
+  item: CheckoutDropOff;
+  onCopy: (item: CheckoutDropOff) => void;
+  onPrepare: (item: CheckoutDropOff) => void;
+}) {
+  return (
+    <article className={styles.mobileCard}>
+      <div className={styles.mobileCardTop}>
+        <div className={styles.stack}>
+          <span className={styles.primary}>{item.caseId}</span>
+          <span className={styles.subtleId}>{item.orderId}</span>
+        </div>
+        <StatusBadge value={item.status} />
+      </div>
+      <strong className={styles.money}>
+        {formatMoney(item.amountPaise, item.currency)}
+      </strong>
+      <div className={styles.mobileMeta}>
+        <span className={styles.metaItem}>
+          <span className={styles.metaLabel}>Customer</span>
+          <span className={styles.metaValue}>{item.customer.name}</span>
+        </span>
+        <span className={styles.metaItem}>
+          <span className={styles.metaLabel}>Email</span>
+          <span className={styles.metaValue}>
+            {item.customer.email ?? "No eligible email"}
+          </span>
+        </span>
+      </div>
+      <p className={styles.reason}>
+        {item.policyReason ?? "Awaiting merchant selection"}
+      </p>
+      <DataSourceBadge source={item.dataSource} />
+      <DropOffActions
+        busyId={busyId}
+        copiedId={copiedId}
+        error={error}
+        item={item}
+        onCopy={onCopy}
+        onPrepare={onPrepare}
+      />
+    </article>
+  );
+}
 
 export function DropOffList({
   initialItems,
@@ -15,9 +126,15 @@ export function DropOffList({
   const [items, setItems] = useState(initialItems);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [errorById, setErrorById] = useState<Record<string, string>>({});
 
   async function createDraft(item: CheckoutDropOff) {
     setBusyId(item.caseId);
+    setErrorById((current) => {
+      const next = { ...current };
+      delete next[item.caseId];
+      return next;
+    });
     try {
       const response = await fetch(
         `/api/checkout/drop-offs/${encodeURIComponent(item.caseId)}/draft`,
@@ -27,15 +144,20 @@ export function DropOffList({
       const parsed = checkoutDropOffsResponseSchema
         .pick({ data: true })
         .safeParse({ data: [(body as { data?: unknown })?.data] });
-      if (!response.ok || !parsed.success)
+      const updated = parsed.success ? parsed.data.data[0] : undefined;
+      if (!response.ok || !updated) {
         throw new Error("Could not prepare the email draft.");
-      const updated = parsed.data.data[0];
-      if (!updated) throw new Error("Could not prepare the email draft.");
+      }
       setItems((current) =>
         current.map((entry) =>
           entry.caseId === item.caseId ? updated : entry,
         ),
       );
+    } catch {
+      setErrorById((current) => ({
+        ...current,
+        [item.caseId]: "Could not prepare the email draft.",
+      }));
     } finally {
       setBusyId(null);
     }
@@ -50,85 +172,103 @@ export function DropOffList({
   }
 
   return (
-    <section className="surface-card">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Checkout drop-offs</p>
-          <h2>Prepare a recovery email</h2>
-          <p>
-            No email is sent by RecoveryOS. Select an unpaid checkout to create
-            an auditable, copyable draft; connect a provider later to deliver
-            it.
-          </p>
+    <section className={`surface ${styles.panel}`}>
+      <header className={styles.intro}>
+        <p className="eyebrow">Checkout drop-offs</p>
+        <h2 className={styles.introTitle}>Prepare a recovery email</h2>
+        <p className={styles.introCopy}>
+          No email is sent by RecoveryOS. Select an unpaid checkout to create an
+          auditable, copyable draft; connect a provider later to deliver it.
+        </p>
+      </header>
+      {items.length === 0 ? (
+        <div className={styles.empty}>
+          <div>
+            <h2>No unpaid checkouts yet</h2>
+            <p>
+              Drop-off cases stay off the Reported Issues table. Once unpaid
+              orders are seeded or ingested, they will appear here for merchant
+              selection.
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Checkout</th>
-              <th>Customer</th>
-              <th>Amount</th>
-              <th>Draft status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
+      ) : (
+        <>
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Checkout</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Draft status</th>
+                  <th>Data source</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.caseId}>
+                    <td>
+                      <div className={styles.stack}>
+                        <span className={styles.primary}>{item.caseId}</span>
+                        <span className={styles.subtleId}>{item.orderId}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className={styles.stack}>
+                        <span className={styles.primary}>
+                          {item.customer.name}
+                        </span>
+                        <span className={styles.subtleId}>
+                          {item.customer.email ?? "No eligible email"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className={styles.money}>
+                      {formatMoney(item.amountPaise, item.currency)}
+                    </td>
+                    <td>
+                      <div className={styles.statusCell}>
+                        <StatusBadge value={item.status} />
+                        <span className={styles.reason}>
+                          {item.policyReason ?? "Awaiting merchant selection"}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <DataSourceBadge source={item.dataSource} />
+                    </td>
+                    <td>
+                      <DropOffActions
+                        busyId={busyId}
+                        copiedId={copiedId}
+                        error={errorById[item.caseId] ?? null}
+                        item={item}
+                        onCopy={(next) => void copyDraft(next)}
+                        onPrepare={(next) => void createDraft(next)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className={styles.mobileCards}>
             {items.map((item) => (
-              <tr key={item.caseId}>
-                <td>
-                  <strong>{item.caseId}</strong>
-                  <br />
-                  <span className="subtle-id">{item.orderId}</span>
-                </td>
-                <td>
-                  {item.customer.name}
-                  <br />
-                  <span className="subtle-id">
-                    {item.customer.email ?? "No eligible email"}
-                  </span>
-                </td>
-                <td>{formatMoney(item.amountPaise, item.currency)}</td>
-                <td>
-                  <strong>{item.status.replaceAll("_", " ")}</strong>
-                  <br />
-                  <span className="subtle-id">
-                    {item.policyReason ?? "Awaiting merchant selection"}
-                  </span>
-                </td>
-                <td>
-                  {item.status === "OPEN" ? (
-                    <button
-                      className="secondary-action"
-                      disabled={busyId === item.caseId}
-                      onClick={() => void createDraft(item)}
-                      type="button"
-                    >
-                      {busyId === item.caseId ? "Preparing…" : "Prepare email"}
-                    </button>
-                  ) : item.draftBody ? (
-                    <>
-                      <button
-                        className="secondary-action"
-                        onClick={() => void copyDraft(item)}
-                        type="button"
-                      >
-                        {copiedId === item.caseId ? "Copied" : "Copy email"}
-                      </button>
-                      <details>
-                        <summary>Preview draft</summary>
-                        <pre>{item.draftBody}</pre>
-                      </details>
-                    </>
-                  ) : (
-                    <span className="subtle-id">Policy stopped</span>
-                  )}
-                </td>
-              </tr>
+              <MobileDropOffCard
+                busyId={busyId}
+                copiedId={copiedId}
+                error={errorById[item.caseId] ?? null}
+                item={item}
+                key={item.caseId}
+                onCopy={(next) => void copyDraft(next)}
+                onPrepare={(next) => void createDraft(next)}
+              />
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }
