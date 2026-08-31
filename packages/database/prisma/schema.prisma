@@ -369,6 +369,9 @@ model ExtendedRecoveryCase {
   draftSubject   String?
   draftBody      String?
   voiceScript    String?
+  voiceAudio     Bytes?
+  voiceAudioMime String?
+  voiceGeneratedAt DateTime?
   operatorAction String?
   createdAt      DateTime
   updatedAt      DateTime

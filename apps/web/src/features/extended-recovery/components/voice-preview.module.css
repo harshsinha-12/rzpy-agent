@@ -1,0 +1,59 @@
+.wrap {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+.button {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink-strong);
+  color: var(--paper);
+  padding: 0.58rem 0.85rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.button:disabled {
+  opacity: 0.65;
+}
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+.wave i {
+  display: block;
+  width: 3px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 3px;
+}
+.wave.playing i {
+  animation: wave 0.72s ease-in-out infinite alternate;
+}
+.wave.playing i:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.wave.playing i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.wave.playing i:nth-child(4) {
+  animation-delay: 0.16s;
+}
+.wave.playing i:nth-child(5) {
+  animation-delay: 0.32s;
+}
+@keyframes wave {
+  to {
+    height: 16px;
+  }
+}
+.note {
+  color: var(--ink-muted);
+  font-size: 0.64rem;
+}

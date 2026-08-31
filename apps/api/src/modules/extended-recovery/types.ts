@@ -19,12 +19,23 @@ export interface ExtendedRecoveryCaseRecord {
   reference: string;
   status: ExtendedRecoveryStatus;
   voiceScript: string | null;
+  voiceGeneratedAt: Date | null;
+  voiceAudio: Uint8Array | null;
+  voiceAudioMime: string | null;
 }
 
 export interface ExtendedRecoveryRepository {
+  findForVoice(id: string): Promise<ExtendedRecoveryCaseRecord | null>;
+  saveVoice(input: {
+    audio: Uint8Array;
+    id: string;
+    mime: string;
+  }): Promise<void>;
   list(): Promise<ExtendedRecoveryCaseRecord[]>;
 }
 
 export interface ExtendedRecoveryService {
+  generateVoice(id: string): Promise<{ audioUrl: string }>;
+  getVoice(id: string): Promise<{ audio: Uint8Array; mime: string } | null>;
   list(): Promise<{ data: unknown[] }>;
 }

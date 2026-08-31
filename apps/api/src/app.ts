@@ -103,6 +103,7 @@ export async function buildApp(
   );
   const extendedRecoveryService = createExtendedRecoveryService(
     createExtendedRecoveryRepository(database!),
+    env.OPENAI_API_KEY,
   );
   const simulatorService =
     options.simulatorService ??

@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { DataSourceBadge } from "@/components/ui/data-source-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { fetchExtendedRecoveryCases } from "@/features/extended-recovery/fetchers";
+import { VoicePreview } from "@/features/extended-recovery/components/voice-preview";
 import { formatMoney } from "@/lib/formatters";
 
 export const metadata: Metadata = { title: "Recovery workbench" };
@@ -83,10 +84,13 @@ export default async function RecoveryToolsPage() {
                       </details>
                     ) : null}
                     {item.voiceScript ? (
-                      <details>
-                        <summary>Preview Hinglish voice script</summary>
-                        <p>{item.voiceScript}</p>
-                      </details>
+                      <>
+                        <details>
+                          <summary>Preview Hinglish voice script</summary>
+                          <p>{item.voiceScript}</p>
+                        </details>
+                        <VoicePreview caseId={item.publicId} />
+                      </>
                     ) : null}
                     <DataSourceBadge source={item.dataSource} />
                   </td>

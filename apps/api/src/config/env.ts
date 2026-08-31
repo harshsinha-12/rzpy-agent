@@ -42,6 +42,7 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  OPENAI_API_KEY: z.string().default(""),
   RAZORPAY_TEST_MODE_API_KEY: z.string().default(""),
   RAZORPAY_TEST_MODE_SECRET_KEY: z.string().default(""),
   RAZORPAY_WEBHOOK_SECRET: z.string().default(""),
