@@ -9,8 +9,8 @@ Last updated: 2026-08-31
 - **Application code:** Customer-authentication failures now recommend a delayed, silent `CREATE_PAYMENT_LINK`; the case API exposes only HTTPS `rzp.io` short URLs and the detail page renders a Test Mode Payment Link action. The Test Mode demo amount remains 100 paise. The worker reuses one normal ioredis client across its queues and consumers while retaining BullMQ's required blocking duplicates and a separate fail-fast health client.
 - **Runtime services:** The connection-sharing repair was pushed as `32c5e17`. API and worker readiness stayed healthy through six rollout-window checks. Redis then reported `maxmemory_policy=noeviction` and 12 connected clients. Production CORS remains exact, and an unsigned webhook request returns `INVALID_WEBHOOK_SIGNATURE`, proving the configured secret is active without exposing it.
 - **Local runtime:** All local RecoveryOS servers are stopped. Ports 3000, 4000, and 4001 were confirmed closed after successful frontend and API verification on 2026-08-27.
-- **Current blocker:** The API's Railway pre-deploy command is still effectively running the one-time `pnpm db:setup`, which reseeded the demo merchant and removed the verified Test Mode case. It must be changed to `pnpm db:migrate` before another evidence-producing payment.
-- **Exact next action:** Set the Railway API Pre-deploy Command to `pnpm db:migrate`, deploy the production seed guard and Payment Link UI, then create one new ₹1 Test Mode failure, wait three minutes, and pay the generated link from the case page.
+- **Current blocker:** Completing the new ₹1 failed checkout and the later Payment Link payment requires interactive Razorpay Test Mode checkout. The current Railway API pre-deploy command is confirmed as `pnpm db:migrate`.
+- **Exact next action:** Create one new ₹1 Test Mode card failure from the deployed checkout, wait for the approved action to execute after three minutes, then pay the generated link from the case page.
 
 ## Step overview
 
@@ -1835,7 +1835,7 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Ran a read-only GPT-5.6 Terra dry run with the corrected context; it proposed `CREATE_PAYMENT_LINK` with a three-minute delay and no fallback.
 - Added typed Payment Link status/short-URL fields to the case API, accepting only HTTPS links on Razorpay's `rzp.io` host.
 - Added an `Open Test Mode Payment Link` action to executed recovery cards so the paid outcome can be completed from the deployed case page.
-- Detected that an API redeploy removed all Test Mode cases and restored exactly seven simulated seed cases, proving the one-time seed command was still running during normal deploys.
+- Detected that the prior Test Mode case disappeared while exactly seven simulated seed cases remained, which is consistent with a demo reset; the cause is unconfirmed because Railway's current API pre-deploy command was already `pnpm db:migrate`.
 - Added a fail-closed production seed guard requiring a one-run `ALLOW_DEMO_RESET=RESET_AURORA_RETAIL` confirmation; normal production deploys remain migration-only.
 
 **Files changed:**
@@ -1870,6 +1870,7 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 - Web lint, TypeScript, focused recovery-action tests (1 file, 2 tests), and production build passed.
 - Database lint and TypeScript checks passed; the focused reset-policy suite passed 3 tests.
 - A production-mode `db:seed` without the explicit reset confirmation exited non-zero before database mutation with the intended guard message.
+- Hosted API and worker readiness are healthy; the case API exposes the new Payment Link fields, the Vercel checkout returns HTTP 200, and the pre-payment baseline is 0 Test Mode cases plus 7 simulated cases.
 
 **Blockers:**
 
