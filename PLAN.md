@@ -584,7 +584,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 23 — Public product landing
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Give a first-time visitor a short, visual explanation of RecoveryOS before they enter the operator product. The page should answer “what is this?” in one screen, then show the recovery loop with compact mockups so a judge or merchant understands the product without reading the repository.
 

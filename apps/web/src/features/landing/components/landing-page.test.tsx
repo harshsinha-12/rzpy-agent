@@ -3,8 +3,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import {
+  finalCallToAction,
   frozenSimulationProof,
   landingHero,
+  operatingLayers,
+  productDifference,
+  recoveryScenarios,
   recoveryLoopStages,
   safetyStrip,
   testModeProof,
@@ -16,8 +20,8 @@ describe("LandingPage", () => {
   it("explains RecoveryOS with CTAs and the six-stage loop", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
-    expect(markup).toContain(landingHero.brand);
-    expect(markup).toContain(landingHero.problem);
+    expect(markup).toContain(landingHero.problemLead);
+    expect(markup).toContain(landingHero.problemEmphasis);
     expect(markup).toContain(landingHero.promise);
     expect(markup).toContain(landingHero.ctaPrimary);
     expect(markup).toContain(landingHero.ctaSecondary);
@@ -28,13 +32,25 @@ describe("LandingPage", () => {
       expect(markup).toContain(stage.title);
     }
 
-    expect(markup).toContain(
-      "Detect → Diagnose → Propose → Guard → Execute → Verify",
-    );
+    for (const difference of productDifference) {
+      expect(markup).toContain(difference.title);
+    }
+
+    for (const layer of operatingLayers) {
+      expect(markup).toContain(layer.title);
+    }
+
+    for (const scenario of recoveryScenarios) {
+      expect(markup).toContain(scenario);
+    }
+
     expect(markup).toContain(safetyStrip.title);
+    expect(markup).toContain(finalCallToAction.title);
     expect(markup).toContain(frozenSimulationProof.label);
-    expect(markup).toContain(testModeProof.label);
+    expect(markup).toContain(testModeProof.label.replaceAll("_", " "));
     expect(markup).toContain(frozenSimulationProof.configurationHash);
+    expect(markup).toContain("No intervention");
+    expect(markup).toContain("Naive immediate retry");
     expect(markup).not.toContain("API live");
     expect(markup).not.toContain("API ready");
     expect(markup).not.toContain("Worker");
