@@ -4,13 +4,13 @@ Last updated: 2026-09-02
 
 ## Current snapshot
 
-- **Current step:** Step 23 — Public product landing (parallel with Steps 17–22 per explicit user direction)
-- **State:** Step 23 landing and documentation work is in progress. `/` is a static marketing landing with marketing chrome; the executive dashboard moved to `/dashboard` under `AppShell`. The README now presents a seven-image product and Test Mode proof sequence using repository-owned captures.
-- **Application code:** Route groups `(marketing)` and `(app)` are in place. `features/landing` owns copy, mockups, CSS-first motion, and tests. Frozen Step 15 `SIMULATED` figures and the ₹1 `RAZORPAY_TEST_MODE` proof appear on the landing with labels. AppShell Overview and About “Review the dashboard” point to `/dashboard`.
+- **Current step:** Steps 21 and 23 — Generated voice proxy repair and public product landing (parallel with Steps 17–22 per explicit user direction)
+- **State:** Step 21 is in progress by explicit user request to route voice generation through the Next.js server boundary. Step 23 landing and documentation work remains in progress.
+- **Application code:** VoicePreview now calls a same-origin Next.js proxy that forwards generation and audio reads to the Railway API, keeping the OpenAI key server-side and rendering recoverable errors instead of an uncaught browser exception. Landing route groups and documentation remain in place.
 - **Runtime services:** Unchanged from prior Step 17 session notes; this session did not redeploy.
-- **Local runtime:** Production web build succeeded with `/` prerendered as static. Interactive browser verification was blocked (port 3000 unavailable / start skipped).
+- **Local runtime:** Web lint, typecheck, the focused voice-proxy tests, and the production build pass. The full web suite has one unrelated AppShell label mismatch (`Dashboard` rendered while the existing test expects `Overview`).
 - **Current blocker for Step 23:** Interactive desktop/mobile viewport verification is still needed before acceptance. Step 17’s email-provider decision remains a separate blocker for that vertical.
-- **Exact next action:** Verify landing → dashboard → Reported Issues interactively on desktop and mobile, then close the remaining Step 23 checks.
+- **Exact next action:** Deploy the web proxy, verify one live voice generation and replay against Railway, then resolve the separate AppShell label test and finish the remaining Step 23 browser checks.
 
 ## Step overview
 
@@ -37,7 +37,7 @@ Last updated: 2026-09-02
 |   18 | Failed-subscription recovery                     | Not started |
 |   19 | B2B receivables human-in-the-loop alerts         | Not started |
 |   20 | Mandate retry sequencing                         | Not started |
-|   21 | Generated voice recovery messages                | Not started |
+|   21 | Generated voice recovery messages                | In progress |
 |   22 | Promise-to-pay and udhaar tracker                | Not started |
 |   23 | Public product landing                           | In progress |
 
@@ -2409,6 +2409,48 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Review the redesigned workbench at the preferred viewport and adjust density only if desired.
+
+### 2026-09-02 — Route voice preview through the Next.js server
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Make voice generation work through the combined Next.js frontend/server pattern without exposing the OpenAI API key in browser code.
+
+**Completed:**
+
+- Added a same-origin Next.js route for both voice generation and stored-audio streaming.
+- Kept OpenAI access, policy enforcement, and PostgreSQL audio persistence in the Railway API.
+- Changed VoicePreview to call the local `/api` route rather than Railway directly.
+- Added recoverable network, API-response, invalid-audio-URL, and playback errors with a visible alert.
+- Added focused proxy tests for generation, MP3 streaming, and an unreachable upstream API.
+
+**Files changed:**
+
+- `apps/web/src/app/api/extended-recovery/[id]/voice/route.ts`
+- `apps/web/src/app/api/extended-recovery/[id]/voice/route.test.ts`
+- `apps/web/src/features/extended-recovery/components/voice-preview.tsx`
+- `apps/web/src/features/extended-recovery/components/voice-preview.module.css`
+- `PLAN.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Focused voice-proxy test — 3 tests passed.
+- Web lint — passed.
+- Web typecheck — passed.
+- Web production build — passed; `/api/extended-recovery/[id]/voice` registered as a dynamic route.
+- Full web test suite — 31 passed and 1 unrelated AppShell test failed because the component renders `Dashboard` while the test expects `Overview`.
+
+**Blockers:**
+
+- The web change has not been deployed and live voice generation/replay has not been verified.
+- Step 21's broader version-history and durable-object-store acceptance work remains open.
+
+**Next action:**
+
+- Deploy the web app, click the Hinglish voice preview against the Railway API, verify generation and cached replay, and record the live result.
 
 ## Session entry template
 

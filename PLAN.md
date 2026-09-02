@@ -536,7 +536,7 @@ This is the binding implementation order for the project. We will complete, veri
 
 ## Step 21 — Generated voice recovery messages
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Generate the outbound recovery call the customer would receive, store it, and let the merchant play it in the product.
 
@@ -546,6 +546,8 @@ This is the binding implementation order for the project. We will complete, veri
 - Script that states the failed amount, the reason-safe next step, and the recovery Payment Link
 - Persistent storage of the audio object plus Postgres metadata (case, language, script, URI, created-by)
 - In-product player so the merchant can hear the message the customer would receive
+- Same-origin Next.js voice proxy so browser code never receives the OpenAI key or depends on cross-origin API access
+- Recoverable loading, playback, and API error states in the voice-preview control
 - Policy check before a voice message is generated or marked ready to send
 - Evaluation of a durable object/blob store for audio; Redis remains job infrastructure only
 

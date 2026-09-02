@@ -1,31 +1,74 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { publicApiUrl } from "@/config/env";
 import styles from "./voice-preview.module.css";
+
+type VoiceResponse = {
+  audioUrl?: unknown;
+  error?: { message?: unknown };
+};
+
+async function readVoiceResponse(response: Response): Promise<VoiceResponse> {
+  try {
+    return (await response.json()) as VoiceResponse;
+  } catch {
+    return {};
+  }
+}
 
 export function VoicePreview({ caseId }: { caseId: string }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   async function play() {
-    let next = url;
-    if (!next) {
-      setBusy(true);
-      const response = await fetch(
-        `${publicApiUrl}/extended-recovery/${caseId}/voice`,
-        { method: "POST" },
+    setError(null);
+
+    try {
+      let next = url;
+      if (!next) {
+        setBusy(true);
+        const response = await fetch(
+          `/api/extended-recovery/${encodeURIComponent(caseId)}/voice`,
+          { method: "POST" },
+        );
+        const body = await readVoiceResponse(response);
+
+        if (!response.ok) {
+          throw new Error(
+            typeof body.error?.message === "string"
+              ? body.error.message
+              : "Voice preview could not be generated.",
+          );
+        }
+        if (typeof body.audioUrl !== "string") {
+          throw new Error("Voice preview returned an invalid audio URL.");
+        }
+
+        next = body.audioUrl;
+        setUrl(next);
+      }
+
+      if (!audio.current) {
+        throw new Error("The audio player is unavailable.");
+      }
+
+      audio.current.src = next;
+      await audio.current.play();
+    } catch (cause) {
+      setPlaying(false);
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Voice preview could not be played.",
       );
-      const body = await response.json();
+    } finally {
       setBusy(false);
-      if (!response.ok) return;
-      next = `${publicApiUrl}${body.audioUrl}`;
-      setUrl(next);
     }
-    audio.current!.src = next;
-    await audio.current!.play();
   }
+
   return (
     <div className={styles.wrap}>
       <audio
@@ -51,6 +94,11 @@ export function VoicePreview({ caseId }: { caseId: string }) {
             : "Play Hinglish voice preview"}
       </button>
       <span className={styles.note}>OpenAI-generated preview · not sent</span>
+      {error ? (
+        <span className={styles.error} role="alert">
+          {error}
+        </span>
+      ) : null}
     </div>
   );
 }
