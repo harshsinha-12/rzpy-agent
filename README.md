@@ -92,6 +92,42 @@ The remaining delivery order is intentionally sequential:
 - A public `/about` page that explains the product, challenge proof, architecture, and AI safety boundary without requiring repository knowledge.
 - A public landing at `/` with a hero, recovery-loop animation, and illustrative product mockups. The executive dashboard lives at `/dashboard`.
 
+## Product screenshots
+
+### 1. Understand the product
+
+The public landing explains the recovery loop before a merchant enters the operator dashboard. The large batch figures are frozen `SIMULATED` evidence; the ₹1 result is separate `RAZORPAY_TEST_MODE` proof.
+
+![RecoveryOS landing page explaining the AI-assisted payment recovery workflow and its simulated versus Test Mode evidence](./docs/screenshots/landing-page.png)
+
+### 2. Find revenue at risk
+
+Reported Issues keeps actual Razorpay Test Mode cases visibly separate from simulated demo records while showing recovery state, proposed action, and deterministic policy decision.
+
+![RecoveryOS Reported Issues table containing clearly labelled Razorpay Test Mode and simulated recovery cases](./docs/screenshots/reported-issues-table.png)
+
+### 3. Inspect the failure
+
+The case view brings the normalized failure, recoverability score, policy-controlled proposal, customer context, and audit evidence into one operator surface. This example is explicitly labelled `RAZORPAY_TEST_MODE`; it is not live merchant revenue.
+
+![RecoveryOS recovery case detail showing a Razorpay Test Mode payment, diagnosis evidence, proposed payment-link action, and customer context](./docs/screenshots/recovery-case-detail.png)
+
+### 4. Review the guarded action
+
+The action record separates the GPT-5.6 Terra proposal from deterministic approval and execution. Here, policy approved one Payment Link and the ₹1 Test Mode recovery subsequently succeeded.
+
+![RecoveryOS action record showing an AI-proposed Payment Link, deterministic policy approval, and a successful Test Mode recovery](./docs/screenshots/policy-approved-recovery-action.png)
+
+### 5. Verify the Razorpay Test Mode outcome
+
+RecoveryOS creates a silent, action-bound Razorpay Test Mode Payment Link. Razorpay's demo bank provides an explicit success/failure control, and the successful ₹1 payment becomes the provider-side outcome used to close the recovery case.
+
+![Razorpay Test Mode Payment Link created for a one-rupee RecoveryOS recovery](./docs/screenshots/razorpay-test-mode-payment-link.png)
+
+![Razorpay Test Mode demo-bank page offering explicit success and failure outcomes](./docs/screenshots/razorpay-test-mode-demo-bank.png)
+
+![Razorpay Test Mode confirmation for the successful one-rupee recovery payment](./docs/screenshots/razorpay-test-mode-payment-success.png)
+
 ## Recovery workflow
 
 ```text

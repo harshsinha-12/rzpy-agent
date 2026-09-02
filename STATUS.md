@@ -1,16 +1,16 @@
 # Project Status
 
-Last updated: 2026-08-31
+Last updated: 2026-09-02
 
 ## Current snapshot
 
 - **Current step:** Step 23 — Public product landing (parallel with Steps 17–22 per explicit user direction)
-- **State:** Step 23 landing implementation is in progress. `/` is a static marketing landing with marketing chrome; the executive dashboard moved to `/dashboard` under `AppShell`. Steps 17–22 continue with another agent and are treated as available product surfaces for linking.
+- **State:** Step 23 landing and documentation work is in progress. `/` is a static marketing landing with marketing chrome; the executive dashboard moved to `/dashboard` under `AppShell`. The README now presents a seven-image product and Test Mode proof sequence using repository-owned captures.
 - **Application code:** Route groups `(marketing)` and `(app)` are in place. `features/landing` owns copy, mockups, CSS-first motion, and tests. Frozen Step 15 `SIMULATED` figures and the ₹1 `RAZORPAY_TEST_MODE` proof appear on the landing with labels. AppShell Overview and About “Review the dashboard” point to `/dashboard`.
 - **Runtime services:** Unchanged from prior Step 17 session notes; this session did not redeploy.
 - **Local runtime:** Production web build succeeded with `/` prerendered as static. Interactive browser verification was blocked (port 3000 unavailable / start skipped).
-- **Current blocker for Step 23:** Browser viewport verification (desktop + mobile) still needed before acceptance. Step 17’s email-provider decision remains a separate blocker for that vertical.
-- **Exact next action:** Visually verify landing → dashboard → Reported Issues in the browser on desktop and a mobile viewport, then mark Step 23 complete after acceptance checks pass.
+- **Current blocker for Step 23:** Interactive desktop/mobile viewport verification is still needed before acceptance. Step 17’s email-provider decision remains a separate blocker for that vertical.
+- **Exact next action:** Verify landing → dashboard → Reported Issues interactively on desktop and mobile, then close the remaining Step 23 checks.
 
 ## Step overview
 
@@ -2297,6 +2297,118 @@ Append one entry per agent session. Do not rewrite older entries except to corre
 **Next action:**
 
 - Start the web app, verify the landing visually on desktop and mobile, confirm CTA paths, then close Step 23 acceptance.
+
+### 2026-09-02 — Add product screenshots to README
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Take product screenshots similar to the supplied recovery-case view and add them to the README.
+
+**Completed:**
+
+- Added the supplied 2774×1644 recovery-case capture as a repository-owned screenshot.
+- Added a Product screenshots section to the README with descriptive alt text and an explicit `RAZORPAY_TEST_MODE` evidence boundary.
+- Added the README screenshot gallery to the active Step 23 deliverables and acceptance checks.
+
+**Files changed:**
+
+- `docs/screenshots/recovery-case-detail.png`
+- `README.md`
+- `PLAN.md`
+- `STATUS.md`
+
+**Validation:**
+
+- `pnpm format:check` — passed before the documentation edit.
+- `pnpm lint` — passed.
+- `pnpm typecheck` — passed.
+- `pnpm build` — passed; `/` remained statically generated.
+- `pnpm test` — package tests passed through web and agent suites, then the database suite could not reach the configured Aiven PostgreSQL host; database-backed tests remain unverified in this session.
+
+**Blockers:**
+
+- No browser was available to capture the landing, dashboard, and Reported Issues views. Only the user-supplied recovery-case screenshot was added.
+
+**Next action:**
+
+- Connect a browser, capture the remaining three product views at a consistent desktop viewport, add them to the README gallery, and verify the rendered image links.
+
+### 2026-09-02 — Curate the complete README screenshot story
+
+**Agent:** Codex
+
+**Requested outcome:**
+
+- Inspect the newly supplied screenshots, identify their context, and use them in the README.
+
+**Completed:**
+
+- Identified six new captures as the landing, Reported Issues table, guarded recovery action, Razorpay Test Mode Payment Link, Razorpay demo-bank decision page, and successful Test Mode payment.
+- Renamed the timestamped files to stable descriptive asset names.
+- Expanded the README gallery into an ordered seven-image story from product introduction through provider-verified recovery.
+- Kept simulated batch evidence and Razorpay Test Mode proof explicitly distinguished in the captions.
+
+**Files changed:**
+
+- `docs/screenshots/landing-page.png`
+- `docs/screenshots/reported-issues-table.png`
+- `docs/screenshots/recovery-case-detail.png`
+- `docs/screenshots/policy-approved-recovery-action.png`
+- `docs/screenshots/razorpay-test-mode-payment-link.png`
+- `docs/screenshots/razorpay-test-mode-demo-bank.png`
+- `docs/screenshots/razorpay-test-mode-payment-success.png`
+- `README.md`
+- `STATUS.md`
+
+**Validation:**
+
+- Visually inspected all six new captures and confirmed their product-flow context.
+- Confirmed every README image target exists and is non-empty.
+- Markdown formatting and Git whitespace checks passed.
+
+**Blockers:**
+
+- Interactive desktop/mobile route verification remains separate from this supplied-screenshot review.
+
+**Next action:**
+
+- Verify the README rendering and landing → dashboard → Reported Issues interaction in a connected browser at desktop and mobile widths.
+
+### 2026-09-02 — Recovery workbench UI repair
+
+**Agent:** GPT-5.6 Sol
+
+**Requested outcome:** Fix the compressed, unstructured Recovery workbench UI.
+
+**Completed:**
+
+- Replaced the unstyled six-column table with responsive recovery case cards.
+- Added workflow and draft-ready summary metrics, structured case facts, policy-safe next-step panels, expandable email/voice previews, and explicit preview-only safety labels.
+- Added track-specific accents and single-column mobile behavior.
+- Corrected the voice preview button foreground token.
+
+**Files changed:**
+
+- `apps/web/src/app/(app)/recovery-tools/page.tsx`
+- `apps/web/src/features/extended-recovery/components/recovery-workbench.tsx`
+- `apps/web/src/features/extended-recovery/components/recovery-workbench.module.css`
+- `apps/web/src/features/extended-recovery/components/voice-preview.module.css`
+
+**Validation:**
+
+- Web lint, typecheck, and all 29 web tests passed.
+- Web production build passed.
+- `/recovery-tools` loaded successfully with both seeded workflows and accessible preview controls.
+
+**Blockers:**
+
+- None for this UI repair.
+
+**Next action:**
+
+- Review the redesigned workbench at the preferred viewport and adjust density only if desired.
 
 ## Session entry template
 

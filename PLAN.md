@@ -612,6 +612,7 @@ This is the binding implementation order for the project. We will complete, veri
 - CSS-first motion: hero entrance, staged loop highlight, and mockup reveal on scroll. Honor `prefers-reduced-motion: reduce` with a static layout. Do not add a new animation library unless CSS cannot deliver the sequence.
 - Keep the existing cream, navy, editorial-serif, cobalt visual system. The landing should feel like RecoveryOS, not a second product skin.
 - Update `AppShell`, About dashboard links, README product surfaces, DEMO_SCRIPT opener, `PROJECT_STRUCTURE.md`, and local/hosted route tables so `/dashboard` is the operator home.
+- Add a concise README screenshot gallery using real rendered product captures with descriptive alt text and explicit data-source labelling.
 
 **Acceptance gate:**
 
@@ -623,6 +624,7 @@ This is the binding implementation order for the project. We will complete, veri
 - Desktop and a representative mobile viewport are verified in the browser, including the hero CTAs and the path from landing → dashboard → Reported Issues.
 - Focused component tests cover landing copy, CTAs, dashboard relocation, and the absence of operator health links on `/`.
 - Web lint, typecheck, and production build succeed; `/` is statically generated.
+- README screenshots render from repository-owned assets and do not expose secrets or unlabeled live merchant data.
 
 ---
 

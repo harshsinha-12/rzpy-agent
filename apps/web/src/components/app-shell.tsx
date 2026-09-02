@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav aria-label="Primary navigation" className={styles.nav}>
             <Link className={styles.navLink} href="/dashboard">
-              Overview
+              Dashboard
             </Link>
             <Link className={styles.navLink} href="/recoveries">
               Reported issues
